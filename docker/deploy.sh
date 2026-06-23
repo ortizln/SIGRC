@@ -34,7 +34,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 command -v docker >/dev/null 2>&1 || error "Docker no está instalado"
-command -v docker-compose >/dev/null 2>&1 || command -v docker >/dev/null 2>&1 || error "Docker Compose no está instalado"
+( docker compose version >/dev/null 2>&1 || command -v docker-compose >/dev/null 2>&1 ) || error "Docker Compose no está instalado"
 
 if [[ -n "$ENV_FILE" ]]; then
   [[ -f "$ENV_FILE" ]] || error "Archivo .env no encontrado: $ENV_FILE"
@@ -52,13 +52,13 @@ if [[ ! -d "$UPLOAD_DIR" ]]; then
 fi
 
 info "Deteniendo contenedores existentes..."
-docker-compose -f docker/docker-compose.yml down --remove-orphans || true
+docker compose -f docker/docker-compose.yml down --remove-orphans || true
 
 info "Construyendo imagen del backend..."
-docker-compose -f docker/docker-compose.yml build --no-cache
+docker compose -f docker/docker-compose.yml build --no-cache
 
 info "Iniciando backend..."
-docker-compose -f docker/docker-compose.yml up -d
+docker compose -f docker/docker-compose.yml up -d
 
 info "Esperando a que el backend esté listo..."
 for i in $(seq 1 30); do
@@ -82,4 +82,4 @@ echo "  Para construir el frontend ejecute:"
 echo "    cd docker && ./build-frontend.sh [--subdir]"
 echo ""
 
-docker-compose -f docker/docker-compose.yml logs --tail=20
+docker compose -f docker/docker-compose.yml logs --tail=20
