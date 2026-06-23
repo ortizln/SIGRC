@@ -42,7 +42,7 @@ if [[ -n "$ENV_FILE" ]]; then
   info "Variables cargadas desde $ENV_FILE"
 fi
 
-export CORS_ORIGINS="${CORS_ORIGINS:-http://192.168.100.116}"
+export CORS_ORIGINS="${CORS_ORIGINS:-http://192.168.100.115}"
 
 UPLOAD_DIR="${UPLOAD_PATH:-/data/sigrc/uploads}"
 if [[ ! -d "$UPLOAD_DIR" ]]; then
@@ -75,7 +75,7 @@ done
 echo ""
 info "=== Despliegue completado ==="
 echo ""
-echo "  Backend API: http://192.168.100.116:8080/api/v1/"
+echo "  Backend API: http://192.168.100.115:8080/api/v1/"
 echo "  DB Host:     ${DATABASE_HOST:-host.docker.internal}:${DATABASE_PORT:-5432}"
 echo ""
 echo "  Para construir el frontend ejecute:"
