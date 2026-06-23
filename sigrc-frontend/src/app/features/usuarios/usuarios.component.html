@@ -1,0 +1,135 @@
+<div class="container-fluid px-0" style="max-width:1200px;">
+  <div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+      <h2>Usuarios del Sistema</h2>
+      <p>Gestión de usuarios, roles y permisos del sistema SIGRC</p>
+    </div>
+    <button class="btn btn-primary btn-sm" *ngIf="auth.hasRole('ADMIN')" (click)="abrirFormulario()">
+      <span>+</span> Nuevo Usuario
+    </button>
+  </div>
+
+  <!-- Tabla -->
+  <div class="card-modern p-0 animate-fade-in" *ngIf="!formVisible">
+    <div class="table-responsive">
+      <table class="table-modern">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Área</th>
+            <th>Cargo</th>
+            <th>Estado</th>
+            <th *ngIf="auth.hasRole('ADMIN')">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let u of usuarios" class="animate-fade-in">
+            <td><code>{{ u.username }}</code></td>
+            <td><span class="fw-medium">{{ u.nombreCompleto }}</span></td>
+            <td class="text-muted" style="font-size:0.78rem;">{{ u.email }}</td>
+            <td><span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1" style="font-size:0.7rem;font-weight:600;">{{ u.rolNombre }}</span></td>
+            <td class="text-muted">{{ u.areaNombre || '—' }}</td>
+            <td>{{ u.cargo || '—' }}</td>
+            <td>
+              <span class="badge rounded-pill" [class]="u.activo ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'" style="font-size:0.7rem;">
+                {{ u.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td *ngIf="auth.hasRole('ADMIN')">
+              <div class="quick-actions">
+                <button class="btn btn-soft-primary btn-xs" (click)="editar(u)" title="Editar usuario">✎</button>
+                <button class="btn btn-soft-primary btn-xs text-danger" *ngIf="u.activo" (click)="eliminar(u)" title="Desactivar usuario">✕</button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="usuarios.length === 0">
+            <td colspan="8" class="empty-state">
+              <div class="empty-icon">👥</div>
+              <h5>No hay usuarios registrados</h5>
+              <p *ngIf="auth.hasRole('ADMIN')">Presione "+ Nuevo Usuario" para crear el primer usuario</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="card-modern p-4 animate-fade-in" *ngIf="formVisible" style="max-width:740px;">
+    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+      <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;font-size:1rem;">{{ editando ? '✎' : '+' }}</span>
+      <h5 class="fw-bold mb-0">{{ editando ? 'Editar Usuario' : 'Nuevo Usuario' }}</h5>
+    </div>
+
+    <form (ngSubmit)="guardar()" #usuarioForm="ngForm">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Username <span class="text-danger">*</span><span class="help-tip ms-1" title="Nombre único de usuario para inicio de sesión">?</span></label>
+          <input #unModel="ngModel" [(ngModel)]="form.username" name="username" required class="form-control" [class.is-invalid]="unModel.invalid && unModel.touched" placeholder="ej: jperez">
+          <div class="validation-feedback" *ngIf="unModel.invalid && unModel.touched">El username es obligatorio</div>
+          <div class="form-text">Nombre de usuario único. Sin espacios</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Nombres <span class="text-danger">*</span><span class="help-tip ms-1" title="Nombres completos del usuario">?</span></label>
+          <input #nomModel="ngModel" [(ngModel)]="form.nombres" name="nombres" required class="form-control" [class.is-invalid]="nomModel.invalid && nomModel.touched" placeholder="Juan Alberto">
+          <div class="validation-feedback" *ngIf="nomModel.invalid && nomModel.touched">Los nombres son obligatorios</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Apellidos <span class="text-danger">*</span></label>
+          <input #apeModel="ngModel" [(ngModel)]="form.apellidos" name="apellidos" required class="form-control" [class.is-invalid]="apeModel.invalid && apeModel.touched" placeholder="Pérez García">
+          <div class="validation-feedback" *ngIf="apeModel.invalid && apeModel.touched">Los apellidos son obligatorios</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email <span class="text-danger">*</span><span class="help-tip ms-1" title="Correo electrónico institucional">?</span></label>
+          <input #emailModel="ngModel" [(ngModel)]="form.email" name="email" type="email" required class="form-control" [class.is-invalid]="emailModel.invalid && emailModel.touched" placeholder="juan.perez@epmapa.gob.ec">
+          <div class="validation-feedback" *ngIf="emailModel.invalid && emailModel.touched">
+            <span *ngIf="emailModel.errors?.['required']">El email es obligatorio</span>
+            <span *ngIf="emailModel.errors?.['email']">Ingrese un correo válido</span>
+          </div>
+          <div class="form-text">Correo institucional. Se usará para notificaciones</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Contraseña {{ editando ? '(dejar vacío)' : '*' }}<span class="help-tip ms-1" title="{{ editando ? 'Dejar vacío para mantener la actual' : 'Contraseña de acceso al sistema' }}">?</span></label>
+          <input #passModel="ngModel" [(ngModel)]="form.password" name="password" type="password" [required]="!editando" class="form-control" [class.is-invalid]="(passModel.invalid && passModel.touched) || (!editando && passModel.invalid && passModel.touched)" placeholder="••••••••" minlength="6">
+          <div class="validation-feedback" *ngIf="passModel.invalid && passModel.touched && !editando">Mínimo 6 caracteres</div>
+          <div class="form-text">{{ editando ? 'Solo si desea cambiar la contraseña' : 'Mínimo 6 caracteres' }}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Rol <span class="text-danger">*</span><span class="help-tip ms-1" title="Rol que determina los permisos del usuario">?</span></label>
+          <select #rolModel="ngModel" [(ngModel)]="form.rolCodigo" name="rol" required class="form-select" [class.is-invalid]="rolModel.invalid && rolModel.touched">
+            <option value="">Seleccionar...</option>
+            <option *ngFor="let r of roles" [value]="r.codigo">{{ r.nombre }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="rolModel.invalid && rolModel.touched">Seleccione un rol</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Área<span class="help-tip ms-1" title="Área institucional a la que pertenece">?</span></label>
+          <select [(ngModel)]="form.idArea" name="area" class="form-select">
+            <option [ngValue]="null">Sin área</option>
+            <option *ngFor="let a of areas" [value]="a.idArea">{{ a.nombre }}</option>
+          </select>
+          <div class="form-text">Área a la que pertenece el usuario</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Cargo</label>
+          <input [(ngModel)]="form.cargo" name="cargo" class="form-control" placeholder="Ej: Analista TI">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Teléfono<span class="help-tip ms-1" title="Número de contacto telefónico">?</span></label>
+          <input [(ngModel)]="form.telefono" name="telefono" class="form-control" placeholder="0999999999">
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+        <button type="button" class="btn btn-outline-secondary" (click)="cancelar()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="cargando || usuarioForm.invalid && usuarioForm.touched">
+          <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+          {{ cargando ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

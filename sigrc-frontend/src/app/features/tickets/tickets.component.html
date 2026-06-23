@@ -1,0 +1,116 @@
+<div class="container-fluid px-0" style="max-width:1400px;">
+  <div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+      <h2>Gestión de Tickets</h2>
+      <p>Incidentes, requerimientos, mejoras, cambios y consultas</p>
+    </div>
+    <a routerLink="/tickets/nuevo" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+      <span>+</span> Nuevo Ticket
+    </a>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card-modern p-3 mb-3 animate-fade-in">
+    <div class="row g-2">
+      <div class="col-md-3">
+        <label class="form-label mb-1" style="font-size:0.72rem;">Buscar</label>
+        <input [(ngModel)]="filtros.texto" placeholder="Buscar por asunto o número..." class="form-control form-control-sm" (input)="buscar()">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label mb-1" style="font-size:0.72rem;">Estado</label>
+        <select [(ngModel)]="filtros.estado" class="form-select form-select-sm" (change)="buscar()">
+          <option value="">Todos los estados</option>
+          <option value="NUEVO">Nuevo</option>
+          <option value="ASIGNADO">Asignado</option>
+          <option value="EN_ANALISIS">En Análisis</option>
+          <option value="EN_DESARROLLO">En Desarrollo</option>
+          <option value="EN_PRUEBAS">En Pruebas</option>
+          <option value="PENDIENTE_USUARIO">Pendiente Usuario</option>
+          <option value="RESUELTO">Resuelto</option>
+          <option value="CERRADO">Cerrado</option>
+          <option value="RECHAZADO">Rechazado</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label mb-1" style="font-size:0.72rem;">Tipo</label>
+        <select [(ngModel)]="filtros.tipo" class="form-select form-select-sm" (change)="buscar()">
+          <option value="">Todos los tipos</option>
+          <option value="INCIDENTE">Incidente</option>
+          <option value="REQUERIMIENTO">Requerimiento</option>
+          <option value="MEJORA">Mejora</option>
+          <option value="CAMBIO">Cambio</option>
+          <option value="CONSULTA">Consulta</option>
+          <option value="PROBLEMA">Problema</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label mb-1" style="font-size:0.72rem;">Prioridad</label>
+        <select [(ngModel)]="filtros.prioridad" class="form-select form-select-sm" (change)="buscar()">
+          <option value="">Todas las prioridades</option>
+          <option value="CRITICA">Crítica</option>
+          <option value="ALTA">Alta</option>
+          <option value="MEDIA">Media</option>
+          <option value="BAJA">Baja</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="card-modern p-0 animate-fade-in">
+    <div class="table-responsive">
+      <table class="table-modern">
+        <thead>
+          <tr>
+            <th>Ticket</th>
+            <th>Asunto</th>
+            <th>Solicitante</th>
+            <th>Área</th>
+            <th>Estado</th>
+            <th>Prioridad</th>
+            <th>Tipo</th>
+            <th>Responsable</th>
+            <th>Creado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of tickets" class="animate-fade-in">
+            <td><code class="fw-bold" style="color:var(--primary);">{{ t.numeroTicket }}</code></td>
+            <td style="max-width:200px;">
+              <span class="text-truncate d-inline-block" style="max-width:200px;">{{ t.asunto }}</span>
+            </td>
+            <td class="small">{{ t.solicitanteNombre }}</td>
+            <td class="text-muted small">{{ t.areaNombre }}</td>
+            <td>
+              <span class="badge-estado" [class]="'badge-' + t.estado.toLowerCase().replace('_','-')">{{ t.estadoDisplay }}</span>
+            </td>
+            <td>
+              <span class="fw-semibold" [class.text-danger]="t.prioridad==='CRITICA'" [class.text-warning]="t.prioridad==='ALTA'" [class.text-primary]="t.prioridad==='MEDIA'" [class.text-success]="t.prioridad==='BAJA'" style="font-size:0.78rem;">
+                {{ t.prioridad }}
+              </span>
+            </td>
+            <td class="small text-muted">{{ t.tipo }}</td>
+            <td class="small">{{ t.responsableNombre || '—' }}</td>
+            <td class="text-muted small">{{ t.creadoEn | date:'dd/MM/yy' }}</td>
+            <td><a [routerLink]="['/tickets', t.idTicket]" class="btn btn-soft-primary btn-xs">Ver</a></td>
+          </tr>
+          <tr *ngIf="(!tickets || tickets.length === 0)">
+            <td colspan="10" class="empty-state">
+              <div class="empty-icon">🎫</div>
+              <h5>No se encontraron tickets</h5>
+              <p>Intente ajustar los filtros o <a routerLink="/tickets/nuevo">cree un nuevo ticket</a></p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="d-flex justify-content-center align-items-center gap-3 p-3 border-top" *ngIf="pagina.totalPaginas > 1">
+      <button class="btn btn-outline-secondary btn-sm" [disabled]="pagina.primera" (click)="irPagina(pagina.pagina - 1)">« Anterior</button>
+      <span class="small text-muted">Pág. {{ pagina.pagina + 1 }} de {{ pagina.totalPaginas }}</span>
+      <button class="btn btn-outline-secondary btn-sm" [disabled]="pagina.ultima" (click)="irPagina(pagina.pagina + 1)">Siguiente »</button>
+    </div>
+  </div>
+</div>

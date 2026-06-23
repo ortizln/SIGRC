@@ -1,0 +1,42 @@
+# --- Dependencias y build ---
+sigrc-frontend/node_modules/
+sigrc-frontend/dist/
+sigrc-frontend/.angular/
+sigrc-backend/target/
+sigrc-backend/*.jar
+sigrc-backend/*.war
+
+# --- Archivos pesados del sistema ---
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- IDE ---
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# --- Entorno y secretos ---
+.env
+!.env.example
+
+# --- Uploads locales ---
+uploads/
+/data/
+
+# --- Base de datos local ---
+*.sqlite
+*.db
+
+# --- Docker (cachés al construir) ---
+docker/volumes/

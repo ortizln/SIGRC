@@ -1,0 +1,142 @@
+<div class="container-fluid px-0" style="max-width:1200px;">
+  <div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+      <h2>Versiones de Sistemas</h2>
+      <p>Registro y control de versiones de los sistemas institucionales</p>
+    </div>
+    <button class="btn btn-primary btn-sm" *ngIf="puedeEditar" (click)="abrirFormulario()">
+      <span>+</span> Nueva Versión
+    </button>
+  </div>
+
+  <!-- Tabla -->
+  <div class="card-modern p-0 animate-fade-in" *ngIf="!formVisible">
+    <div class="table-responsive">
+      <table class="table-modern">
+        <thead>
+          <tr>
+            <th>Versión</th>
+            <th>Sistema</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Ambiente</th>
+            <th>Responsable</th>
+            <th>Despliegue</th>
+            <th *ngIf="puedeEditar">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let v of versiones" class="animate-fade-in">
+            <td><code class="fw-bold">{{ v.version }}</code></td>
+            <td>{{ v.nombreSistema }}</td>
+            <td><span class="badge rounded-pill bg-info bg-opacity-10 text-info px-2 py-1" style="font-size:0.7rem;">{{ v.tipo }}</span></td>
+            <td><span class="badge rounded-pill" [class]="estadoClass(v.estado)" style="font-size:0.7rem;">{{ v.estado }}</span></td>
+            <td class="text-muted">{{ v.ambiente }}</td>
+            <td>{{ v.nombreResponsable }}</td>
+            <td class="text-muted" style="font-size:0.76rem;">{{ v.fechaDespliegue ? (v.fechaDespliegue | date:'short') : '—' }}</td>
+            <td *ngIf="puedeEditar">
+              <div class="quick-actions">
+                <button class="btn btn-soft-primary btn-xs" (click)="editar(v)" title="Editar versión">✎</button>
+                <button class="btn btn-soft-primary btn-xs text-danger" *ngIf="v.activo" (click)="eliminar(v)" title="Desactivar versión">✕</button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="versiones.length === 0">
+            <td colspan="8" class="empty-state">
+              <div class="empty-icon">📦</div>
+              <h5>No hay versiones registradas</h5>
+              <p *ngIf="puedeEditar">Presione "+ Nueva Versión" para registrar la primera versión</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="card-modern p-4 animate-fade-in" *ngIf="formVisible" style="max-width:850px;">
+    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+      <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;font-size:1rem;">{{ editando ? '✎' : '+' }}</span>
+      <h5 class="fw-bold mb-0">{{ editando ? 'Editar Versión' : 'Nueva Versión' }}</h5>
+    </div>
+
+    <form (ngSubmit)="guardar()" #versionForm="ngForm">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Versión <span class="text-danger">*</span><span class="help-tip ms-1" title="Identificador semántico de la versión (ej: 2.1.0)">?</span></label>
+          <input #verModel="ngModel" [(ngModel)]="form.version" name="version" [readonly]="editando" required class="form-control" [class.is-invalid]="verModel.invalid && verModel.touched" placeholder="1.0.0">
+          <div class="validation-feedback" *ngIf="verModel.invalid && verModel.touched">La versión es obligatoria</div>
+          <div class="form-text">Formato: <code>MAYOR.MENOR.PARCHE</code> (ej: 2.1.0)</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Sistema <span class="text-danger">*</span><span class="help-tip ms-1" title="Sistema al que pertenece esta versión">?</span></label>
+          <select #sisModel="ngModel" [(ngModel)]="form.idSistema" name="sistema" required class="form-select" [class.is-invalid]="sisModel.invalid && sisModel.touched">
+            <option value="">Seleccionar...</option>
+            <option *ngFor="let s of sistemas" [value]="s.idSistema">{{ s.nombre }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="sisModel.invalid && sisModel.touched">Seleccione el sistema</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Tipo <span class="text-danger">*</span><span class="help-tip ms-1" title="Tipo de versión según el impacto del cambio">?</span></label>
+          <select #tipoVerModel="ngModel" [(ngModel)]="form.tipo" name="tipo" required class="form-select" [class.is-invalid]="tipoVerModel.invalid && tipoVerModel.touched">
+            <option value="">Seleccionar...</option>
+            <option value="MAYOR">Mayor</option>
+            <option value="MENOR">Menor</option>
+            <option value="PARCHE">Parche</option>
+            <option value="HOTFIX">Hotfix</option>
+          </select>
+          <div class="validation-feedback" *ngIf="tipoVerModel.invalid && tipoVerModel.touched">Seleccione el tipo</div>
+          <div class="form-text"><code>MAYOR</code> cambios grandes · <code>MENOR</code> nuevas funciones · <code>PARCHE</code> correcciones · <code>HOTFIX</code> urgente</div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Estado</label>
+          <select [(ngModel)]="form.estado" name="estado" class="form-select">
+            <option value="PENDIENTE">Pendiente</option>
+            <option value="EN_DESARROLLO">En Desarrollo</option>
+            <option value="EN_PRUEBAS">En Pruebas</option>
+            <option value="DESPLEGADO">Desplegado</option>
+            <option value="REVERTIDO">Revertido</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Ambiente</label>
+          <select [(ngModel)]="form.ambiente" name="ambiente" class="form-select">
+            <option value="PRODUCCION">Producción</option>
+            <option value="PRUEBAS">Pruebas</option>
+            <option value="DESARROLLO">Desarrollo</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Responsable <span class="text-danger">*</span><span class="help-tip ms-1" title="Persona responsable de esta versión">?</span></label>
+          <select #respModel="ngModel" [(ngModel)]="form.idResponsable" name="responsable" required class="form-select" [class.is-invalid]="respModel.invalid && respModel.touched">
+            <option value="">Seleccionar...</option>
+            <option *ngFor="let u of usuarios" [value]="u.idUsuario">{{ u.nombreCompleto }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="respModel.invalid && respModel.touched">Seleccione el responsable</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Fecha de Despliegue<span class="help-tip ms-1" title="Fecha y hora programada para el despliegue">?</span></label>
+          <input [(ngModel)]="form.fechaDespliegue" name="fechaDespliegue" type="datetime-local" class="form-control">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Descripción <span class="text-danger">*</span><span class="help-tip ms-1" title="Descripción de los cambios incluidos en esta versión">?</span></label>
+          <textarea #descVerModel="ngModel" [(ngModel)]="form.descripcion" name="descripcion" required class="form-control" [class.is-invalid]="descVerModel.invalid && descVerModel.touched" style="min-height:90px;resize:vertical;"></textarea>
+          <div class="validation-feedback" *ngIf="descVerModel.invalid && descVerModel.touched">La descripción es obligatoria</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Notas de Liberación<span class="help-tip ms-1" title="Notas técnicas detalladas de la liberación">?</span></label>
+          <textarea [(ngModel)]="form.notasLiberacion" name="notasLiberacion" class="form-control" style="min-height:90px;resize:vertical;" placeholder="Cambios incluidos, instrucciones de actualización, dependencias..."></textarea>
+          <div class="form-text">Información técnica relevante para el despliegue</div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+        <button type="button" class="btn btn-outline-secondary" (click)="cancelar()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="cargando || (versionForm.invalid && versionForm.touched)">
+          <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+          {{ cargando ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

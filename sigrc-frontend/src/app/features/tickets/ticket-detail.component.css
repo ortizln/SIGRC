@@ -1,0 +1,10 @@
+.adjunto-link {
+  background: var(--bg-subtle, #f8f9fa);
+  border: 1px solid var(--border-color, #dee2e6);
+  transition: border-color 0.2s, background 0.2s;
+  max-width: 240px;
+}
+.adjunto-link:hover {
+  border-color: var(--primary, #0d6efd);
+  background: rgba(13, 110, 253, 0.04);
+}

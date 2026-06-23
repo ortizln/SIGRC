@@ -1,0 +1,138 @@
+<div class="container-fluid px-0" style="max-width:1300px;" *ngIf="ticket">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <a routerLink="/tickets" class="text-decoration-none small fw-medium d-inline-flex align-items-center gap-1" style="color:var(--primary);">
+          <span>←</span> Tickets
+        </a>
+        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 font-monospace">{{ ticket.numeroTicket }}</span>
+      </div>
+      <h2 class="fs-5 fw-bold mb-0" style="color:var(--text-color);">{{ ticket.asunto }}</h2>
+    </div>
+    <div class="d-flex gap-2 align-items-center" *ngIf="puedeCambiarEstado()">
+      <select [(ngModel)]="nuevoEstado" class="form-select form-select-sm" style="width:auto;">
+        <option value="">Cambiar estado...</option>
+        <option *ngFor="let e of estados" [value]="e.value">{{ e.label }}</option>
+      </select>
+      <button class="btn btn-soft-primary btn-sm" (click)="actualizarEstado()" *ngIf="nuevoEstado" [disabled]="!nuevoEstado">Actualizar</button>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- Info principal -->
+    <div class="col-md-8">
+      <div class="card-modern p-4 animate-fade-in">
+        <div class="row g-3">
+          <div class="col-4">
+            <div class="small text-uppercase fw-semibold text-muted" style="font-size:0.68rem;letter-spacing:0.04em;">Estado</div>
+            <span class="badge-estado mt-1" [class]="'badge-' + ticket.estado.toLowerCase().replace('_','-')">{{ ticket.estadoDisplay }}</span>
+          </div>
+          <div class="col-4">
+            <div class="small text-uppercase fw-semibold text-muted" style="font-size:0.68rem;letter-spacing:0.04em;">Prioridad</div>
+            <span class="fw-bold" style="font-size:0.85rem;">{{ ticket.prioridad }}</span>
+          </div>
+          <div class="col-4">
+            <div class="small text-uppercase fw-semibold text-muted" style="font-size:0.68rem;letter-spacing:0.04em;">Tipo</div>
+            <span>{{ ticket.tipo }}</span>
+          </div>
+          <div class="col-4">
+            <div class="small text-uppercase fw-semibold text-muted" style="font-size:0.68rem;letter-spacing:0.04em;">Solicitante</div>
+            <span class="fw-medium">{{ ticket.solicitanteNombre }}</span>
+          </div>
+          <div class="col-4">
+            <div class="small text-uppercase fw-semibold text-muted" style="font-size:0.68rem;letter-spacing:0.04em;">Área</div>
+            <span>{{ ticket.areaNombre }}</span>
+          </div>
+          <div class="col-4">
+            <div class="small text-uppercase fw-semibold text-muted" style="font-size:0.68rem;letter-spacing:0.04em;">Responsable</div>
+            <span>{{ ticket.responsableNombre || 'Sin asignar' }}</span>
+          </div>
+          <div class="col-4">
+            <div class="small text-uppercase fw-semibold text-muted" style="font-size:0.68rem;letter-spacing:0.04em;">Sistema</div>
+            <span class="text-muted">{{ ticket.sistemaNombre || '—' }}</span>
+          </div>
+          <div class="col-4">
+            <div class="small text-uppercase fw-semibold text-muted" style="font-size:0.68rem;letter-spacing:0.04em;">Categoría</div>
+            <span class="text-muted">{{ ticket.categoriaNombre || '—' }}</span>
+          </div>
+          <div class="col-4">
+            <div class="small text-uppercase fw-semibold text-muted" style="font-size:0.68rem;letter-spacing:0.04em;">Creado</div>
+            <span>{{ ticket.creadoEn | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="col-4">
+            <div class="small text-uppercase fw-semibold text-muted" style="font-size:0.68rem;letter-spacing:0.04em;">Fecha Límite</div>
+            <span>{{ (ticket.fechaLimite | date:'dd/MM/yyyy') || '—' }}</span>
+          </div>
+          <div class="col-4" *ngIf="ticket.fechaCierre">
+            <div class="small text-uppercase fw-semibold text-muted" style="font-size:0.68rem;letter-spacing:0.04em;">Fecha Cierre</div>
+            <span>{{ ticket.fechaCierre | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+
+        <hr class="my-3">
+        <h6 class="fw-bold mb-2">Descripción</h6>
+        <p style="white-space:pre-wrap;line-height:1.7;font-size:0.85rem;">{{ ticket.descripcion }}</p>
+
+        <div *ngIf="adjuntos.length > 0">
+          <hr>
+          <h6 class="fw-bold mb-2">Adjuntos ({{ adjuntos.length }})</h6>
+          <div class="d-flex flex-wrap gap-2">
+            <a *ngFor="let a of adjuntos"
+               [href]="descargarUrl(a)"
+               target="_blank"
+               class="adjunto-link d-flex align-items-center gap-2 px-3 py-2 rounded text-decoration-none">
+              <span *ngIf="esImagen(a)">🖼️</span>
+              <span *ngIf="!esImagen(a)">📎</span>
+              <div class="d-flex flex-column">
+                <span class="small fw-medium">{{ a.nombreOriginal }}</span>
+                <small class="text-muted">{{ tamanoFormateado(a.tamanoBytes) }}</small>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div *ngIf="ticket.solucion">
+          <hr>
+          <h6 class="fw-bold mb-2 text-success">Solución</h6>
+          <p style="white-space:pre-wrap;line-height:1.7;font-size:0.85rem;" class="text-success-emphasis">{{ ticket.solucion }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comentarios -->
+    <div class="col-md-4">
+      <div class="card-modern p-4 animate-fade-in">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <span>💬</span> Comentarios
+          <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill ms-auto">{{ comentarios.length }}</span>
+        </h6>
+
+        <div class="d-flex flex-column gap-3 mb-3" style="max-height:420px;overflow-y:auto;">
+          <div *ngFor="let c of comentarios" class="pb-2 border-bottom">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <strong class="small">{{ c.usuario?.nombres || 'Usuario' }}</strong>
+              <small class="text-muted" style="font-size:0.68rem;">{{ c.creadoEn | date:'dd/MM/yy HH:mm' }}</small>
+            </div>
+            <p class="small mb-1" style="line-height:1.5;">{{ c.comentario }}</p>
+            <span class="badge bg-warning bg-opacity-15 text-warning rounded-pill" style="font-size:0.62rem;" *ngIf="c.esInterno">🔒 Interno</span>
+          </div>
+          <div *ngIf="comentarios.length === 0" class="text-muted text-center small py-3">Sin comentarios aún</div>
+        </div>
+
+        <div class="border-top pt-3">
+          <textarea [(ngModel)]="nuevoComentario" class="form-control form-control-sm mb-2" rows="2" placeholder="Agregar un comentario..." style="resize:none;"></textarea>
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" [(ngModel)]="esInterno" id="internoCheck">
+              <label class="form-check-label small" for="internoCheck">🔒 Interno</label>
+            </div>
+            <button class="btn btn-primary btn-sm" (click)="enviarComentario()" [disabled]="!nuevoComentario.trim()">
+              Enviar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

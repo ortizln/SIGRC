@@ -1,0 +1,43 @@
+package com.epmapa.sigrc.domain.dto;
+
+import java.time.LocalDateTime;
+
+public record TicketDTO(
+    Integer idTicket,
+    String numeroTicket,
+    String tipo,
+    String estado,
+    String prioridad,
+    String asunto,
+    String descripcion,
+    String impacto,
+    String urgencia,
+    String origen,
+    LocalDateTime fechaLimite,
+    LocalDateTime fechaCierre,
+    LocalDateTime creadoEn,
+    LocalDateTime actualizadoEn,
+    String causaRaiz,
+    String solucion,
+    Boolean esReabierto,
+    Integer numeroReaperturas,
+    Integer calificacion,
+    String comentarioCierre,
+    Integer idSolicitante,
+    String solicitanteUsername,
+    String solicitanteNombre,
+    Integer idArea,
+    String areaNombre,
+    Integer idSistema,
+    String sistemaNombre,
+    Integer idCategoria,
+    String categoriaNombre,
+    Integer idSubcategoria,
+    String subcategoriaNombre,
+    Integer idResponsable,
+    String responsableUsername,
+    String responsableNombre,
+    Integer idSla,
+    String slaNombre,
+    String estadoDisplay
+) {}

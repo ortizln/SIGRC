@@ -1,0 +1,68 @@
+<aside class="sidebar d-flex flex-column vh-100 position-fixed" style="width: var(--sidebar-width); left: 0; top: 0; z-index: 100; background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);">
+  <!-- Header -->
+  <div class="sidebar-header p-3 border-bottom" style="border-color:rgba(255,255,255,0.06) !important;">
+    <div class="d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center justify-content-center fw-bolder text-white rounded-3" style="width:38px;height:38px;background:linear-gradient(135deg, #3b82f6, #2563eb);font-size:1.1rem;">S</div>
+      <div>
+        <h1 class="fs-6 fw-bold text-white mb-0" style="letter-spacing:-0.02em;">SIGRC</h1>
+        <small style="color:rgba(255,255,255,0.4);font-size:0.65rem;letter-spacing:0.04em;">EPMAPA-T</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-grow-1 p-2 d-flex flex-column gap-0.5 overflow-auto">
+    <div class="px-2 pt-3 pb-1">
+      <small style="color:rgba(255,255,255,0.25);font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;">Módulos</small>
+    </div>
+    <a routerLink="/dashboard" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small" style="transition:all 0.15s ease;">
+      <span style="font-size:1rem;">📊</span> Dashboard
+    </a>
+    <a routerLink="/tickets" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small">
+      <span style="font-size:1rem;">🎫</span> Tickets
+    </a>
+    <a routerLink="/cambios" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small">
+      <span style="font-size:1rem;">🔄</span> Cambios
+    </a>
+    <a routerLink="/versiones" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small">
+      <span style="font-size:1rem;">📦</span> Versiones
+    </a>
+
+    <div class="px-2 pt-3 pb-1">
+      <small style="color:rgba(255,255,255,0.25);font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;">Administración</small>
+    </div>
+    <a routerLink="/auditoria" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small" *ngIf="isAdminOrAuditor()">
+      <span style="font-size:1rem;">📋</span> Auditoría
+    </a>
+    <a routerLink="/usuarios" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small" *ngIf="isAdmin()">
+      <span style="font-size:1rem;">👥</span> Usuarios
+    </a>
+    <a routerLink="/roles" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small" *ngIf="isAdmin()">
+      <span style="font-size:1rem;">🔐</span> Roles y Permisos
+    </a>
+    <a routerLink="/reportes" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small" *ngIf="isAdminOrAuditor()">
+      <span style="font-size:1rem;">📈</span> Reportes
+    </a>
+
+    <div class="px-2 pt-3 pb-1">
+      <small style="color:rgba(255,255,255,0.25);font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;">Consultas</small>
+    </div>
+    <a routerLink="/conocimiento" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small">
+      <span style="font-size:1rem;">📚</span> Base Conocimiento
+    </a>
+  </nav>
+
+  <!-- Footer -->
+  <div class="p-3 border-top" style="border-color:rgba(255,255,255,0.06) !important;">
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <div class="d-flex align-items-center justify-content-center fw-bold text-white rounded-circle" style="width:34px;height:34px;background:linear-gradient(135deg, #3b82f6, #6366f1);font-size:0.8rem;">{{ getInitial() }}</div>
+      <div style="min-width:0;">
+        <strong class="d-block small text-white text-truncate">{{ usuario?.nombres }}</strong>
+        <small style="color:rgba(255,255,255,0.4);font-size:0.65rem;">{{ usuario?.rolNombre }}</small>
+      </div>
+    </div>
+    <button class="logout-btn w-100 py-1.5 px-2 small rounded-2 d-flex align-items-center gap-2" (click)="logout()">
+      <span>🚪</span> Cerrar Sesión
+    </button>
+  </div>
+</aside>

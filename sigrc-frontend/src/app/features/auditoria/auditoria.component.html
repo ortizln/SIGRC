@@ -1,0 +1,56 @@
+<div class="container-fluid px-0" style="max-width:1400px;">
+  <div class="page-header">
+    <h2>Auditoría General</h2>
+    <p>Registro detallado de todas las acciones realizadas en el sistema</p>
+  </div>
+
+  <div class="card-modern p-0 animate-fade-in">
+    <div class="table-responsive">
+      <table class="table-modern" style="font-size:0.75rem;">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha/Hora</th>
+            <th>Usuario</th>
+            <th>Acción</th>
+            <th>Operación</th>
+            <th>Tabla</th>
+            <th>ID</th>
+            <th>IP</th>
+            <th>Resultado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of registros" class="animate-fade-in">
+            <td class="text-muted">{{ a.idAuditoria }}</td>
+            <td class="text-muted" style="font-size:0.7rem;">{{ a.creadoEn | date:'dd/MM/yy HH:mm' }}</td>
+            <td><code>{{ a.username }}</code></td>
+            <td style="max-width:150px;"><span class="text-truncate d-inline-block" style="max-width:150px;">{{ a.accion }}</span></td>
+            <td><span class="badge rounded-pill" [class]="operacionClass(a.tipoOperacion)" style="font-size:0.65rem;">{{ a.tipoOperacion }}</span></td>
+            <td><code>{{ a.tablaAfectada }}</code></td>
+            <td class="text-muted">{{ a.idRegistro || '—' }}</td>
+            <td><code>{{ a.direccionIp }}</code></td>
+            <td>
+              <span class="badge rounded-pill" [class]="a.resultado === 'EXITO' ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'" style="font-size:0.65rem;">
+                {{ a.resultado }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="registros.length === 0">
+            <td colspan="9" class="empty-state">
+              <div class="empty-icon">📋</div>
+              <h5>Sin registros de auditoría</h5>
+              <p>No hay actividad registrada aún en el sistema</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="d-flex justify-content-center align-items-center gap-3 p-3 border-top" *ngIf="pagina.totalPaginas > 1">
+      <button class="btn btn-outline-secondary btn-sm" [disabled]="pagina.primera" (click)="irPagina(pagina.pagina - 1)">« Anterior</button>
+      <span class="small text-muted">Pág. {{ pagina.pagina + 1 }} de {{ pagina.totalPaginas }} ({{ pagina.totalElementos }} registros)</span>
+      <button class="btn btn-outline-secondary btn-sm" [disabled]="pagina.ultima" (click)="irPagina(pagina.pagina + 1)">Siguiente »</button>
+    </div>
+  </div>
+</div>

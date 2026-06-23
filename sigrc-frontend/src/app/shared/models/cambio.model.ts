@@ -1,0 +1,30 @@
+export interface Cambio {
+  idCambio: number;
+  codigoCambio: string;
+  titulo: string;
+  descripcion: string;
+  justificacion: string;
+  tipo: string;
+  impacto: string;
+  riesgo: string;
+  estado: string;
+  planImplementacion: string;
+  planRetorno: string;
+  fechaAprobacion: string;
+  fechaInicio: string;
+  fechaImplementacion: string;
+  fechaVerificacion: string;
+  resultado: string;
+  leccionesAprendidas: string;
+  creadoEn: string;
+  idTicket: number;
+  ticketNumero: string;
+  idSistema: number;
+  sistemaNombre: string;
+  idSolicitante: number;
+  solicitanteNombre: string;
+  idAprobador: number;
+  aprobadorNombre: string;
+  idResponsable: number;
+  responsableNombre: string;
+}

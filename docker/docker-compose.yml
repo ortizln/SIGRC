@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sigrc-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sigrc
+      POSTGRES_USER: sigrc_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Sigrc2024!}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../database/01_ddl.sql:/docker-entrypoint-initdb.d/01_ddl.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sigrc_user -d sigrc"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../sigrc-backend
+      dockerfile: ../docker/Dockerfile.backend
+    container_name: sigrc-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/sigrc
+      DATABASE_USER: sigrc_user
+      DATABASE_PASSWORD: ${DB_PASSWORD:-Sigrc2024!}
+      JWT_SECRET: ${JWT_SECRET:-aGVsbG8gZXN0byBlcyB1biBzZWNyZXRvIHN1cGVyIHNlZ3VybyBwYXJhIHNpZ3JjIDIwMjQ=}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://192.168.100.116}
+      UPLOAD_PATH: ${UPLOAD_PATH:-/data/sigrc/uploads}
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - uploads_data:/data/sigrc/uploads
+
+  frontend:
+    build:
+      context: ../sigrc-frontend
+      dockerfile: ../docker/Dockerfile.frontend
+      args:
+        BASE_HREF: ${BASE_HREF:-/}
+        API_URL: ${API_URL:-/api/v1}
+        NGINX_CONF: ${NGINX_CONF:-nginx.conf}
+    container_name: sigrc-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:8081:80"
+
+volumes:
+  postgres_data:
+  uploads_data:

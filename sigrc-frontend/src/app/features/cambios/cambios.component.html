@@ -1,0 +1,53 @@
+<div class="container-fluid px-0" style="max-width:1400px;">
+  <div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+      <h2>Gestión de Cambios</h2>
+      <p>Solicitudes de cambio, aprobaciones e implementaciones</p>
+    </div>
+    <a routerLink="/cambios/nuevo" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+      <span>+</span> Nueva Solicitud
+    </a>
+  </div>
+
+  <div class="card-modern p-0 animate-fade-in">
+    <div class="table-responsive">
+      <table class="table-modern">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Título</th>
+            <th>Tipo</th>
+            <th>Impacto</th>
+            <th>Riesgo</th>
+            <th>Estado</th>
+            <th>Solicitante</th>
+            <th>Sistema</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of cambios" class="animate-fade-in">
+            <td><code class="fw-bold" style="color:var(--primary);">{{ c.codigoCambio }}</code></td>
+            <td style="max-width:200px;"><span class="text-truncate d-inline-block fw-medium" style="max-width:200px;">{{ c.titulo }}</span></td>
+            <td class="small">{{ c.tipo }}</td>
+            <td><span class="badge rounded-pill" [class]="impactoClass(c.impacto)" style="font-size:0.68rem;">{{ c.impacto }}</span></td>
+            <td><span class="badge rounded-pill" [class]="riesgoClass(c.riesgo)" style="font-size:0.68rem;">{{ c.riesgo }}</span></td>
+            <td><span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary" style="font-size:0.68rem;">{{ c.estado }}</span></td>
+            <td class="small">{{ c.solicitanteNombre }}</td>
+            <td class="small text-muted">{{ c.sistemaNombre || '—' }}</td>
+            <td class="text-muted small">{{ c.creadoEn | date:'dd/MM/yy' }}</td>
+            <td><a [routerLink]="['/cambios', c.idCambio]" class="btn btn-soft-primary btn-xs">Ver</a></td>
+          </tr>
+          <tr *ngIf="cambios.length === 0">
+            <td colspan="10" class="empty-state">
+              <div class="empty-icon">🔄</div>
+              <h5>Sin solicitudes de cambio</h5>
+              <p>No hay solicitudes de cambio registradas. Presione "+ Nueva Solicitud" para crear una.</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
