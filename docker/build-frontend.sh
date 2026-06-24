@@ -32,6 +32,10 @@ info "Compilando con base-href=$BASE_HREF..."
 npm run build -- --configuration production --base-href "$BASE_HREF"
 
 sudo mkdir -p "$OUTPUT_DIR"
+
+info "Limpiando versión anterior..."
+sudo rm -rf "${OUTPUT_DIR:?}"/*
+
 sudo cp -r dist/browser/* "$OUTPUT_DIR/"
 info "Frontend compilado y copiado a: $OUTPUT_DIR"
 sudo nginx -t && sudo systemctl reload nginx
