@@ -13,10 +13,9 @@
           Usuario
           <span class="help-tip ms-1" title="Nombre de usuario institucional">?</span>
         </label>
-        <input #usernameModel="ngModel" [(ngModel)]="username" name="username" required
-               placeholder="Ingrese su usuario" class="form-control"
-               [class.is-invalid]="usernameModel.invalid && usernameModel.touched"
-               autocomplete="username">
+        <input #usernameModel="ngModel" [(ngModel)]="username" name="username" required placeholder="Ingrese su usuario"
+          class="form-control" [class.is-invalid]="usernameModel.invalid && usernameModel.touched"
+          autocomplete="username">
         <div class="validation-feedback" *ngIf="usernameModel.invalid && usernameModel.touched">
           Ingrese su usuario
         </div>
@@ -31,9 +30,8 @@
           <span class="help-tip ms-1" title="Contraseña de acceso al sistema">?</span>
         </label>
         <input #passwordModel="ngModel" [(ngModel)]="password" name="password" type="password" required
-               placeholder="Ingrese su contraseña" class="form-control"
-               [class.is-invalid]="passwordModel.invalid && passwordModel.touched"
-               autocomplete="current-password">
+          placeholder="Ingrese su contraseña" class="form-control"
+          [class.is-invalid]="passwordModel.invalid && passwordModel.touched" autocomplete="current-password">
         <div class="validation-feedback" *ngIf="passwordModel.invalid && passwordModel.touched">
           Ingrese su contraseña
         </div>
@@ -47,11 +45,5 @@
         {{ cargando ? 'Ingresando...' : 'Iniciar Sesión' }}
       </button>
     </form>
-
-    <div class="text-center mt-3">
-      <small class="text-muted">
-        Usuario: <code>admin</code> · Contraseña: <code>admin</code>
-      </small>
-    </div>
   </div>
 </div>
