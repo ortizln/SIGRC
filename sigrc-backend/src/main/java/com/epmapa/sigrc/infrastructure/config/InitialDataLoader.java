@@ -39,6 +39,7 @@ public class InitialDataLoader implements CommandLineRunner {
                 .activo(true)
                 .debeCambiarPassword(true)
                 .bloqueado(false)
+                .intentosFallidos(0)
                 .build();
 
             usuarioRepository.save(admin);
