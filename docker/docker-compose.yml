@@ -9,15 +9,15 @@ services:
     container_name: sigrc-backend
     restart: unless-stopped
     environment:
-      DATABASE_HOST: ${DATABASE_HOST:host.docker.internal}
-      DATABASE_PORT: ${DATABASE_PORT:5432}
-      DATABASE_NAME: ${DATABASE_NAME:sigrc}
-      DATABASE_URL: jdbc:postgresql://${DATABASE_HOST:host.docker.internal}:${DATABASE_PORT:5432}/${DATABASE_NAME:sigrc}
-      DATABASE_USER: ${DATABASE_USER:postgres}
-      DATABASE_PASSWORD: ${DB_PASSWORD:086411421}
-      JWT_SECRET: ${JWT_SECRET:aGVsbG8gZXN0byBlcyB1biBzZWNyZXRvIHN1cGVyIHNlZ3VybyBwYXJhIHNpZ3JjIDIwMjQ=}
-      CORS_ORIGINS: ${CORS_ORIGINS:http://192.168.100.115}
-      UPLOAD_PATH: ${UPLOAD_PATH:/data/sigrc/uploads}
+      DATABASE_HOST: ${DATABASE_HOST:-host.docker.internal}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-sigrc}
+      DATABASE_URL: jdbc:postgresql://${DATABASE_HOST:-host.docker.internal}:${DATABASE_PORT:-5432}/${DATABASE_NAME:-sigrc}
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DATABASE_PASSWORD: ${DB_PASSWORD:-086411421}
+      JWT_SECRET: ${JWT_SECRET:-aGVsbG8gZXN0byBlcyB1biBzZWNyZXRvIHN1cGVyIHNlZ3VybyBwYXJhIHNpZ3JjIDIwMjQ=}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://192.168.100.115}
+      UPLOAD_PATH: ${UPLOAD_PATH:-/data/sigrc/uploads}
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
