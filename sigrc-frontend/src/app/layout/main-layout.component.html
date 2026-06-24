@@ -1,6 +1,9 @@
-<div class="d-flex min-vh-100">
-  <app-sidebar></app-sidebar>
-  <main class="main-content flex-grow-1 p-4" style="margin-left: var(--sidebar-width); min-height: 100vh;">
-    <router-outlet></router-outlet>
-  </main>
-</div>
+<app-header (toggleSidebar)="toggleSidebar()"></app-header>
+<app-sidebar
+  [collapsed]="sidebarCollapsed"
+  [mobileOpen]="sidebarMobileOpen"
+  (click)="onSidebarNavClick()">
+</app-sidebar>
+<main class="main-content" [class.sidebar-collapsed]="sidebarCollapsed">
+  <router-outlet></router-outlet>
+</main>

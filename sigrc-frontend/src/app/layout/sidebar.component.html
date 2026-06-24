@@ -1,68 +1,74 @@
-<aside class="sidebar d-flex flex-column vh-100 position-fixed" style="width: var(--sidebar-width); left: 0; top: 0; z-index: 100; background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);">
-  <!-- Header -->
-  <div class="sidebar-header p-3 border-bottom" style="border-color:rgba(255,255,255,0.06) !important;">
-    <div class="d-flex align-items-center gap-2">
-      <div class="d-flex align-items-center justify-content-center fw-bolder text-white rounded-3" style="width:38px;height:38px;background:linear-gradient(135deg, #3b82f6, #2563eb);font-size:1.1rem;">S</div>
-      <div>
-        <h1 class="fs-6 fw-bold text-white mb-0" style="letter-spacing:-0.02em;">SIGRC</h1>
-        <small style="color:rgba(255,255,255,0.4);font-size:0.65rem;letter-spacing:0.04em;">EPMAPA-T</small>
+<aside class="sidebar" [class.collapsed]="collapsed" [class.mobile-open]="mobileOpen">
+  <div class="sidebar-overlay" (click)="mobileOpen = false"></div>
+
+  <div class="sidebar-inner">
+    <div class="sidebar-brand">
+      <div class="brand-icon">S</div>
+      <div class="brand-text" *ngIf="!collapsed">
+        <h1>SIGRC</h1>
+        <small>EPMAPA-T</small>
       </div>
     </div>
-  </div>
 
-  <!-- Navigation -->
-  <nav class="flex-grow-1 p-2 d-flex flex-column gap-0.5 overflow-auto">
-    <div class="px-2 pt-3 pb-1">
-      <small style="color:rgba(255,255,255,0.25);font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;">Módulos</small>
-    </div>
-    <a routerLink="/dashboard" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small" style="transition:all 0.15s ease;">
-      <span style="font-size:1rem;">📊</span> Dashboard
-    </a>
-    <a routerLink="/tickets" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small">
-      <span style="font-size:1rem;">🎫</span> Tickets
-    </a>
-    <a routerLink="/cambios" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small">
-      <span style="font-size:1rem;">🔄</span> Cambios
-    </a>
-    <a routerLink="/versiones" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small">
-      <span style="font-size:1rem;">📦</span> Versiones
-    </a>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title" *ngIf="!collapsed">Módulos</div>
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+        <i class="pi pi-home sidebar-icon"></i>
+        <span *ngIf="!collapsed">Dashboard</span>
+      </a>
+      <a routerLink="/tickets" routerLinkActive="active" class="nav-item">
+        <i class="pi pi-ticket sidebar-icon"></i>
+        <span *ngIf="!collapsed">Tickets</span>
+      </a>
+      <a routerLink="/cambios" routerLinkActive="active" class="nav-item">
+        <i class="pi pi-sync sidebar-icon"></i>
+        <span *ngIf="!collapsed">Cambios</span>
+      </a>
+      <a routerLink="/versiones" routerLinkActive="active" class="nav-item">
+        <i class="pi pi-box sidebar-icon"></i>
+        <span *ngIf="!collapsed">Versiones</span>
+      </a>
 
-    <div class="px-2 pt-3 pb-1">
-      <small style="color:rgba(255,255,255,0.25);font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;">Administración</small>
-    </div>
-    <a routerLink="/auditoria" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small" *ngIf="isAdminOrAuditor()">
-      <span style="font-size:1rem;">📋</span> Auditoría
-    </a>
-    <a routerLink="/usuarios" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small" *ngIf="isAdmin()">
-      <span style="font-size:1rem;">👥</span> Usuarios
-    </a>
-    <a routerLink="/roles" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small" *ngIf="isAdmin()">
-      <span style="font-size:1rem;">🔐</span> Roles y Permisos
-    </a>
-    <a routerLink="/reportes" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small" *ngIf="isAdminOrAuditor()">
-      <span style="font-size:1rem;">📈</span> Reportes
-    </a>
+      <div class="nav-section-title" *ngIf="!collapsed">Administración</div>
+      <a routerLink="/auditoria" routerLinkActive="active" class="nav-item" *ngIf="isAdminOrAuditor()">
+        <i class="pi pi-clipboard sidebar-icon"></i>
+        <span *ngIf="!collapsed">Auditoría</span>
+      </a>
+      <a routerLink="/usuarios" routerLinkActive="active" class="nav-item" *ngIf="isAdmin()">
+        <i class="pi pi-users sidebar-icon"></i>
+        <span *ngIf="!collapsed">Usuarios</span>
+      </a>
+      <a routerLink="/roles" routerLinkActive="active" class="nav-item" *ngIf="isAdmin()">
+        <i class="pi pi-shield sidebar-icon"></i>
+        <span *ngIf="!collapsed">Roles</span>
+      </a>
+      <a routerLink="/reportes" routerLinkActive="active" class="nav-item" *ngIf="isAdminOrAuditor()">
+        <i class="pi pi-chart-bar sidebar-icon"></i>
+        <span *ngIf="!collapsed">Reportes</span>
+      </a>
 
-    <div class="px-2 pt-3 pb-1">
-      <small style="color:rgba(255,255,255,0.25);font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;">Consultas</small>
-    </div>
-    <a routerLink="/conocimiento" routerLinkActive="active" class="nav-item d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-decoration-none small">
-      <span style="font-size:1rem;">📚</span> Base Conocimiento
-    </a>
-  </nav>
+      <div class="nav-section-title" *ngIf="!collapsed">Consultas</div>
+      <a routerLink="/conocimiento" routerLinkActive="active" class="nav-item">
+        <i class="pi pi-book sidebar-icon"></i>
+        <span *ngIf="!collapsed">Base Conocimiento</span>
+      </a>
+    </nav>
 
-  <!-- Footer -->
-  <div class="p-3 border-top" style="border-color:rgba(255,255,255,0.06) !important;">
-    <div class="d-flex align-items-center gap-2 mb-2">
-      <div class="d-flex align-items-center justify-content-center fw-bold text-white rounded-circle" style="width:34px;height:34px;background:linear-gradient(135deg, #3b82f6, #6366f1);font-size:0.8rem;">{{ getInitial() }}</div>
-      <div style="min-width:0;">
-        <strong class="d-block small text-white text-truncate">{{ usuario?.nombres }}</strong>
-        <small style="color:rgba(255,255,255,0.4);font-size:0.65rem;">{{ usuario?.rolNombre }}</small>
+    <div class="sidebar-footer">
+      <div class="user-profile" *ngIf="!collapsed">
+        <div class="user-avatar">{{ getInitial() }}</div>
+        <div class="user-details">
+          <strong class="user-name">{{ usuario?.nombres }}</strong>
+          <small class="user-role">{{ usuario?.rolNombre }}</small>
+        </div>
       </div>
+      <div class="user-avatar-sm" *ngIf="collapsed" title="{{ usuario?.nombres }}">
+        {{ getInitial() }}
+      </div>
+      <button class="logout-btn" (click)="logout()" title="Cerrar sesión">
+        <i class="pi pi-sign-out" style="font-size:1rem;"></i>
+        <span *ngIf="!collapsed">Cerrar Sesión</span>
+      </button>
     </div>
-    <button class="logout-btn w-100 py-1.5 px-2 small rounded-2 d-flex align-items-center gap-2" (click)="logout()">
-      <span>🚪</span> Cerrar Sesión
-    </button>
   </div>
 </aside>

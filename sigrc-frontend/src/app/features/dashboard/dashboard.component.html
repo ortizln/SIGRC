@@ -1,91 +1,79 @@
-<div class="container-fluid px-0" style="max-width:1400px;">
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1400px;">
   <div class="page-header">
     <h2>Dashboard</h2>
     <p>Indicadores de gestión del sistema SIGRC</p>
   </div>
 
-  <!-- Stats -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-4 col-lg-2">
-      <div class="stat-card">
-        <div class="d-flex align-items-center gap-3">
-          <span class="stat-icon">📋</span>
-          <div>
-            <div class="stat-value">{{ data?.ticketsAbiertos || 0 }}</div>
-            <div class="stat-label">Tickets Abiertos</div>
-          </div>
-        </div>
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:rgba(74,124,89,0.12);color:var(--primary);">
+        <i class="pi pi-inbox"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ data?.ticketsAbiertos || 0 }}</div>
+        <div class="kpi-label">Tickets Abiertos</div>
       </div>
     </div>
-    <div class="col-md-4 col-lg-2">
-      <div class="stat-card">
-        <div class="d-flex align-items-center gap-3">
-          <span class="stat-icon">✅</span>
-          <div>
-            <div class="stat-value">{{ data?.ticketsCerrados || 0 }}</div>
-            <div class="stat-label">Tickets Cerrados</div>
-          </div>
-        </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:rgba(34,197,94,0.12);color:var(--success);">
+        <i class="pi pi-check-circle"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ data?.ticketsCerrados || 0 }}</div>
+        <div class="kpi-label">Tickets Cerrados</div>
       </div>
     </div>
-    <div class="col-md-4 col-lg-2">
-      <div class="stat-card">
-        <div class="d-flex align-items-center gap-3">
-          <span class="stat-icon">⚠️</span>
-          <div>
-            <div class="stat-value">{{ data?.ticketsVencidos || 0 }}</div>
-            <div class="stat-label">Tickets Vencidos</div>
-          </div>
-        </div>
-        <div *ngIf="(data?.ticketsVencidos || 0) > 0" class="mt-2">
-          <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill" style="font-size:0.65rem;">Requiere atención</span>
-        </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:rgba(239,68,68,0.12);color:var(--danger);">
+        <i class="pi pi-exclamation-circle"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ data?.ticketsVencidos || 0 }}</div>
+        <div class="kpi-label">Tickets Vencidos</div>
+      </div>
+      <div class="kpi-badge" *ngIf="(data?.ticketsVencidos || 0) > 0">
+        Requiere atención
       </div>
     </div>
-    <div class="col-md-4 col-lg-2">
-      <div class="stat-card">
-        <div class="d-flex align-items-center gap-3">
-          <span class="stat-icon">⏳</span>
-          <div>
-            <div class="stat-value">{{ data?.ticketsSinAsignar || 0 }}</div>
-            <div class="stat-label">Sin Asignar</div>
-          </div>
-        </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:rgba(245,158,11,0.12);color:var(--warning);">
+        <i class="pi pi-users"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ data?.ticketsSinAsignar || 0 }}</div>
+        <div class="kpi-label">Sin Asignar</div>
       </div>
     </div>
-    <div class="col-md-4 col-lg-2">
-      <div class="stat-card">
-        <div class="d-flex align-items-center gap-3">
-          <span class="stat-icon">🕐</span>
-          <div>
-            <div class="stat-value">{{ (data?.tiempoPromedioAtencionHoras || 0).toFixed(1) }}h</div>
-            <div class="stat-label">Tiempo Promedio</div>
-          </div>
-        </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:rgba(59,130,246,0.12);color:var(--info);">
+        <i class="pi pi-clock"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ (data?.tiempoPromedioAtencionHoras || 0).toFixed(1) }}h</div>
+        <div class="kpi-label">Tiempo Promedio</div>
       </div>
     </div>
-    <div class="col-md-4 col-lg-2">
-      <div class="stat-card">
-        <div class="d-flex align-items-center gap-3">
-          <span class="stat-icon">🎯</span>
-          <div>
-            <div class="stat-value">{{ (data?.cumplimientoSLA || 0).toFixed(1) }}%</div>
-            <div class="stat-label">Cumplimiento SLA</div>
-          </div>
-        </div>
-        <div class="progress mt-2" style="height:4px;">
-          <div class="progress-bar" [class]="(data?.cumplimientoSLA || 0) >= 80 ? 'bg-success' : (data?.cumplimientoSLA || 0) >= 50 ? 'bg-warning' : 'bg-danger'" role="progressbar" [style.width.%]="data?.cumplimientoSLA || 0"></div>
-        </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:rgba(91,164,164,0.12);color:var(--secondary);">
+        <i class="pi pi-flag"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ (data?.cumplimientoSLA || 0).toFixed(1) }}%</div>
+        <div class="kpi-label">Cumplimiento SLA</div>
+      </div>
+      <div class="progress" style="height:4px;width:100%;margin-top:0.5rem;">
+        <div class="progress-bar" [class]="(data?.cumplimientoSLA || 0) >= 80 ? 'bg-success' : (data?.cumplimientoSLA || 0) >= 50 ? 'bg-warning' : 'bg-danger'" role="progressbar" [style.width.%]="data?.cumplimientoSLA || 0"></div>
       </div>
     </div>
   </div>
 
-  <!-- Gráficos -->
+  <!-- Charts -->
   <div class="row g-3 mb-4">
     <div class="col-md-6">
-      <div class="card-modern p-4 animate-fade-in">
+      <div class="card-modern p-4">
         <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
-          <span>📊</span> Tickets por Estado
+          <i class="pi pi-chart-pie" style="color:var(--primary);"></i> Tickets por Estado
         </h6>
         <div class="d-flex flex-column gap-2">
           <div *ngFor="let item of data?.ticketsPorEstado || []">
@@ -94,16 +82,16 @@
               <strong class="small">{{ item['cantidad'] }}</strong>
             </div>
             <div class="progress" style="height:6px;">
-              <div class="progress-bar" role="progressbar" [style.width.%]="barPercent(item['cantidad'])" style="background:var(--primary);transition:width 0.6s ease;" aria-valuenow="{{ item['cantidad'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+              <div class="progress-bar" role="progressbar" [style.width.%]="barPercent(item['cantidad'])" style="background:var(--primary);transition:width 0.6s ease;"></div>
             </div>
           </div>
         </div>
       </div>
     </div>
     <div class="col-md-6">
-      <div class="card-modern p-4 animate-fade-in">
+      <div class="card-modern p-4">
         <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
-          <span>🎯</span> Tickets por Prioridad
+          <i class="pi pi-chart-bar" style="color:var(--warning);"></i> Tickets por Prioridad
         </h6>
         <div class="d-flex flex-column gap-2">
           <div *ngFor="let item of data?.ticketsPorPrioridad || []">
@@ -112,7 +100,7 @@
               <strong class="small">{{ item['cantidad'] }}</strong>
             </div>
             <div class="progress" style="height:6px;">
-              <div class="progress-bar" role="progressbar" [style.width.%]="barPercent(item['cantidad'])" [class]="item['prioridad'] === 'CRITICA' ? 'bg-danger' : item['prioridad'] === 'ALTA' ? 'bg-warning' : item['prioridad'] === 'MEDIA' ? 'bg-primary' : 'bg-success'" aria-valuenow="{{ item['cantidad'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+              <div class="progress-bar" role="progressbar" [style.width.%]="barPercent(item['cantidad'])" [class]="item['prioridad'] === 'CRITICA' ? 'bg-danger' : item['prioridad'] === 'ALTA' ? 'bg-warning' : item['prioridad'] === 'MEDIA' ? 'bg-primary' : 'bg-success'"></div>
             </div>
           </div>
         </div>
@@ -120,10 +108,10 @@
     </div>
   </div>
 
-  <!-- Tabla áreas -->
-  <div class="card-modern p-4 animate-fade-in">
+  <!-- Tickets por Área -->
+  <div class="card-modern p-4">
     <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
-      <span>🏢</span> Tickets por Área
+      <i class="pi pi-building" style="color:var(--secondary);"></i> Tickets por Área
     </h6>
     <div class="table-responsive">
       <table class="table-modern">

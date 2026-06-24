@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { NgIf } from '@angular/common';
@@ -11,6 +11,9 @@ import { NgIf } from '@angular/common';
   styleUrl: './sidebar.component.css'
 })
 export class SidebarComponent {
+  @Input() collapsed = false;
+  @Input() mobileOpen = false;
+
   usuario: any;
 
   constructor(private auth: AuthService, private router: Router) {
