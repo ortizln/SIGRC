@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { NgIf } from '@angular/common';
 
@@ -13,7 +13,7 @@ import { NgIf } from '@angular/common';
 export class SidebarComponent {
   usuario: any;
 
-  constructor(private auth: AuthService) {
+  constructor(private auth: AuthService, private router: Router) {
     this.usuario = this.auth.getUsuario();
   }
 
@@ -26,6 +26,6 @@ export class SidebarComponent {
 
   logout(): void {
     this.auth.logout();
-    window.location.href = '/login';
+    this.router.navigate(['/login']);
   }
 }

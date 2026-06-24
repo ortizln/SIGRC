@@ -27,6 +27,7 @@ npm ci
 
 info "Inyectando API_URL=$API_URL en environment.prod.ts..."
 sed -i "s|apiUrl:.*|apiUrl: '$API_URL',|" src/environments/environment.prod.ts
+sed -i "s|apiUrl:.*|apiUrl: '$API_URL',|" src/environments/environment.ts
 
 info "Compilando con base-href=$BASE_HREF..."
 npm run build -- --configuration production --base-href "$BASE_HREF"
