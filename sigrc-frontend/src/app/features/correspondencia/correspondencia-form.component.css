@@ -1,0 +1,63 @@
+.chip-checkbox {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  border: 1.5px solid var(--surface-border);
+  background: var(--surface-card);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--transition);
+  user-select: none;
+}
+.chip-checkbox:hover {
+  border-color: var(--primary);
+  background: var(--primary-bg);
+}
+.chip-checkbox.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.upload-zone {
+  border: 2px dashed var(--surface-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+  background: #fafbfc;
+}
+.upload-zone:hover {
+  border-color: var(--primary);
+  background: var(--primary-bg);
+}
+
+.file-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  background: #f1f5f9;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+}
+.file-pill .file-name {
+  font-weight: 500;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-pill .file-size {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+.file-pill .file-remove {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 0.2rem;
+}

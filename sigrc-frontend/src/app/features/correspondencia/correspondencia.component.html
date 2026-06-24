@@ -1,0 +1,115 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1400px;">
+  <div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+      <h2>Correspondencia Institucional</h2>
+      <p>Gestión de documentos recibidos en el Departamento de TI</p>
+    </div>
+    <a routerLink="/correspondencia/nuevo" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+      <i class="pi pi-plus" style="font-size:0.8rem;"></i> Nuevo Documento
+    </a>
+  </div>
+
+  <div class="card-modern p-3 mb-3">
+    <div class="row g-2">
+      <div class="col-md-3">
+        <label class="form-label mb-1" style="font-size:0.72rem;">Buscar</label>
+        <input [(ngModel)]="filtros.texto" placeholder="Número, asunto o código..." class="form-control form-control-sm" (input)="buscar()">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label mb-1" style="font-size:0.72rem;">Estado</label>
+        <select [(ngModel)]="filtros.estado" class="form-select form-select-sm" (change)="buscar()">
+          <option value="">Todos</option>
+          <option *ngFor="let e of estados" [value]="e.value">{{ e.label }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label mb-1" style="font-size:0.72rem;">Prioridad</label>
+        <select [(ngModel)]="filtros.prioridad" class="form-select form-select-sm" (change)="buscar()">
+          <option value="">Todas</option>
+          <option *ngFor="let p of prioridades" [value]="p.value">{{ p.label }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label mb-1" style="font-size:0.72rem;">Tipo Documento</label>
+        <select [(ngModel)]="filtros.idTipoDocumento" class="form-select form-select-sm" (change)="buscar()">
+          <option value="">Todos</option>
+          <option *ngFor="let t of tiposDocumento" [value]="t.idTipoDocumento">{{ t.nombre }}</option>
+        </select>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label mb-1" style="font-size:0.72rem;">Desde</label>
+        <input [(ngModel)]="filtros.fechaDesde" type="date" class="form-control form-control-sm" (change)="buscar()">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label mb-1" style="font-size:0.72rem;">Hasta</label>
+        <input [(ngModel)]="filtros.fechaHasta" type="date" class="form-control form-control-sm" (change)="buscar()">
+      </div>
+      <div class="col-md-1 d-flex align-items-end">
+        <a routerLink="/correspondencia/dashboard" class="btn btn-soft-primary btn-sm w-100">
+          <i class="pi pi-chart-bar"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-modern p-0">
+    <div class="table-responsive">
+      <table class="table-modern">
+        <thead>
+          <tr>
+            <th>N° Interno</th>
+            <th>Código</th>
+            <th>Tipo</th>
+            <th>Asunto</th>
+            <th>Remitente</th>
+            <th>Prioridad</th>
+            <th>Estado</th>
+            <th>Responsable</th>
+            <th>Recepción</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let d of documentos" class="animate-fade-in">
+            <td><code class="fw-bold" style="color:var(--primary);font-size:0.75rem;">{{ d.numeroInterno }}</code></td>
+            <td class="small">{{ d.codigoDocumento || '—' }}</td>
+            <td class="small text-muted">{{ d.tipoDocumentoNombre }}</td>
+            <td style="max-width:220px;">
+              <span class="text-truncate d-inline-block" style="max-width:220px;" [title]="d.asunto">{{ d.asunto }}</span>
+            </td>
+            <td class="small">{{ d.personaEntrega }}</td>
+            <td>
+              <span class="fw-semibold small" [class]="prioridadClass(d.prioridad)">{{ d.prioridad }}</span>
+            </td>
+            <td>
+              <span class="badge-estado" [class]="'badge-' + estadoBadge(d.estado)">{{ estadoLabel(d.estado) }}</span>
+            </td>
+            <td class="small">{{ d.responsableNombre || '—' }}</td>
+            <td class="text-muted small">{{ d.fechaRecepcion | date:'dd/MM/yy' }} {{ d.horaRecepcion }}</td>
+            <td>
+              <a [routerLink]="['/correspondencia', d.idCorrespondencia]" class="btn btn-soft-primary btn-xs">
+                <i class="pi pi-eye" style="font-size:0.7rem;"></i>
+              </a>
+            </td>
+          </tr>
+          <tr *ngIf="(!documentos || documentos.length === 0)">
+            <td colspan="10" class="empty-state">
+              <div class="empty-icon"><i class="pi pi-inbox" style="font-size:2.5rem;"></i></div>
+              <h5>No se encontraron documentos</h5>
+              <p>Intente ajustar los filtros o <a routerLink="/correspondencia/nuevo">registre un nuevo documento</a></p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="d-flex justify-content-center align-items-center gap-3 p-3 border-top" *ngIf="pagina.totalPaginas > 1">
+      <button class="btn btn-outline-secondary btn-sm" [disabled]="pagina.primera" (click)="irPagina(pagina.pagina - 1)">
+        <i class="pi pi-chevron-left" style="font-size:0.7rem;"></i> Anterior
+      </button>
+      <span class="small text-muted">Pág. {{ pagina.pagina + 1 }} de {{ pagina.totalPaginas }}</span>
+      <button class="btn btn-outline-secondary btn-sm" [disabled]="pagina.ultima" (click)="irPagina(pagina.pagina + 1)">
+        Siguiente <i class="pi pi-chevron-right" style="font-size:0.7rem;"></i>
+      </button>
+    </div>
+  </div>
+</div>

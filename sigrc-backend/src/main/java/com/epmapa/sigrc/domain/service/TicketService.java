@@ -166,6 +166,10 @@ public class TicketService {
         ticketRepository.save(ticket);
     }
 
+    public Ticket getReferenceById(Integer idTicket) {
+        return ticketRepository.getReferenceById(idTicket);
+    }
+
     private void registrarHistorial(Integer idTicket, String anterior, String nuevo,
                                      Integer idUsuario, String observacion) {
         var historial = TicketHistorial.builder()

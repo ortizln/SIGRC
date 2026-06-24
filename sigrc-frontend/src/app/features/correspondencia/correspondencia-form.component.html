@@ -1,0 +1,186 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1000px;">
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="page-header mb-0">
+      <h2>Nuevo Documento</h2>
+      <p>Registre la recepción de un documento en el Departamento de TI</p>
+    </div>
+    <a routerLink="/correspondencia" class="btn btn-outline-secondary btn-sm">
+      <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+    </a>
+  </div>
+
+  <form (ngSubmit)="guardar()" #formRef="ngForm">
+    <div class="card-modern p-4">
+      <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+        <i class="pi pi-file" style="color:var(--primary);"></i> Datos del Documento
+      </h6>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Tipo de Documento <span class="text-danger">*</span></label>
+          <select #tipoModel="ngModel" [(ngModel)]="form.idTipoDocumento" name="idTipoDocumento" required class="form-select"
+                  [class.is-invalid]="tipoModel.invalid && tipoModel.touched">
+            <option value="0">Seleccione...</option>
+            <option *ngFor="let t of tiposDocumento" [value]="t.idTipoDocumento">{{ t.nombre }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="tipoModel.invalid && tipoModel.touched">Seleccione el tipo de documento</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Código del Documento</label>
+          <input [(ngModel)]="form.codigoDocumento" name="codigoDocumento" class="form-control" placeholder="Ej: MEMO-2024-001">
+          <div class="form-text">Código institucional del documento</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Prioridad <span class="text-danger">*</span></label>
+          <select #prioModel="ngModel" [(ngModel)]="form.prioridad" name="prioridad" required class="form-select"
+                  [class.is-invalid]="prioModel.invalid && prioModel.touched">
+            <option *ngFor="let p of prioridades" [value]="p.value">{{ p.label }}</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Asunto <span class="text-danger">*</span></label>
+          <input #asuntoModel="ngModel" [(ngModel)]="form.asunto" name="asunto" required
+                 class="form-control" maxlength="300" placeholder="Asunto del documento"
+                 [class.is-invalid]="asuntoModel.invalid && asuntoModel.touched">
+          <div class="validation-feedback" *ngIf="asuntoModel.invalid && asuntoModel.touched">Ingrese el asunto del documento</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Resumen Ejecutivo</label>
+          <textarea [(ngModel)]="form.resumenEjecutivo" name="resumenEjecutivo" class="form-control" rows="3" placeholder="Resumen del contenido del documento"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-modern p-4 mt-3">
+      <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+        <i class="pi pi-user" style="color:var(--secondary);"></i> Remitente
+      </h6>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Persona que Entrega <span class="text-danger">*</span></label>
+          <input #perModel="ngModel" [(ngModel)]="form.personaEntrega" name="personaEntrega" required
+                 class="form-control" placeholder="Nombre completo"
+                 [class.is-invalid]="perModel.invalid && perModel.touched">
+          <div class="validation-feedback" *ngIf="perModel.invalid && perModel.touched">Ingrese el nombre del remitente</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Cargo</label>
+          <input [(ngModel)]="form.cargo" name="cargo" class="form-control" placeholder="Cargo del remitente">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Institución</label>
+          <input [(ngModel)]="form.institucion" name="institucion" class="form-control" placeholder="Institución de origen">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Departamento Remitente</label>
+          <input [(ngModel)]="form.departamentoRemitente" name="departamentoRemitente" class="form-control" placeholder="Departamento de origen">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Fecha del Documento <span class="text-danger">*</span></label>
+          <input #fDocModel="ngModel" [(ngModel)]="form.fechaDocumento" name="fechaDocumento" type="date" required
+                 class="form-control" [class.is-invalid]="fDocModel.invalid && fDocModel.touched">
+        </div>
+      </div>
+    </div>
+
+    <div class="card-modern p-4 mt-3">
+      <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+        <i class="pi pi-clock" style="color:var(--warning);"></i> Recepción
+      </h6>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Fecha de Recepción <span class="text-danger">*</span></label>
+          <input #fRecModel="ngModel" [(ngModel)]="form.fechaRecepcion" name="fechaRecepcion" type="date" required
+                 class="form-control" [class.is-invalid]="fRecModel.invalid && fRecModel.touched">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Hora de Recepción <span class="text-danger">*</span></label>
+          <input #hRecModel="ngModel" [(ngModel)]="form.horaRecepcion" name="horaRecepcion" type="time" required
+                 class="form-control" [class.is-invalid]="hRecModel.invalid && hRecModel.touched">
+        </div>
+      </div>
+    </div>
+
+    <div class="card-modern p-4 mt-3">
+      <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+        <i class="pi pi-tag" style="color:var(--info);"></i> Clasificación
+      </h6>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Áreas / Departamentos Mencionados</label>
+          <div class="d-flex flex-wrap gap-2">
+            <label *ngFor="let a of areas" class="chip-checkbox" [class.active]="form.areasEtiquetadas.includes(a.idArea)">
+              <input type="checkbox" [checked]="form.areasEtiquetadas.includes(a.idArea)" (change)="toggleArea(a.idArea)" hidden>
+              <span>{{ a.nombre }}</span>
+            </label>
+          </div>
+          <div class="form-text">Seleccione los departamentos mencionados o etiquetados en el documento</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-modern p-4 mt-3">
+      <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+        <i class="pi pi-cog" style="color:var(--text-secondary);"></i> Control y Seguimiento
+      </h6>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="form-check">
+            <input type="checkbox" id="requiereRespuesta" [(ngModel)]="form.requiereRespuesta" name="requiereRespuesta" class="form-check-input">
+            <label class="form-check-label fw-medium" for="requiereRespuesta">¿Requiere Respuesta?</label>
+          </div>
+        </div>
+        <div class="col-md-4" *ngIf="form.requiereRespuesta">
+          <label class="form-label">Fecha Límite de Respuesta</label>
+          <input [(ngModel)]="form.fechaLimiteRespuesta" name="fechaLimiteRespuesta" type="date" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <div class="form-check">
+            <input type="checkbox" id="generaTicket" [(ngModel)]="form.generaTicket" name="generaTicket" class="form-check-input">
+            <label class="form-check-label fw-medium" for="generaTicket">¿Genera Ticket?</label>
+          </div>
+          <div class="form-text">Se creará automáticamente un ticket en SIGRC</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-modern p-4 mt-3">
+      <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+        <i class="pi pi-paperclip" style="color:var(--primary);"></i> Archivos Adjuntos
+      </h6>
+      <div class="upload-zone" (click)="fileInput.click()"
+           (dragover)="$event.preventDefault()"
+           (drop)="$event.preventDefault(); onArchivosSeleccionados($event.dataTransfer!)">
+        <input #fileInput type="file" multiple hidden (change)="onArchivosSeleccionados($event)"
+               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+        <div class="text-center py-4" *ngIf="archivos.length === 0">
+          <i class="pi pi-upload" style="font-size:2rem;color:var(--text-muted);"></i>
+          <p class="text-muted small mt-2 mb-0">Arrastre archivos aquí o haga clic para seleccionarlos</p>
+          <small class="text-muted">PDF, Word, Excel, imágenes (máx. 50MB)</small>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-2" *ngIf="archivos.length > 0">
+        <div class="file-pill" *ngFor="let f of archivos; let i = index">
+          <i class="pi pi-file"></i>
+          <span class="file-name">{{ f.name }}</span>
+          <span class="file-size">({{ (f.size / 1024 / 1024).toFixed(1) }} MB)</span>
+          <button type="button" class="file-remove" (click)="quitarArchivo(i)">&times;</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-modern p-4 mt-3">
+      <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+        <i class="pi pi-comment" style="color:var(--text-muted);"></i> Observaciones
+      </h6>
+      <textarea [(ngModel)]="form.observaciones" name="observaciones" class="form-control" rows="3" placeholder="Observaciones adicionales"></textarea>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+      <a routerLink="/correspondencia" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary" [disabled]="cargando || formRef.invalid">
+        <i class="pi pi-save" style="font-size:0.8rem;"></i>
+        {{ cargando ? 'Guardando...' : 'Registrar Documento' }}
+      </button>
+    </div>
+  </form>
+</div>

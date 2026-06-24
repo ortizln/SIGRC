@@ -1,0 +1,41 @@
+package com.epmapa.sigrc.domain.dto;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+public record CorrespondenciaDTO(
+    Integer idCorrespondencia,
+    String numeroInterno,
+    String codigoDocumento,
+    Integer idTipoDocumento,
+    String tipoDocumentoNombre,
+    String tipoDocumentoCodigo,
+    String asunto,
+    String resumenEjecutivo,
+    LocalDate fechaDocumento,
+    LocalDate fechaRecepcion,
+    String horaRecepcion,
+    String personaEntrega,
+    String cargo,
+    String institucion,
+    String departamentoRemitente,
+    Integer idResponsable,
+    String responsableNombre,
+    String prioridad,
+    String estado,
+    Boolean requiereRespuesta,
+    LocalDate fechaLimiteRespuesta,
+    Boolean generaTicket,
+    String observaciones,
+    Boolean activo,
+    LocalDateTime creadoEn,
+    Integer creadoPor,
+    String creadoPorNombre,
+    List<Integer> areasEtiquetadas,
+    List<String> areasEtiquetadasNombre,
+    List<CorrespondenciaAdjuntoDTO> adjuntos,
+    List<CorrespondenciaHistorialDTO> historial,
+    List<CorrespondenciaRespuestaDTO> respuestas,
+    List<TicketVinculadoDTO> ticketsVinculados
+) {}

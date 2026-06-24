@@ -1,0 +1,186 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1200px;">
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <a routerLink="/correspondencia" class="text-decoration-none small text-muted d-inline-flex align-items-center gap-1 mb-2">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver a Correspondencia
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <h2 class="mb-0">{{ doc?.numeroInterno }}</h2>
+        <span class="badge-estado" [class]="'badge-' + estadoBadge(doc?.estado)">{{ estadoLabel(doc?.estado) }}</span>
+      </div>
+    </div>
+    <div class="d-flex gap-2" *ngIf="doc">
+      <a *ngIf="auth.hasRole('ADMIN') || auth.hasRole('JEFE_TI')" [routerLink]="['/correspondencia/editar', doc.idCorrespondencia]" class="btn btn-outline-primary btn-sm">
+        <i class="pi pi-pencil" style="font-size:0.7rem;"></i> Editar
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-3" *ngIf="doc">
+    <div class="col-md-8">
+      <div class="card-modern p-4">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-info-circle" style="color:var(--primary);"></i> Información del Documento
+        </h6>
+        <div class="row g-2">
+          <div class="col-md-6"><label class="text-muted small d-block">N° Interno</label><strong>{{ doc.numeroInterno }}</strong></div>
+          <div class="col-md-6"><label class="text-muted small d-block">Código Documento</label><strong>{{ doc.codigoDocumento || '—' }}</strong></div>
+          <div class="col-md-6"><label class="text-muted small d-block">Tipo Documento</label><strong>{{ doc.tipoDocumentoNombre }}</strong></div>
+          <div class="col-md-6"><label class="text-muted small d-block">Prioridad</label><strong [class]="prioridadClass(doc.prioridad)">{{ doc.prioridad }}</strong></div>
+          <div class="col-md-6"><label class="text-muted small d-block">Fecha Documento</label><strong>{{ doc.fechaDocumento | date:'dd/MM/yyyy' }}</strong></div>
+          <div class="col-md-6"><label class="text-muted small d-block">Fecha Recepción</label><strong>{{ doc.fechaRecepcion | date:'dd/MM/yyyy' }} {{ doc.horaRecepcion }}</strong></div>
+          <div class="col-md-6"><label class="text-muted small d-block">Remitente</label><strong>{{ doc.personaEntrega }}</strong></div>
+          <div class="col-md-6"><label class="text-muted small d-block">Cargo / Institución</label><strong>{{ doc.cargo }}{{ doc.cargo && doc.institucion ? ' — ' : '' }}{{ doc.institucion }}</strong></div>
+          <div class="col-md-6"><label class="text-muted small d-block">Departamento Remitente</label><strong>{{ doc.departamentoRemitente || '—' }}</strong></div>
+          <div class="col-md-6"><label class="text-muted small d-block">Responsable</label><strong>{{ doc.responsableNombre || 'Sin asignar' }}</strong></div>
+          <div class="col-12"><label class="text-muted small d-block">Áreas Mencionadas</label><strong>{{ doc.areasEtiquetadasNombre?.length ? doc.areasEtiquetadasNombre.join(', ') : 'Ninguna' }}</strong></div>
+        </div>
+        <hr>
+        <h6 class="fw-semibold">Asunto</h6>
+        <p>{{ doc.asunto }}</p>
+        <div *ngIf="doc.resumenEjecutivo">
+          <h6 class="fw-semibold">Resumen Ejecutivo</h6>
+          <p class="text-muted">{{ doc.resumenEjecutivo }}</p>
+        </div>
+        <div *ngIf="doc.observaciones">
+          <h6 class="fw-semibold">Observaciones</h6>
+          <p class="text-muted">{{ doc.observaciones }}</p>
+        </div>
+      </div>
+
+      <div class="card-modern p-4 mt-3">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-paperclip" style="color:var(--secondary);"></i> Adjuntos
+        </h6>
+        <div class="d-flex flex-column gap-2">
+          <div *ngFor="let adj of adjuntos" class="adjunto-item d-flex align-items-center gap-3">
+            <i class="pi pi-file" style="font-size:1.2rem;color:var(--text-muted);"></i>
+            <div class="flex-grow-1 min-width-0">
+              <a [href]="descargarUrl(adj)" target="_blank" class="text-decoration-none fw-medium small">{{ adj.nombreOriginal }}</a>
+              <small class="text-muted d-block">{{ tamanoFormateado(adj.tamanoBytes) }} — {{ adj.tipo }}</small>
+            </div>
+            <button *ngIf="auth.hasRole('ADMIN') || auth.hasRole('JEFE_TI')" class="btn btn-sm btn-outline-danger btn-xs" (click)="eliminarAdjunto(adj)" title="Eliminar">
+              <i class="pi pi-trash" style="font-size:0.7rem;"></i>
+            </button>
+          </div>
+          <div *ngIf="adjuntos.length === 0" class="text-muted small text-center py-3">No hay adjuntos</div>
+        </div>
+        <hr>
+        <div class="d-flex align-items-center gap-2">
+          <input type="file" #fileInput hidden multiple (change)="onArchivosSeleccionados($event)" accept=".pdf,.doc,.docx,.jpg,.png">
+          <button class="btn btn-outline-primary btn-sm" (click)="fileInput.click()">
+            <i class="pi pi-upload" style="font-size:0.7rem;"></i> Subir Archivos
+          </button>
+          <button *ngIf="archivos.length > 0" class="btn btn-primary btn-sm" (click)="subirAdjuntos()">
+            Subir ({{ archivos.length }})
+          </button>
+        </div>
+        <div *ngFor="let f of archivos; let i = index" class="small mt-1">{{ f.name }}</div>
+      </div>
+
+      <div class="card-modern p-4 mt-3" *ngIf="tickets.length > 0">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-ticket" style="color:var(--primary);"></i> Tickets Vinculados
+        </h6>
+        <div *ngFor="let t of tickets" class="d-flex align-items-center gap-2 mb-2">
+          <code style="color:var(--primary);font-weight:600;">{{ t.numeroTicket }}</code>
+          <span class="small flex-grow-1">{{ t.asunto }}</span>
+          <span class="badge-estado" [class]="'badge-' + (t.estado.toLowerCase().replace('_','-'))">{{ t.estado }}</span>
+          <a [routerLink]="['/tickets', t.idTicket]" class="btn btn-soft-primary btn-xs">
+            <i class="pi pi-external-link" style="font-size:0.7rem;"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card-modern p-4">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-cog" style="color:var(--warning);"></i> Acciones
+        </h6>
+
+        <div class="mb-3" *ngIf="doc.estado !== 'ARCHIVADO'">
+          <label class="form-label small">Cambiar Estado</label>
+          <div class="d-flex gap-2">
+            <select [(ngModel)]="nuevoEstado" class="form-select form-select-sm">
+              <option value="">Seleccione...</option>
+              <option *ngFor="let e of estados" [value]="e.value" [disabled]="e.value === doc.estado">{{ e.label }}</option>
+            </select>
+            <button class="btn btn-primary btn-sm" [disabled]="!nuevoEstado" (click)="cambiarEstado()">
+              <i class="pi pi-check" style="font-size:0.7rem;"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-3" *ngIf="!doc.responsableNombre && (auth.hasRole('ADMIN') || auth.hasRole('JEFE_TI'))">
+          <label class="form-label small">Asignar Responsable</label>
+          <div class="d-flex gap-2">
+            <select #respSelect class="form-select form-select-sm">
+              <option value="">Seleccione...</option>
+            </select>
+            <button class="btn btn-primary btn-sm">Asignar</button>
+          </div>
+        </div>
+
+        <div class="mb-3" *ngIf="doc.requiereRespuesta && doc.estado !== 'RESPONDIDO' && doc.estado !== 'ARCHIVADO'">
+          <button class="btn btn-outline-primary btn-sm w-100" (click)="showRespuestaForm = !showRespuestaForm">
+            <i class="pi pi-reply" style="font-size:0.7rem;"></i> {{ showRespuestaForm ? 'Cancelar' : 'Registrar Respuesta' }}
+          </button>
+        </div>
+
+        <div *ngIf="!doc.generaTicket && (auth.hasRole('ADMIN') || auth.hasRole('JEFE_TI') || auth.hasRole('TECNICO'))">
+          <button class="btn btn-outline-primary btn-sm w-100" (click)="generarTicket()">
+            <i class="pi pi-ticket" style="font-size:0.7rem;"></i> Generar Ticket
+          </button>
+        </div>
+      </div>
+
+      <div class="card-modern p-4 mt-3" *ngIf="showRespuestaForm">
+        <h6 class="fw-bold mb-3">Registrar Respuesta</h6>
+        <div class="d-flex flex-column gap-2">
+          <input [(ngModel)]="formRespuesta.fechaRespuesta" type="date" class="form-control form-control-sm" placeholder="Fecha respuesta">
+          <input [(ngModel)]="formRespuesta.numeroDocumento" class="form-control form-control-sm" placeholder="N° documento respuesta">
+          <select [(ngModel)]="formRespuesta.idTipoDocumento" class="form-select form-select-sm">
+            <option value="">Tipo documento respuesta</option>
+            <option *ngFor="let t of tiposDocumento" [value]="t.idTipoDocumento">{{ t.nombre }}</option>
+          </select>
+          <textarea [(ngModel)]="formRespuesta.observaciones" class="form-control form-control-sm" rows="2" placeholder="Observaciones"></textarea>
+          <button class="btn btn-primary btn-sm" (click)="registrarRespuesta()">
+            <i class="pi pi-check" style="font-size:0.7rem;"></i> Guardar Respuesta
+          </button>
+        </div>
+      </div>
+
+      <div class="card-modern p-4 mt-3" *ngIf="respuestas.length > 0">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-reply" style="color:var(--success);"></i> Respuestas
+        </h6>
+        <div *ngFor="let r of respuestas" class="border-bottom pb-2 mb-2">
+          <small class="text-muted d-block">{{ r.fechaRespuesta | date:'dd/MM/yyyy' }}</small>
+          <strong class="small" *ngIf="r.numeroDocumento">{{ r.numeroDocumento }}</strong>
+          <span class="small text-muted" *ngIf="r.tipoDocumentoNombre"> — {{ r.tipoDocumentoNombre }}</span>
+          <p class="small mb-0" *ngIf="r.observaciones">{{ r.observaciones }}</p>
+        </div>
+      </div>
+
+      <div class="card-modern p-4 mt-3">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-history" style="color:var(--text-muted);"></i> Historial
+        </h6>
+        <div class="timeline" *ngIf="historial.length > 0">
+          <div *ngFor="let h of historial" class="timeline-item">
+            <div class="timeline-dot" [class]="'dot-' + estadoBadge(h.estadoNuevo)"></div>
+            <div class="timeline-content">
+              <strong class="small">{{ h.accion }}</strong>
+              <p class="small text-muted mb-0">
+                {{ h.usuarioNombre }} — {{ h.creadoEn | date:'dd/MM/yy HH:mm' }}
+              </p>
+              <p class="small" *ngIf="h.detalle">{{ h.detalle }}</p>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="historial.length === 0" class="text-muted small text-center py-3">Sin historial</div>
+      </div>
+    </div>
+  </div>
+</div>

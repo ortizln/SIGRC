@@ -128,3 +128,47 @@ SELECT * FROM (VALUES
     ('PLANIFICACION','Planificacion y Presupuesto', true, CURRENT_TIMESTAMP)
 ) AS v
 WHERE NOT EXISTS (SELECT 1 FROM areas);
+
+-- ============================================================
+-- Correspondencia Institucional
+-- ============================================================
+
+-- Función: generar número consecutivo de correspondencia
+CREATE OR REPLACE FUNCTION generar_numero_correspondencia()
+RETURNS TRIGGER AS $$
+DECLARE
+    correlativo INTEGER;
+    anio_actual VARCHAR(4);
+    prefijo     VARCHAR(10);
+BEGIN
+    anio_actual := TO_CHAR(CURRENT_DATE, 'YYYY');
+    SELECT COALESCE(MAX(SPLIT_PART(numero_interno, '-', 3)::INTEGER), 0) + 1
+    INTO correlativo
+    FROM correspondencia
+    WHERE numero_interno LIKE 'COR-' || anio_actual || '-%';
+    NEW.numero_interno := 'COR-' || anio_actual || '-' || LPAD(correlativo::TEXT, 5, '0');
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_generar_numero_correspondencia ON correspondencia;
+CREATE TRIGGER trg_generar_numero_correspondencia
+    BEFORE INSERT ON correspondencia
+    FOR EACH ROW
+    WHEN (NEW.numero_interno IS NULL)
+    EXECUTE FUNCTION generar_numero_correspondencia();
+
+-- Tipos de documento
+INSERT INTO correspondencia_tipo_documento (codigo, nombre, activo, creado_en)
+SELECT * FROM (VALUES
+    ('MEMORANDO','Memorando', true, CURRENT_TIMESTAMP),
+    ('OFICIO','Oficio', true, CURRENT_TIMESTAMP),
+    ('INFORME','Informe', true, CURRENT_TIMESTAMP),
+    ('SOLICITUD','Solicitud', true, CURRENT_TIMESTAMP),
+    ('CIRCULAR','Circular', true, CURRENT_TIMESTAMP),
+    ('ACTA','Acta', true, CURRENT_TIMESTAMP),
+    ('RESOLUCION','Resolución', true, CURRENT_TIMESTAMP),
+    ('CORREO','Correo Electrónico', true, CURRENT_TIMESTAMP),
+    ('OTRO','Otro', true, CURRENT_TIMESTAMP)
+) AS v
+WHERE NOT EXISTS (SELECT 1 FROM correspondencia_tipo_documento);
