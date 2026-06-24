@@ -3,8 +3,8 @@ version: '3.8'
 services:
   backend:
     build:
-      context: ../sigrc-backend
-      dockerfile: ../docker/Dockerfile.backend
+      context: ..
+      dockerfile: docker/Dockerfile.backend
     container_name: sigrc-backend
     restart: unless-stopped
     environment:
