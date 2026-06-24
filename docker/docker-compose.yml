@@ -9,10 +9,10 @@ services:
     container_name: sigrc-backend
     restart: unless-stopped
     environment:
-      DATABASE_HOST: ${DATABASE_HOST:-host.docker.internal}
+      DATABASE_HOST: ${DATABASE_HOST:-192.168.100.215}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_NAME: ${DATABASE_NAME:-sigrc}
-      DATABASE_URL: jdbc:postgresql://${DATABASE_HOST:-host.docker.internal}:${DATABASE_PORT:-5432}/${DATABASE_NAME:-sigrc}
+      DATABASE_URL: jdbc:postgresql://${DATABASE_HOST:-192.168.100.215}:${DATABASE_PORT:-5432}/${DATABASE_NAME:-sigrc}
       DATABASE_USER: ${DATABASE_USER:-postgres}
       DATABASE_PASSWORD: ${DB_PASSWORD:-086411421}
       JWT_SECRET: ${JWT_SECRET:-aGVsbG8gZXN0byBlcyB1biBzZWNyZXRvIHN1cGVyIHNlZ3VybyBwYXJhIHNpZ3JjIDIwMjQ=}
