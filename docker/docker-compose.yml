@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   backend:
+    image: sigrc/backend:latest
     build:
       context: ..
       dockerfile: docker/Dockerfile.backend
