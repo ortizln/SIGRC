@@ -42,7 +42,7 @@ if [[ -n "$ENV_FILE" ]]; then
   info "Variables cargadas desde $ENV_FILE"
 fi
 
-export CORS_ORIGINS="${CORS_ORIGINS:-http://192.168.100.115}"
+export CORS_ORIGINS="${CORS_ORIGINS:-http://192.168.100.215}"
 
 UPLOAD_DIR="${UPLOAD_PATH:-/data/sigrc/uploads}"
 if [[ ! -d "$UPLOAD_DIR" ]]; then
