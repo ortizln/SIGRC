@@ -54,7 +54,7 @@ public interface CorrespondenciaRepository extends JpaRepository<Correspondencia
     @Query("SELECT FUNCTION('TO_CHAR', c.creadoEn, 'YYYY-MM'), COUNT(c) FROM Correspondencia c WHERE c.activo = true GROUP BY FUNCTION('TO_CHAR', c.creadoEn, 'YYYY-MM') ORDER BY 1")
     List<Object[]> tendenciasMensuales();
 
-    @Query("SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (r.creadoEn - c.creadoEn)) / 3600), 0) FROM Correspondencia c JOIN CorrespondenciaRespuesta r ON r.correspondencia = c WHERE c.activo = true AND r.creadoEn IS NOT NULL")
+    @Query(value = "SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (r.creado_en - c.creado_en)) / 3600), 0) FROM sigrc.correspondencia c JOIN sigrc.correspondencia_respuesta r ON r.id_correspondencia = c.id_correspondencia WHERE c.activo = true AND r.creado_en IS NOT NULL", nativeQuery = true)
     Double tiempoPromedioRespuestaHoras();
 
     @Query("SELECT COUNT(c) FROM Correspondencia c WHERE c.activo = true AND c.generaTicket = true")
