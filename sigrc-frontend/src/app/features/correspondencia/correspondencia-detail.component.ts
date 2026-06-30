@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CorrespondenciaService } from '@core/services/correspondencia.service';
 import { AuthService } from '@core/services/auth.service';
+import { UsuarioService } from '@core/services/usuario.service';
 import { ESTADOS_CORRESPONDENCIA } from '@shared/models/correspondencia.model';
 
 @Component({
@@ -32,6 +33,7 @@ export class CorrespondenciaDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private svc: CorrespondenciaService,
+    private usuarioSvc: UsuarioService,
     public auth: AuthService
   ) {
     this.user = this.auth.getUsuario();
@@ -48,6 +50,7 @@ export class CorrespondenciaDetailComponent implements OnInit {
         this.tickets = r.ticketsVinculados || [];
       });
       this.svc.getTiposDocumento().subscribe(r => this.tiposDocumento = r);
+      this.usuarioSvc.listar().subscribe(r => this.usuarios = r.filter(u => u.rolCodigo !== 'ADMIN'));
     }
   }
 
@@ -119,6 +122,13 @@ export class CorrespondenciaDetailComponent implements OnInit {
       if (this.doc.estado !== 'ARCHIVADO') {
         this.doc.estado = 'RESPONDIDO';
       }
+    });
+  }
+
+  asignarResponsable(idResponsable: number) {
+    if (!this.doc || !idResponsable) return;
+    this.svc.asignarResponsable(this.doc.idCorrespondencia, idResponsable).subscribe(r => {
+      this.doc = r;
     });
   }
 

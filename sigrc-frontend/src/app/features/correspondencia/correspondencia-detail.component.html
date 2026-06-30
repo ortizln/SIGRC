@@ -117,8 +117,11 @@
           <div class="d-flex gap-2">
             <select #respSelect class="form-select form-select-sm">
               <option value="">Seleccione...</option>
+              <option *ngFor="let u of usuarios" [value]="u.idUsuario">{{ u.nombres }} {{ u.apellidos }}</option>
             </select>
-            <button class="btn btn-primary btn-sm">Asignar</button>
+            <button class="btn btn-primary btn-sm" [disabled]="!respSelect.value" (click)="asignarResponsable(+respSelect.value)">
+              <i class="pi pi-check" style="font-size:0.7rem;"></i>
+            </button>
           </div>
         </div>
 

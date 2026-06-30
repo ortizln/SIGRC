@@ -290,12 +290,14 @@ public class CorrespondenciaService {
                 .stream().map(this::toAdjuntoDTO).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Path getAdjuntoPath(Integer idAdjunto) {
         CorrespondenciaAdjunto adjunto = adjuntoRepository.findById(idAdjunto)
                 .orElseThrow(() -> new EntityNotFoundException("Adjunto no encontrado"));
         return Paths.get(adjunto.getRutaArchivo());
     }
 
+    @Transactional(readOnly = true)
     public CorrespondenciaAdjuntoDTO obtenerAdjunto(Integer idAdjunto) {
         CorrespondenciaAdjunto adjunto = adjuntoRepository.findById(idAdjunto)
                 .orElseThrow(() -> new EntityNotFoundException("Adjunto no encontrado"));

@@ -45,6 +45,9 @@ export class CorrespondenciaFormComponent implements OnInit {
     this.form.fechaRecepcion = now.toISOString().split('T')[0];
     this.form.horaRecepcion = now.toTimeString().slice(0, 5);
     this.form.fechaDocumento = now.toISOString().split('T')[0];
+    const dentro10Dias = new Date(now);
+    dentro10Dias.setDate(dentro10Dias.getDate() + 10);
+    this.form.fechaLimiteRespuesta = dentro10Dias.toISOString().split('T')[0];
   }
 
   onArchivosSeleccionados(event: any) {
