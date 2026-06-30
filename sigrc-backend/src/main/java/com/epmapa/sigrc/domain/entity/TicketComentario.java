@@ -20,7 +20,9 @@ public class TicketComentario {
     private Usuario usuario;
     @Column(nullable = false, columnDefinition = "TEXT")
     private String comentario;
+    @Builder.Default
     private Boolean esInterno = false;
+    @Builder.Default
     private Boolean editado = false;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

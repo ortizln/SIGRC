@@ -16,6 +16,7 @@ public class Categoria {
     @Column(nullable = false, length = 150)
     private String nombre;
     private String descripcion;
+    @Builder.Default
     private Boolean activo = true;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

@@ -14,15 +14,26 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
 
     Page<Ticket> findByEstadoIn(List<String> estados, Pageable pageable);
 
-    @Query("SELECT t FROM Ticket t WHERE " +
+    @Query(value = "SELECT t.id_ticket, t.activo, t.asunto, t.calificacion, t.causa_raiz, t.comentario_cierre, t.creado_en, t.descripcion, t.es_reabierto, t.estado, t.fecha_cierre, t.fecha_limite, t.impacto, t.numero_reaperturas, t.numero_ticket, t.origen, t.prioridad, t.solucion, t.tipo, t.urgencia, t.actualizado_en, t.id_area, t.id_categoria, t.id_responsable, t.id_sistema, t.id_sla, t.id_solicitante, t.id_subcategoria FROM sigrc.tickets t WHERE " +
            "(:estado IS NULL OR t.estado = :estado) AND " +
            "(:tipo IS NULL OR t.tipo = :tipo) AND " +
            "(:prioridad IS NULL OR t.prioridad = :prioridad) AND " +
-           "(:idSolicitante IS NULL OR t.solicitante.idUsuario = :idSolicitante) AND " +
-           "(:idResponsable IS NULL OR t.responsable.idUsuario = :idResponsable) AND " +
-           "(:idArea IS NULL OR t.area.idArea = :idArea) AND " +
-           "(:idSistema IS NULL OR t.sistema.idSistema = :idSistema) AND " +
-           "(:texto IS NULL OR LOWER(t.asunto) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(t.numeroTicket) LIKE LOWER(CONCAT('%',:texto,'%')))")
+           "(:idSolicitante IS NULL OR t.id_solicitante = :idSolicitante) AND " +
+           "(:idResponsable IS NULL OR t.id_responsable = :idResponsable) AND " +
+           "(:idArea IS NULL OR t.id_area = :idArea) AND " +
+           "(:idSistema IS NULL OR t.id_sistema = :idSistema) AND " +
+           "(:texto IS NULL OR LOWER(CAST(t.asunto AS TEXT)) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(CAST(t.numero_ticket AS TEXT)) LIKE LOWER(CONCAT('%',:texto,'%'))) " +
+           "ORDER BY t.creado_en DESC",
+           countQuery = "SELECT COUNT(*) FROM sigrc.tickets t WHERE " +
+           "(:estado IS NULL OR t.estado = :estado) AND " +
+           "(:tipo IS NULL OR t.tipo = :tipo) AND " +
+           "(:prioridad IS NULL OR t.prioridad = :prioridad) AND " +
+           "(:idSolicitante IS NULL OR t.id_solicitante = :idSolicitante) AND " +
+           "(:idResponsable IS NULL OR t.id_responsable = :idResponsable) AND " +
+           "(:idArea IS NULL OR t.id_area = :idArea) AND " +
+           "(:idSistema IS NULL OR t.id_sistema = :idSistema) AND " +
+           "(:texto IS NULL OR LOWER(CAST(t.asunto AS TEXT)) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(CAST(t.numero_ticket AS TEXT)) LIKE LOWER(CONCAT('%',:texto,'%')))",
+           nativeQuery = true)
     Page<Ticket> buscar(@Param("estado") String estado,
                         @Param("tipo") String tipo,
                         @Param("prioridad") String prioridad,

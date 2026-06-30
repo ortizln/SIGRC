@@ -16,6 +16,7 @@ public class Ticket {
     private String numeroTicket;
     @Column(nullable = false, length = 20)
     private String tipo;
+    @Builder.Default
     @Column(nullable = false, length = 20)
     private String estado = "NUEVO";
     @Column(nullable = false, length = 15)
@@ -47,15 +48,19 @@ public class Ticket {
     private String descripcion;
     private String impacto;
     private String urgencia;
+    @Builder.Default
     private String origen = "SISTEMA";
     private LocalDateTime fechaLimite;
     private LocalDateTime fechaCierre;
     private String causaRaiz;
     private String solucion;
+    @Builder.Default
     private Boolean esReabierto = false;
+    @Builder.Default
     private Integer numeroReaperturas = 0;
     private Integer calificacion;
     private String comentarioCierre;
+    @Builder.Default
     private Boolean activo = true;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

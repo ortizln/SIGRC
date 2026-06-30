@@ -19,6 +19,7 @@ public class Area {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "responsable_id")
     private Usuario responsable;
+    @Builder.Default
     private Boolean activo = true;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

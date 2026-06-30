@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
 export class LoginComponent {
   username = '';
   password = '';
+  showPassword = false;
   error = '';
   cargando = false;
 
@@ -26,7 +27,13 @@ export class LoginComponent {
     this.auth.login({ username: this.username, password: this.password }).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (e) => {
-        this.error = e.error?.mensaje || 'Error al iniciar sesión';
+        if (e.status === 401) {
+          this.error = 'Usuario o contraseña incorrectos';
+        } else if (e.status === 0) {
+          this.error = 'No se pudo conectar con el servidor';
+        } else {
+          this.error = e.error?.mensaje || 'Error al iniciar sesión';
+        }
         this.cargando = false;
       }
     });

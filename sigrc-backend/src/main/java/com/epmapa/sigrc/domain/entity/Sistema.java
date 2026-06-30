@@ -21,8 +21,10 @@ public class Sistema {
     @JoinColumn(name = "responsable_id")
     private Usuario responsable;
     private String tecnologia;
+    @Builder.Default
     @Column(nullable = false, length = 20)
     private String estado = "ACTIVO";
+    @Builder.Default
     private Boolean activo = true;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

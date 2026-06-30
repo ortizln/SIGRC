@@ -47,16 +47,18 @@ public class TicketService {
         this.subcategoriaRepository = subcategoriaRepository;
     }
 
+    @Transactional(readOnly = true)
     public PaginacionDTO<TicketDTO> listar(int pagina, int tamanio, String estado, String tipo,
                                             String prioridad, Integer idSolicitante,
                                             Integer idResponsable, Integer idArea,
                                             Integer idSistema, String texto) {
-        var pageable = PageRequest.of(pagina, tamanio, Sort.by(Sort.Direction.DESC, "creadoEn"));
+        var pageable = PageRequest.of(pagina, tamanio);
         Page<Ticket> result = ticketRepository.buscar(estado, tipo, prioridad,
             idSolicitante, idResponsable, idArea, idSistema, texto, pageable);
         return toPaginacion(result);
     }
 
+    @Transactional(readOnly = true)
     public TicketDTO obtenerPorId(Integer id) {
         return toDTO(ticketRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Ticket no encontrado: " + id)));

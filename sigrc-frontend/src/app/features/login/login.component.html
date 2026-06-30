@@ -24,10 +24,17 @@
       </div>
       <div class="mb-3">
         <label class="form-label">Contraseña</label>
-        <input #passwordModel="ngModel" [(ngModel)]="password" name="password" type="password" required
-          placeholder="Ingrese su contraseña" class="form-control"
-          [class.is-invalid]="passwordModel.invalid && passwordModel.touched"
-          autocomplete="current-password">
+        <div class="password-wrapper">
+          <input #passwordModel="ngModel" [(ngModel)]="password" name="password"
+            [type]="showPassword ? 'text' : 'password'" required
+            placeholder="Ingrese su contraseña" class="form-control"
+            [class.is-invalid]="passwordModel.invalid && passwordModel.touched"
+            autocomplete="current-password">
+          <button type="button" class="password-toggle" (click)="showPassword = !showPassword"
+            [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+            <i [class]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+          </button>
+        </div>
         <div class="validation-feedback" *ngIf="passwordModel.invalid && passwordModel.touched">
           Ingrese su contraseña
         </div>

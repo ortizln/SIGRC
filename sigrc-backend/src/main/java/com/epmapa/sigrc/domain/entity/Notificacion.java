@@ -23,8 +23,10 @@ public class Notificacion {
     private String asunto;
     @Column(nullable = false, columnDefinition = "TEXT")
     private String mensaje;
+    @Builder.Default
     private Boolean leido = false;
     private LocalDateTime fechaLectura;
+    @Builder.Default
     private Boolean enviadoCorreo = false;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

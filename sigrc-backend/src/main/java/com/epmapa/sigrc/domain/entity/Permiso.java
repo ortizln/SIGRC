@@ -20,6 +20,7 @@ public class Permiso {
     @Column(nullable = false, length = 20)
     private String tipoAcceso;
     private String descripcion;
+    @Builder.Default
     private Boolean activo = true;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

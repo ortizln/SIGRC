@@ -73,7 +73,10 @@ public class CorrespondenciaService {
                 ? usuarioRepository.getReferenceById(request.idResponsable())
                 : null;
 
+        String numeroInterno = generarNumeroInterno();
+
         Correspondencia entity = Correspondencia.builder()
+                .numeroInterno(numeroInterno)
                 .codigoDocumento(request.codigoDocumento())
                 .tipoDocumento(tipoDoc)
                 .asunto(request.asunto())
@@ -110,14 +113,16 @@ public class CorrespondenciaService {
     }
 
     @Transactional(readOnly = true)
-    public Page<CorrespondenciaDTO> listar(String texto, String estado, String prioridad,
+    public PaginacionDTO<CorrespondenciaDTO> listar(String texto, String estado, String prioridad,
                                             Integer idTipoDocumento, Integer idResponsable,
                                             LocalDate fechaDesde, LocalDate fechaHasta,
                                             int pagina, int tamanio) {
-        Pageable pageable = PageRequest.of(pagina, tamanio, Sort.by(Sort.Direction.DESC, "creadoEn"));
-        return repository.buscar(texto, estado, prioridad, idTipoDocumento, idResponsable,
+        Pageable pageable = PageRequest.of(pagina, tamanio);
+        var page = repository.buscar(texto, estado, prioridad, idTipoDocumento, idResponsable,
                         fechaDesde, fechaHasta, pageable)
                 .map(this::toDTO);
+        return new PaginacionDTO<>(page.getContent(), page.getNumber(), page.getSize(),
+                page.getTotalElements(), page.getTotalPages(), page.isFirst(), page.isLast());
     }
 
     @Transactional(readOnly = true)
@@ -447,6 +452,13 @@ public class CorrespondenciaService {
     }
 
     // ─── Private helpers ───
+
+    private String generarNumeroInterno() {
+        Integer correlativo = repository.maxCorrelativoAnioActual();
+        if (correlativo == null) correlativo = 0;
+        String anio = String.valueOf(java.time.Year.now().getValue());
+        return "COR-" + anio + "-" + String.format("%05d", correlativo + 1);
+    }
 
     private void guardarAreasEtiquetadas(Correspondencia entity, List<Integer> areaIds) {
         if (areaIds == null) return;

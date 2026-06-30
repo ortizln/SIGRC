@@ -13,9 +13,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     req = req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
   }
 
+  if (req.url.includes('/auth/')) {
+    return next(req);
+  }
+
   return next(req).pipe(
     catchError(err => {
-      if (err.status === 401) {
+      if (err.status === 401 || err.status === 403) {
         auth.logout();
         router.navigate(['/login']);
       }

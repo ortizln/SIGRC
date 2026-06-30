@@ -15,6 +15,7 @@ public class CorrespondenciaDocumentoTipo {
     private String codigo;
     @Column(nullable = false, length = 100)
     private String nombre;
+    @Builder.Default
     @Column(nullable = false)
     private Boolean activo = true;
     @CreationTimestamp

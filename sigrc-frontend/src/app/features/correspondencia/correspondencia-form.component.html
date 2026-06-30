@@ -10,6 +10,10 @@
   </div>
 
   <form (ngSubmit)="guardar()" #formRef="ngForm">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage">
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Cerrar"></button>
+    </div>
     <div class="card-modern p-4">
       <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
         <i class="pi pi-file" style="color:var(--primary);"></i> Datos del Documento
@@ -19,15 +23,17 @@
           <label class="form-label">Tipo de Documento <span class="text-danger">*</span></label>
           <select #tipoModel="ngModel" [(ngModel)]="form.idTipoDocumento" name="idTipoDocumento" required class="form-select"
                   [class.is-invalid]="tipoModel.invalid && tipoModel.touched">
-            <option value="0">Seleccione...</option>
+            <option [ngValue]="null">Seleccione...</option>
             <option *ngFor="let t of tiposDocumento" [value]="t.idTipoDocumento">{{ t.nombre }}</option>
           </select>
           <div class="validation-feedback" *ngIf="tipoModel.invalid && tipoModel.touched">Seleccione el tipo de documento</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label">Código del Documento</label>
-          <input [(ngModel)]="form.codigoDocumento" name="codigoDocumento" class="form-control" placeholder="Ej: MEMO-2024-001">
-          <div class="form-text">Código institucional del documento</div>
+          <label class="form-label">Código del Documento <span class="text-danger">*</span></label>
+          <input #codModel="ngModel" [(ngModel)]="form.codigoDocumento" name="codigoDocumento" required
+                 class="form-control" placeholder="Ej: MEMO-2024-001"
+                 [class.is-invalid]="codModel.invalid && codModel.touched">
+          <div class="validation-feedback" *ngIf="codModel.invalid && codModel.touched">Ingrese el código del documento</div>
         </div>
         <div class="col-md-4">
           <label class="form-label">Prioridad <span class="text-danger">*</span></label>

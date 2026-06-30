@@ -9,9 +9,9 @@ CREATE OR REPLACE FUNCTION generar_numero_ticket()
 RETURNS TRIGGER AS $$
 DECLARE
     correlativo INTEGER;
-    prefijo     VARCHAR(8);
+    prefijo     VARCHAR(10);
 BEGIN
-    prefijo := 'SIGRC-' || TO_CHAR(CURRENT_DATE, 'YYYYMM');
+    prefijo := 'TK-' || TO_CHAR(CURRENT_DATE, 'YYYYMM');
     SELECT COALESCE(MAX(SPLIT_PART(numero_ticket, '-', 3)::INTEGER), 0) + 1
     INTO correlativo
     FROM tickets

@@ -17,7 +17,7 @@ import { ESTADOS_CORRESPONDENCIA, PRIORIDADES } from '@shared/models/corresponde
 export class CorrespondenciaFormComponent implements OnInit {
   form: any = {
     asunto: '', resumenEjecutivo: '', codigoDocumento: '',
-    idTipoDocumento: 0, fechaDocumento: '', fechaRecepcion: '',
+    idTipoDocumento: null, fechaDocumento: '', fechaRecepcion: '',
     horaRecepcion: '', personaEntrega: '', cargo: '', institucion: '',
     departamentoRemitente: '', idResponsable: null, prioridad: 'MEDIA',
     requiereRespuesta: false, fechaLimiteRespuesta: '',
@@ -28,6 +28,7 @@ export class CorrespondenciaFormComponent implements OnInit {
   usuarios: any[] = [];
   archivos: File[] = [];
   cargando = false;
+  errorMessage = '';
   prioridades = PRIORIDADES;
 
   constructor(
@@ -63,6 +64,7 @@ export class CorrespondenciaFormComponent implements OnInit {
   guardar() {
     if (this.cargando) return;
     this.cargando = true;
+    this.errorMessage = '';
     this.svc.crear(this.form).subscribe({
       next: async r => {
         const id = r.idCorrespondencia;
@@ -71,7 +73,16 @@ export class CorrespondenciaFormComponent implements OnInit {
         }
         this.router.navigate(['/correspondencia', id]);
       },
-      error: () => { this.cargando = false; }
+      error: (err) => {
+        this.cargando = false;
+        if (err.error?.errores) {
+          this.errorMessage = Object.values(err.error.errores).join('. ');
+        } else if (err.error?.mensaje) {
+          this.errorMessage = err.error.mensaje;
+        } else {
+          this.errorMessage = 'Error al guardar el documento. Verifique los datos e intente nuevamente.';
+        }
+      }
     });
   }
 }

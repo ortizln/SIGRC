@@ -28,10 +28,13 @@ public class Version {
     @JoinColumn(name = "id_responsable", nullable = false)
     private Usuario responsable;
     private LocalDateTime fechaDespliegue;
+    @Builder.Default
     @Column(nullable = false, length = 20)
     private String estado = "PENDIENTE";
+    @Builder.Default
     @Column(nullable = false, length = 20)
     private String ambiente = "PRODUCCION";
+    @Builder.Default
     private Boolean activo = true;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

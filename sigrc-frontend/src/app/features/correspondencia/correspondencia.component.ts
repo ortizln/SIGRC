@@ -33,6 +33,9 @@ export class CorrespondenciaListComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    const now = new Date();
+    this.filtros.fechaHasta = now.toISOString().split('T')[0];
+    this.filtros.fechaDesde = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
     this.buscar();
     this.svc.getTiposDocumento().subscribe(r => this.tiposDocumento = r);
   }

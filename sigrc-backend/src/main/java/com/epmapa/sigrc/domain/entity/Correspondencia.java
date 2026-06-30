@@ -60,17 +60,20 @@ public class Correspondencia {
     @Column(nullable = false, length = 30)
     private String estado;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean requiereRespuesta = false;
 
     private LocalDate fechaLimiteRespuesta;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean generaTicket = false;
 
     @Column(columnDefinition = "TEXT")
     private String observaciones;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean activo = true;
 

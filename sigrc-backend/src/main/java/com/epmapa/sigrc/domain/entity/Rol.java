@@ -16,6 +16,7 @@ public class Rol {
     @Column(nullable = false, length = 100)
     private String nombre;
     private String descripcion;
+    @Builder.Default
     @Column(nullable = false)
     private Boolean activo = true;
     @CreationTimestamp

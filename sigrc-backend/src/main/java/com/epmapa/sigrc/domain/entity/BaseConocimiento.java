@@ -31,11 +31,14 @@ public class BaseConocimiento {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_revisor")
     private Usuario revisor;
+    @Builder.Default
     private Integer version = 1;
+    @Builder.Default
     @Column(nullable = false, length = 20)
     private String estado = "BORRADOR";
     private String contenidoHtml;
     private String adjuntos;
+    @Builder.Default
     private Boolean activo = true;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

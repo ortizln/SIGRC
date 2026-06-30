@@ -26,6 +26,7 @@ public class Sla {
     private Integer tiempoRespuestaHoras;
     @Column(nullable = false)
     private Integer tiempoSolucionHoras;
+    @Builder.Default
     private Boolean activo = true;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

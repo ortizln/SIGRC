@@ -32,6 +32,7 @@ public class Cambio {
     private String impacto;
     @Column(nullable = false, length = 15)
     private String riesgo;
+    @Builder.Default
     @Column(nullable = false, length = 20)
     private String estado = "SOLICITADO";
     @ManyToOne(fetch = FetchType.LAZY)
@@ -51,6 +52,7 @@ public class Cambio {
     private LocalDateTime fechaVerificacion;
     private String resultado;
     private String leccionesAprendidas;
+    @Builder.Default
     private Boolean activo = true;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

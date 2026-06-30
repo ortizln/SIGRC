@@ -6,10 +6,9 @@ server:
 spring:
   application:
     name: sigrc
+  profiles:
+    active: local
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://192.168.100.215:5432/sigrc}
-    username: ${DATABASE_USER:postgres}
-    password: ${DATABASE_PASSWORD:086411421}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -24,6 +23,7 @@ spring:
       hibernate:
         format_sql: true
         default_schema: sigrc
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         schema_management:
           create_schemas: true
     open-in-view: false

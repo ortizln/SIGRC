@@ -3,6 +3,7 @@ package com.epmapa.sigrc.web.controller;
 import com.epmapa.sigrc.domain.dto.*;
 import com.epmapa.sigrc.domain.entity.CorrespondenciaDocumentoTipo;
 import com.epmapa.sigrc.domain.service.CorrespondenciaService;
+import com.epmapa.sigrc.security.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -35,7 +36,7 @@ public class CorrespondenciaController {
 
     @GetMapping
     @Operation(summary = "Listar documentos con filtros y paginación")
-    public ResponseEntity<Page<CorrespondenciaDTO>> listar(
+    public ResponseEntity<PaginacionDTO<CorrespondenciaDTO>> listar(
             @RequestParam(required = false) String texto,
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) String prioridad,
@@ -60,7 +61,7 @@ public class CorrespondenciaController {
     @Operation(summary = "Registrar nueva correspondencia")
     public ResponseEntity<CorrespondenciaDTO> crear(@Valid @RequestBody CorrespondenciaCrearRequest request,
                                                      Authentication auth) {
-        Integer idUsuario = (Integer) auth.getPrincipal();
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
         return ResponseEntity.ok(service.crear(request, idUsuario));
     }
 
@@ -70,7 +71,7 @@ public class CorrespondenciaController {
     public ResponseEntity<CorrespondenciaDTO> actualizar(@PathVariable Integer id,
                                                           @Valid @RequestBody CorrespondenciaActualizarRequest request,
                                                           Authentication auth) {
-        Integer idUsuario = (Integer) auth.getPrincipal();
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
         return ResponseEntity.ok(service.actualizar(id, request, idUsuario));
     }
 
@@ -81,7 +82,7 @@ public class CorrespondenciaController {
                                                              @RequestParam String estado,
                                                              @RequestParam(required = false) String detalle,
                                                              Authentication auth) {
-        Integer idUsuario = (Integer) auth.getPrincipal();
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
         return ResponseEntity.ok(service.cambiarEstado(id, estado, detalle, idUsuario));
     }
 
@@ -91,7 +92,7 @@ public class CorrespondenciaController {
     public ResponseEntity<CorrespondenciaDTO> asignar(@PathVariable Integer id,
                                                        @RequestParam Integer idResponsable,
                                                        Authentication auth) {
-        Integer idUsuario = (Integer) auth.getPrincipal();
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
         return ResponseEntity.ok(service.asignarResponsable(id, idResponsable, idUsuario));
     }
 
@@ -102,7 +103,7 @@ public class CorrespondenciaController {
             @PathVariable Integer id,
             @Valid @RequestBody CorrespondenciaRespuestaRequest request,
             Authentication auth) {
-        Integer idUsuario = (Integer) auth.getPrincipal();
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
         return ResponseEntity.ok(service.registrarRespuesta(
                 new CorrespondenciaRespuestaRequest(id, request.fechaRespuesta(),
                         request.numeroDocumento(), request.idTipoDocumento(),
@@ -123,7 +124,7 @@ public class CorrespondenciaController {
                                                                    @RequestParam("file") MultipartFile file,
                                                                    @RequestParam(defaultValue = "ANEXO") String tipo,
                                                                    Authentication auth) throws IOException {
-        Integer idUsuario = (Integer) auth.getPrincipal();
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
         return ResponseEntity.ok(service.subirAdjunto(id, file, tipo, idUsuario));
     }
 
@@ -147,7 +148,7 @@ public class CorrespondenciaController {
     public ResponseEntity<Void> eliminarAdjunto(@PathVariable Integer id,
                                                  @PathVariable Integer idAdjunto,
                                                  Authentication auth) {
-        Integer idUsuario = (Integer) auth.getPrincipal();
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
         service.eliminarAdjunto(idAdjunto, idUsuario);
         return ResponseEntity.noContent().build();
     }
@@ -169,7 +170,7 @@ public class CorrespondenciaController {
     @Operation(summary = "Generar ticket desde el documento")
     public ResponseEntity<TicketVinculadoDTO> generarTicket(@PathVariable Integer id,
                                                              Authentication auth) {
-        Integer idUsuario = (Integer) auth.getPrincipal();
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
         return ResponseEntity.ok(service.generarTicketDesdeCorrespondencia(id, idUsuario));
     }
 
@@ -179,7 +180,7 @@ public class CorrespondenciaController {
     public ResponseEntity<TicketVinculadoDTO> vincularTicket(@PathVariable Integer id,
                                                               @RequestParam Integer idTicket,
                                                               Authentication auth) {
-        Integer idUsuario = (Integer) auth.getPrincipal();
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
         return ResponseEntity.ok(service.vincularTicketExistente(id, idTicket, idUsuario));
     }
 
