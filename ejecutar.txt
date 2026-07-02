@@ -1,0 +1,7 @@
+
+# Matar el proceso actual
+taskkill /F /PID 93420
+
+# Ir a la carpeta e iniciar
+cd C:\Users\Alexi\Documents\PROYECTOS\SIGRC\sigrc-backend
+java -jar target\sigrc-1.0.0.jar --spring.profiles.active=local

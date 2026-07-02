@@ -21,8 +21,16 @@ export class AdjuntoService {
     return this.http.post<Adjunto>(`${this.baseUrl}/${idTicket}/adjuntos`, formData);
   }
 
-  descargarUrl(idTicket: number, idAdjunto: number): string {
-    return `${this.baseUrl}/${idTicket}/adjuntos/${idAdjunto}/descargar`;
+  descargar(idTicket: number, idAdjunto: number, nombre: string) {
+    this.http.get(`${this.baseUrl}/${idTicket}/adjuntos/${idAdjunto}/descargar`, { responseType: 'blob' })
+      .subscribe(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nombre;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      });
   }
 
   eliminar(idTicket: number, idAdjunto: number): Observable<void> {

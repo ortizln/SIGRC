@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { UsuarioService } from '@core/services/usuario.service';
 import { TicketService } from '@core/services/ticket.service';
 import { AdjuntoService } from '@core/services/adjunto.service';
 import { AuthService } from '@core/services/auth.service';
@@ -22,6 +23,8 @@ export class TicketDetailComponent implements OnInit {
   nuevoEstado = '';
   nuevoComentario = '';
   esInterno = false;
+  usuarios: any[] = [];
+  idResponsableSeleccionado: number | null = null;
 
   estados = [
     { value: 'EN_ANALISIS', label: 'En Análisis' },
@@ -33,13 +36,14 @@ export class TicketDetailComponent implements OnInit {
     { value: 'RECHAZADO', label: 'Rechazado' },
   ];
 
-  private user: any;
+  user: any;
 
   constructor(
     private route: ActivatedRoute,
     private svc: TicketService,
     private adjuntoSvc: AdjuntoService,
-    private auth: AuthService
+    private auth: AuthService,
+    private usuarioSvc: UsuarioService
   ) {
     this.user = this.auth.getUsuario();
   }
@@ -47,9 +51,10 @@ export class TicketDetailComponent implements OnInit {
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (id) {
-      this.svc.obtener(id).subscribe(r => this.ticket = r);
+      this.svc.obtener(id).subscribe(r => { this.ticket = r; });
       this.svc.getComentarios(id).subscribe(r => this.comentarios = r);
       this.adjuntoSvc.listar(id).subscribe(r => this.adjuntos = r);
+      this.usuarioSvc.listar().subscribe(r => this.usuarios = r.filter(u => u.rolCodigo !== 'ADMIN'));
     }
   }
 
@@ -72,6 +77,12 @@ export class TicketDetailComponent implements OnInit {
     return this.user && (this.user.rolCodigo === 'ADMIN' || this.user.rolCodigo === 'JEFE_TI' || this.user.rolCodigo === 'TECNICO');
   }
 
+  asignarResponsable() {
+    if (!this.ticket || !this.idResponsableSeleccionado) return;
+    this.svc.asignar(this.ticket.idTicket, this.idResponsableSeleccionado, this.user.idUsuario)
+      .subscribe((r: any) => { this.ticket = r; this.idResponsableSeleccionado = null; });
+  }
+
   actualizarEstado() {
     if (!this.ticket || !this.nuevoEstado) return;
     this.svc.cambiarEstado(this.ticket.idTicket, this.nuevoEstado, this.user.idUsuario)
@@ -82,8 +93,8 @@ export class TicketDetailComponent implements OnInit {
     return adj.tipoMime.startsWith('image/');
   }
 
-  descargarUrl(adj: Adjunto): string {
-    return this.adjuntoSvc.descargarUrl(this.ticket!.idTicket, adj.idAdjunto);
+  descargarAdjunto(adj: Adjunto) {
+    this.adjuntoSvc.descargar(this.ticket!.idTicket, adj.idAdjunto, adj.nombreArchivo);
   }
 
   tamanoFormateado(bytes: number): string {

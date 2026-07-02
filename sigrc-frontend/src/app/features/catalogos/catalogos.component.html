@@ -1,0 +1,150 @@
+<div class="container-fluid px-0" style="max-width:1000px;">
+  <div class="page-header">
+    <h2>Catálogos del Sistema</h2>
+    <p>Administre áreas, sistemas, categorías y subcategorías</p>
+  </div>
+
+  <div class="d-flex gap-2 mb-3">
+    <button class="btn btn-sm" [class.btn-primary]="tabActivo === 'areas'" [class.btn-outline-secondary]="tabActivo !== 'areas'" (click)="onTab('areas')">Áreas</button>
+    <button class="btn btn-sm" [class.btn-primary]="tabActivo === 'sistemas'" [class.btn-outline-secondary]="tabActivo !== 'sistemas'" (click)="onTab('sistemas')">Sistemas</button>
+    <button class="btn btn-sm" [class.btn-primary]="tabActivo === 'categorias'" [class.btn-outline-secondary]="tabActivo !== 'categorias'" (click)="onTab('categorias')">Categorías</button>
+    <button class="btn btn-sm" [class.btn-primary]="tabActivo === 'subcategorias'" [class.btn-outline-secondary]="tabActivo !== 'subcategorias'" (click)="onTab('subcategorias')">Subcategorías</button>
+  </div>
+
+  <div class="alert alert-success py-2 px-3 mb-2 d-flex justify-content-between align-items-center" *ngIf="seedMsg && !seedError">
+    <small>{{ seedMsg }}</small>
+    <button class="btn btn-sm btn-outline-success" (click)="seedMsg = ''">×</button>
+  </div>
+  <div class="alert alert-danger py-2 px-3 mb-2" *ngIf="seedMsg && seedError">
+    <small>{{ seedMsg }}</small>
+  </div>
+
+  <div class="card-modern p-0">
+    <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+      <h6 class="fw-bold mb-0 text-capitalize">{{ tabActivo }}</h6>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm" (click)="seedData()" [disabled]="cargando">
+          <i class="pi pi-refresh" style="font-size:0.7rem;"></i> Poblar datos
+        </button>
+        <button class="btn btn-primary btn-sm" (click)="nuevo()">+ Nuevo</button>
+      </div>
+    </div>
+
+    <div class="p-3 border-bottom" *ngIf="formVisible">
+      <div class="row g-2">
+        <div class="col-md-4">
+          <input [(ngModel)]="form.nombre" class="form-control form-control-sm" placeholder="Nombre">
+        </div>
+        <div class="col-md-4">
+          <input [(ngModel)]="form.codigo" class="form-control form-control-sm" placeholder="Código">
+        </div>
+        <div class="col-md-4" *ngIf="tabActivo === 'subcategorias'">
+          <select [(ngModel)]="form.idCategoria" class="form-select form-select-sm" (change)="cargarSubcategorias()">
+            <option value="">Categoría</option>
+            <option *ngFor="let c of categorias" [value]="c.idCategoria">{{ c.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <textarea [(ngModel)]="form.descripcion" class="form-control form-control-sm" rows="2" placeholder="Descripción (opcional)"></textarea>
+        </div>
+        <div class="col-12 d-flex gap-1">
+          <button class="btn btn-primary btn-sm" (click)="guardar()" [disabled]="cargando || !form.nombre">
+            <i class="pi pi-save" style="font-size:0.7rem;"></i> {{ editando ? 'Actualizar' : 'Guardar' }}
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" (click)="cancelar()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table-modern">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th *ngIf="tabActivo === 'subcategorias'">Categoría</th>
+            <th style="width:60px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container [ngSwitch]="tabActivo">
+            <ng-container *ngSwitchCase="'areas'">
+              <tr *ngFor="let a of areas">
+                <td><code class="small">{{ a.codigo || '—' }}</code></td>
+                <td class="fw-medium">{{ a.nombre }}</td>
+                <td class="small text-muted">{{ a.descripcion || '—' }}</td>
+                <td>
+                  <div class="dropdown-actions">
+                    <button class="btn-dots" (click)="toggleMenu(a.idArea)">•••</button>
+                    <div class="dropdown-menu-custom" *ngIf="menuAbierto === a.idArea">
+                      <button (click)="editar(a, 'area')"><i class="pi pi-pencil"></i> Editar</button>
+                      <button (click)="desactivar(a, 'area')"><i class="pi pi-ban"></i> Desactivar</button>
+                      <button class="text-danger" (click)="eliminarFisico(a, 'area')"><i class="pi pi-trash"></i> Eliminar</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="areas.length === 0"><td colspan="4" class="empty-state"><h5>Sin áreas</h5></td></tr>
+            </ng-container>
+            <ng-container *ngSwitchCase="'sistemas'">
+              <tr *ngFor="let s of sistemas">
+                <td><code class="small">{{ s.codigo || '—' }}</code></td>
+                <td class="fw-medium">{{ s.nombre }}</td>
+                <td class="small text-muted">{{ s.descripcion || '—' }}</td>
+                <td>
+                  <div class="dropdown-actions">
+                    <button class="btn-dots" (click)="toggleMenu(s.idSistema)">•••</button>
+                    <div class="dropdown-menu-custom" *ngIf="menuAbierto === s.idSistema">
+                      <button (click)="editar(s, 'sistema')"><i class="pi pi-pencil"></i> Editar</button>
+                      <button (click)="desactivar(s, 'sistema')"><i class="pi pi-ban"></i> Desactivar</button>
+                      <button class="text-danger" (click)="eliminarFisico(s, 'sistema')"><i class="pi pi-trash"></i> Eliminar</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="sistemas.length === 0"><td colspan="4" class="empty-state"><h5>Sin sistemas</h5></td></tr>
+            </ng-container>
+            <ng-container *ngSwitchCase="'categorias'">
+              <tr *ngFor="let c of categorias">
+                <td><code class="small">{{ c.codigo || '—' }}</code></td>
+                <td class="fw-medium">{{ c.nombre }}</td>
+                <td class="small text-muted">{{ c.descripcion || '—' }}</td>
+                <td>
+                  <div class="dropdown-actions">
+                    <button class="btn-dots" (click)="toggleMenu(c.idCategoria)">•••</button>
+                    <div class="dropdown-menu-custom" *ngIf="menuAbierto === c.idCategoria">
+                      <button (click)="editar(c, 'categoria')"><i class="pi pi-pencil"></i> Editar</button>
+                      <button (click)="desactivar(c, 'categoria')"><i class="pi pi-ban"></i> Desactivar</button>
+                      <button class="text-danger" (click)="eliminarFisico(c, 'categoria')"><i class="pi pi-trash"></i> Eliminar</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="categorias.length === 0"><td colspan="4" class="empty-state"><h5>Sin categorías</h5></td></tr>
+            </ng-container>
+            <ng-container *ngSwitchCase="'subcategorias'">
+              <tr *ngFor="let s of subcategorias">
+                <td><code class="small">{{ s.codigo || '—' }}</code></td>
+                <td class="fw-medium">{{ s.nombre }}</td>
+                <td class="small text-muted">{{ s.descripcion || '—' }}</td>
+                <td class="small">{{ s.categoria?.nombre || '—' }}</td>
+                <td>
+                  <div class="dropdown-actions">
+                    <button class="btn-dots" (click)="toggleMenu(s.idSubcategoria)">•••</button>
+                    <div class="dropdown-menu-custom" *ngIf="menuAbierto === s.idSubcategoria">
+                      <button (click)="editar(s, 'subcategoria')"><i class="pi pi-pencil"></i> Editar</button>
+                      <button (click)="desactivar(s, 'subcategoria')"><i class="pi pi-ban"></i> Desactivar</button>
+                      <button class="text-danger" (click)="eliminarFisico(s, 'subcategoria')"><i class="pi pi-trash"></i> Eliminar</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="subcategorias.length === 0"><td colspan="5" class="empty-state"><h5>Sin subcategorías</h5></td></tr>
+            </ng-container>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

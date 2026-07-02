@@ -71,6 +71,19 @@
           <div class="form-text">Opcional. Sistema al que pertenece el ticket</div>
         </div>
 
+        <!-- Responsable -->
+        <div class="col-md-4">
+          <label class="form-label">
+            Responsable
+            <span class="help-tip ms-1" title="Usuario asignado para resolver el ticket">?</span>
+          </label>
+          <select [(ngModel)]="form.idResponsable" name="idResponsable" class="form-select">
+            <option value="">Seleccione...</option>
+            <option *ngFor="let u of usuarios" [value]="u.idUsuario">{{ u.nombres }} {{ u.apellidos }}</option>
+          </select>
+          <div class="form-text">Opcional. Asignar responsable desde la creación</div>
+        </div>
+
         <!-- Categoría -->
         <div class="col-md-4">
           <label class="form-label">

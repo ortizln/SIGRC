@@ -11,6 +11,7 @@ public record TicketCrearRequest(
     Integer idSistema,
     Integer idCategoria,
     Integer idSubcategoria,
+    Integer idResponsable,
     @NotBlank String asunto,
     @NotBlank String descripcion,
     String impacto,

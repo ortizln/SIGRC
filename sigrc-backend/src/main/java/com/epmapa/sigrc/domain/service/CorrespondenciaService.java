@@ -37,6 +37,7 @@ public class CorrespondenciaService {
     private final UsuarioRepository usuarioRepository;
     private final AreaRepository areaCatRepository;
     private final TicketService ticketService;
+    private final NotificacionWebSocketService notificacionService;
 
     @Value("${app.upload.path:/data/sigrc/uploads}")
     private String uploadPath;
@@ -50,7 +51,8 @@ public class CorrespondenciaService {
                                   CorrespondenciaAreaRepository areaRepository,
                                   UsuarioRepository usuarioRepository,
                                   AreaRepository areaCatRepository,
-                                  TicketService ticketService) {
+                                  TicketService ticketService,
+                                  NotificacionWebSocketService notificacionService) {
         this.repository = repository;
         this.tipoDocRepository = tipoDocRepository;
         this.adjuntoRepository = adjuntoRepository;
@@ -61,6 +63,7 @@ public class CorrespondenciaService {
         this.usuarioRepository = usuarioRepository;
         this.areaCatRepository = areaCatRepository;
         this.ticketService = ticketService;
+        this.notificacionService = notificacionService;
     }
 
     @Transactional
@@ -109,7 +112,14 @@ public class CorrespondenciaService {
             generarTicketDesdeCorrespondencia(entity, creadoPor);
         }
 
-        return toDTO(entity);
+        var dto = toDTO(entity);
+        if (request.idResponsable() != null) {
+            notificacionService.notificarAsignacion(request.idResponsable(), "CORRESPONDENCIA",
+                "Correspondencia Asignada",
+                "Documento " + entity.getNumeroInterno() + " - " + entity.getAsunto(),
+                entity.getIdCorrespondencia());
+        }
+        return dto;
     }
 
     @Transactional(readOnly = true)
@@ -201,7 +211,12 @@ public class CorrespondenciaService {
         registrarHistorial(entity, null, entity.getEstado(), "ASIGNACION",
                 "Asignado a: " + responsable.getNombres(), usuario);
 
-        return toDTO(entity);
+        var dto = toDTO(entity);
+        notificacionService.notificarAsignacion(idResponsable, "CORRESPONDENCIA",
+            "Correspondencia Asignada",
+            "Documento " + entity.getNumeroInterno() + " - " + entity.getAsunto(),
+            entity.getIdCorrespondencia());
+        return dto;
     }
 
     @Transactional
@@ -358,6 +373,7 @@ public class CorrespondenciaService {
                 entity.getPrioridad(),
                 usuario.getIdUsuario(),
                 idArea,
+                null,
                 null,
                 null,
                 null,

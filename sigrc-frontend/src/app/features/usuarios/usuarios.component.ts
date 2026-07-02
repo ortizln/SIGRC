@@ -7,6 +7,20 @@ import { CatalogoService } from '@core/services/catalogo.service';
 import { AuthService } from '@core/services/auth.service';
 import { Usuario } from '@shared/models/usuario.model';
 
+const MODULOS = [
+  { clave: 'DASHBOARD', nombre: 'Dashboard' },
+  { clave: 'CORRESPONDENCIA', nombre: 'Correspondencia' },
+  { clave: 'TICKETS', nombre: 'Tickets' },
+  { clave: 'CAMBIOS', nombre: 'Cambios' },
+  { clave: 'VERSIONES', nombre: 'Versiones' },
+  { clave: 'AUDITORIA', nombre: 'Auditoría' },
+  { clave: 'USUARIOS', nombre: 'Usuarios' },
+  { clave: 'ROLES', nombre: 'Roles' },
+  { clave: 'CATALOGOS', nombre: 'Catálogos' },
+  { clave: 'REPORTES', nombre: 'Reportes' },
+  { clave: 'CONOCIMIENTO', nombre: 'Base Conocimiento' },
+];
+
 @Component({
   selector: 'app-usuarios',
   standalone: true,
@@ -22,7 +36,10 @@ export class UsuariosComponent implements OnInit {
   editando = false;
   editandoId: number | null = null;
   cargando = false;
+  guardandoPermisos = false;
   form: any = {};
+  modulos = MODULOS;
+  permisosModulo: { [modulo: string]: { lectura: boolean; escritura: boolean } } = {};
 
   constructor(
     private usuarioService: UsuarioService,
@@ -39,14 +56,28 @@ export class UsuariosComponent implements OnInit {
     }
   }
 
+  get permisosArray(): { modulo: string; lectura: boolean; escritura: boolean }[] {
+    return Object.entries(this.permisosModulo).map(([modulo, val]) => ({
+      modulo, lectura: val.lectura, escritura: val.escritura
+    }));
+  }
+
   cargar() {
     this.usuarioService.listar().subscribe(r => this.usuarios = r);
+  }
+
+  private initPermisos() {
+    this.permisosModulo = {};
+    this.modulos.forEach(m => {
+      this.permisosModulo[m.clave] = { lectura: false, escritura: false };
+    });
   }
 
   abrirFormulario() {
     this.editando = false;
     this.editandoId = null;
     this.form = { username: '', nombres: '', apellidos: '', email: '', password: '', rolCodigo: '', idArea: null, cargo: '', telefono: '' };
+    this.initPermisos();
     this.formVisible = true;
   }
 
@@ -64,10 +95,23 @@ export class UsuariosComponent implements OnInit {
       cargo: u.cargo,
       telefono: u.telefono
     };
+    this.initPermisos();
+    this.usuarioService.obtenerPermisos(u.idUsuario).subscribe(permisos => {
+      permisos.forEach((p: any) => {
+        if (this.permisosModulo[p.modulo]) {
+          this.permisosModulo[p.modulo][p.tipoAcceso === 'ESCRITURA' ? 'escritura' : 'lectura'] = true;
+        }
+      });
+    });
     this.formVisible = true;
   }
 
   cancelar() { this.formVisible = false; }
+
+  toggleLectura(clave: string) {
+    this.permisosModulo[clave].lectura = !this.permisosModulo[clave].lectura;
+    if (!this.permisosModulo[clave].lectura) this.permisosModulo[clave].escritura = false;
+  }
 
   guardar() {
     this.cargando = true;
@@ -75,7 +119,25 @@ export class UsuariosComponent implements OnInit {
       ? this.usuarioService.actualizar(this.editandoId!, this.form)
       : this.usuarioService.crear(this.form);
     request.subscribe({
-      next: () => { this.cargando = false; this.formVisible = false; this.cargar(); },
+      next: (user) => {
+        const permisos = this.permisosArray.filter(p => p.lectura || p.escritura).map(p => ({
+          modulo: p.modulo,
+          tipoAcceso: p.escritura ? 'ESCRITURA' : 'LECTURA'
+        }));
+        if (this.editandoId) {
+          this.usuarioService.guardarPermisos(this.editandoId, permisos).subscribe(() => {
+            this.cargando = false;
+            this.formVisible = false;
+            this.cargar();
+          });
+        } else {
+          this.usuarioService.guardarPermisos(user.idUsuario, permisos).subscribe(() => {
+            this.cargando = false;
+            this.formVisible = false;
+            this.cargar();
+          });
+        }
+      },
       error: () => { this.cargando = false; }
     });
   }

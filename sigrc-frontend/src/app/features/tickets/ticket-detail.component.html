@@ -47,6 +47,15 @@
           <div class="col-4">
             <div class="small text-uppercase fw-semibold text-muted" style="font-size:0.68rem;letter-spacing:0.04em;">Responsable</div>
             <span>{{ ticket.responsableNombre || 'Sin asignar' }}</span>
+            <div *ngIf="!ticket.responsableNombre && (user?.rolCodigo === 'ADMIN' || user?.rolCodigo === 'JEFE_TI')" class="d-flex gap-1 mt-1">
+              <select class="form-select form-select-sm" style="width:auto;" [(ngModel)]="idResponsableSeleccionado">
+                <option [ngValue]="null">Asignar...</option>
+                <option *ngFor="let u of usuarios" [value]="u.idUsuario">{{ u.nombres }} {{ u.apellidos }}</option>
+              </select>
+              <button class="btn btn-primary btn-sm" [disabled]="!idResponsableSeleccionado" (click)="asignarResponsable()">
+                <i class="pi pi-check" style="font-size:0.65rem;"></i>
+              </button>
+            </div>
           </div>
           <div class="col-4">
             <div class="small text-uppercase fw-semibold text-muted" style="font-size:0.68rem;letter-spacing:0.04em;">Sistema</div>
@@ -79,7 +88,7 @@
           <h6 class="fw-bold mb-2">Adjuntos ({{ adjuntos.length }})</h6>
           <div class="d-flex flex-wrap gap-2">
             <a *ngFor="let a of adjuntos"
-               [href]="descargarUrl(a)"
+               href="javascript:;" (click)="descargarAdjunto(a)"
                target="_blank"
                class="adjunto-link d-flex align-items-center gap-2 px-3 py-2 rounded text-decoration-none">
               <span *ngIf="esImagen(a)">🖼️</span>

@@ -26,6 +26,7 @@ public class TicketService {
     private final SistemaRepository sistemaRepository;
     private final CategoriaRepository categoriaRepository;
     private final SubcategoriaRepository subcategoriaRepository;
+    private final NotificacionWebSocketService notificacionService;
 
     public TicketService(TicketRepository ticketRepository,
                          TicketHistorialRepository historialRepository,
@@ -35,7 +36,8 @@ public class TicketService {
                          AreaRepository areaRepository,
                          SistemaRepository sistemaRepository,
                          CategoriaRepository categoriaRepository,
-                         SubcategoriaRepository subcategoriaRepository) {
+                         SubcategoriaRepository subcategoriaRepository,
+                         NotificacionWebSocketService notificacionService) {
         this.ticketRepository = ticketRepository;
         this.historialRepository = historialRepository;
         this.comentarioRepository = comentarioRepository;
@@ -45,16 +47,17 @@ public class TicketService {
         this.sistemaRepository = sistemaRepository;
         this.categoriaRepository = categoriaRepository;
         this.subcategoriaRepository = subcategoriaRepository;
+        this.notificacionService = notificacionService;
     }
 
     @Transactional(readOnly = true)
     public PaginacionDTO<TicketDTO> listar(int pagina, int tamanio, String estado, String tipo,
                                             String prioridad, Integer idSolicitante,
                                             Integer idResponsable, Integer idArea,
-                                            Integer idSistema, String texto) {
+                                            Integer idSistema, Integer idUsuario, String texto) {
         var pageable = PageRequest.of(pagina, tamanio);
         Page<Ticket> result = ticketRepository.buscar(estado, tipo, prioridad,
-            idSolicitante, idResponsable, idArea, idSistema, texto, pageable);
+            idSolicitante, idResponsable, idArea, idSistema, idUsuario, texto, pageable);
         return toPaginacion(result);
     }
 
@@ -66,10 +69,11 @@ public class TicketService {
 
     @Transactional
     public TicketDTO crear(TicketCrearRequest request) {
+        String estadoInicial = request.idResponsable() != null ? "ASIGNADO" : "NUEVO";
         var ticket = Ticket.builder()
             .tipo(request.tipo())
             .prioridad(request.prioridad())
-            .estado("NUEVO")
+            .estado(estadoInicial)
             .asunto(request.asunto())
             .descripcion(request.descripcion())
             .impacto(request.impacto())
@@ -90,13 +94,22 @@ public class TicketService {
             ticket.setCategoria(categoriaRepository.getReferenceById(request.idCategoria()));
         if (request.idSubcategoria() != null)
             ticket.setSubcategoria(subcategoriaRepository.getReferenceById(request.idSubcategoria()));
+        if (request.idResponsable() != null)
+            ticket.setResponsable(usuarioRepository.getReferenceById(request.idResponsable()));
 
         ticket = ticketRepository.save(ticket);
 
-        registrarHistorial(ticket.getIdTicket(), null, "NUEVO", request.idSolicitante(),
-            "Creación de ticket");
+        registrarHistorial(ticket.getIdTicket(), null, estadoInicial, request.idSolicitante(),
+            "Creación de ticket" + (request.idResponsable() != null ? " y asignación a responsable" : ""));
 
-        return toDTO(ticket);
+        var dto = toDTO(ticket);
+        if (request.idResponsable() != null) {
+            notificacionService.notificarAsignacion(request.idResponsable(), "TICKET",
+                "Ticket Asignado",
+                "Ticket " + ticket.getNumeroTicket() + " - " + ticket.getAsunto(),
+                ticket.getIdTicket());
+        }
+        return dto;
     }
 
     @Transactional
@@ -136,7 +149,12 @@ public class TicketService {
         ticket = ticketRepository.save(ticket);
         registrarHistorial(idTicket, null, ticket.getEstado(), idUsuario,
             "Asignado a: " + responsable.getNombres() + " " + responsable.getApellidos());
-        return toDTO(ticket);
+        var dto = toDTO(ticket);
+        notificacionService.notificarAsignacion(idResponsable, "TICKET",
+            "Ticket Asignado",
+            "Ticket " + ticket.getNumeroTicket() + " - " + ticket.getAsunto(),
+            ticket.getIdTicket());
+        return dto;
     }
 
     @Transactional

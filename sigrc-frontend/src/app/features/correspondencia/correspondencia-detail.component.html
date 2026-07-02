@@ -56,7 +56,7 @@
           <div *ngFor="let adj of adjuntos" class="adjunto-item d-flex align-items-center gap-3">
             <i class="pi pi-file" style="font-size:1.2rem;color:var(--text-muted);"></i>
             <div class="flex-grow-1 min-width-0">
-              <a [href]="descargarUrl(adj)" target="_blank" class="text-decoration-none fw-medium small">{{ adj.nombreOriginal }}</a>
+              <a href="javascript:;" (click)="descargarAdjunto(adj)" class="text-decoration-none fw-medium small">{{ adj.nombreOriginal }}</a>
               <small class="text-muted d-block">{{ tamanoFormateado(adj.tamanoBytes) }} — {{ adj.tipo }}</small>
             </div>
             <button *ngIf="auth.hasRole('ADMIN') || auth.hasRole('JEFE_TI')" class="btn btn-sm btn-outline-danger btn-xs" (click)="eliminarAdjunto(adj)" title="Eliminar">
@@ -141,14 +141,13 @@
       <div class="card-modern p-4 mt-3" *ngIf="showRespuestaForm">
         <h6 class="fw-bold mb-3">Registrar Respuesta</h6>
         <div class="d-flex flex-column gap-2">
-          <input [(ngModel)]="formRespuesta.fechaRespuesta" type="date" class="form-control form-control-sm" placeholder="Fecha respuesta">
-          <input [(ngModel)]="formRespuesta.numeroDocumento" class="form-control form-control-sm" placeholder="N° documento respuesta">
-          <select [(ngModel)]="formRespuesta.idTipoDocumento" class="form-select form-select-sm">
-            <option value="">Tipo documento respuesta</option>
-            <option *ngFor="let t of tiposDocumento" [value]="t.idTipoDocumento">{{ t.nombre }}</option>
+          <label class="form-label small">Asignar Responsable de la Respuesta <span class="text-danger">*</span></label>
+          <select #respModel="ngModel" [(ngModel)]="formRespuesta.idResponsable" name="idResponsableResp" required class="form-select form-select-sm">
+            <option [ngValue]="null">Seleccione...</option>
+            <option *ngFor="let u of usuarios" [value]="u.idUsuario">{{ u.nombres }} {{ u.apellidos }}</option>
           </select>
-          <textarea [(ngModel)]="formRespuesta.observaciones" class="form-control form-control-sm" rows="2" placeholder="Observaciones"></textarea>
-          <button class="btn btn-primary btn-sm" (click)="registrarRespuesta()">
+          <textarea [(ngModel)]="formRespuesta.observaciones" name="observacionesResp" class="form-control form-control-sm" rows="2" placeholder="Observaciones (opcional)"></textarea>
+          <button class="btn btn-primary btn-sm" [disabled]="!formRespuesta.idResponsable" (click)="registrarRespuesta()">
             <i class="pi pi-check" style="font-size:0.7rem;"></i> Guardar Respuesta
           </button>
         </div>

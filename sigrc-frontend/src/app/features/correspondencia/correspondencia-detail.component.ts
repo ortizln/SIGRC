@@ -23,7 +23,7 @@ export class CorrespondenciaDetailComponent implements OnInit {
   nuevoEstado = '';
   archivos: File[] = [];
   estados = ESTADOS_CORRESPONDENCIA;
-  formRespuesta: any = { fechaRespuesta: '', numeroDocumento: '', idTipoDocumento: null, idResponsable: null, observaciones: '' };
+  formRespuesta: any = { fechaRespuesta: new Date().toISOString().split('T')[0], idResponsable: null, observaciones: '' };
   tiposDocumento: any[] = [];
   usuarios: any[] = [];
   showRespuestaForm = false;
@@ -76,8 +76,8 @@ export class CorrespondenciaDetailComponent implements OnInit {
     return adj.tipoMime?.startsWith('image/');
   }
 
-  descargarUrl(adj: any): string {
-    return this.svc.descargarUrl(this.doc.idCorrespondencia, adj.idAdjunto);
+  descargarAdjunto(adj: any) {
+    this.svc.descargar(this.doc.idCorrespondencia, adj.idAdjunto, adj.nombreOriginal);
   }
 
   tamanoFormateado(bytes: number): string {
@@ -113,12 +113,13 @@ export class CorrespondenciaDetailComponent implements OnInit {
   }
 
   registrarRespuesta() {
-    if (!this.doc) return;
+    if (!this.doc || !this.formRespuesta.idResponsable) return;
     this.formRespuesta.idCorrespondencia = this.doc.idCorrespondencia;
     this.svc.registrarRespuesta(this.doc.idCorrespondencia, this.formRespuesta).subscribe(r => {
       this.respuestas.push(r);
+      this.doc.responsableNombre = r.responsableNombre;
       this.showRespuestaForm = false;
-      this.formRespuesta = { fechaRespuesta: '', numeroDocumento: '', idTipoDocumento: null, idResponsable: null, observaciones: '' };
+      this.formRespuesta = { fechaRespuesta: new Date().toISOString().split('T')[0], idResponsable: null, observaciones: '' };
       if (this.doc.estado !== 'ARCHIVADO') {
         this.doc.estado = 'RESPONDIDO';
       }

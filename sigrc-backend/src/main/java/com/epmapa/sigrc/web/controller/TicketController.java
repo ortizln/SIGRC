@@ -2,11 +2,13 @@ package com.epmapa.sigrc.web.controller;
 
 import com.epmapa.sigrc.domain.dto.*;
 import com.epmapa.sigrc.domain.service.TicketService;
+import com.epmapa.sigrc.security.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,9 +34,12 @@ public class TicketController {
             @RequestParam(required = false) Integer idResponsable,
             @RequestParam(required = false) Integer idArea,
             @RequestParam(required = false) Integer idSistema,
-            @RequestParam(required = false) String texto) {
+            @RequestParam(required = false) String texto,
+            Authentication auth) {
+        var user = (UserPrincipal) auth.getPrincipal();
+        Integer idUsuario = "ADMIN".equals(user.rol()) ? null : user.idUsuario();
         return ResponseEntity.ok(ticketService.listar(pagina, tamanio, estado, tipo,
-            prioridad, idSolicitante, idResponsable, idArea, idSistema, texto));
+            prioridad, idSolicitante, idResponsable, idArea, idSistema, idUsuario, texto));
     }
 
     @GetMapping("/{id}")

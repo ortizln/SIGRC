@@ -102,14 +102,32 @@
         </tbody>
       </table>
     </div>
-    <div class="d-flex justify-content-center align-items-center gap-3 p-3 border-top" *ngIf="pagina.totalPaginas > 1">
-      <button class="btn btn-outline-secondary btn-sm" [disabled]="pagina.primera" (click)="irPagina(pagina.pagina - 1)">
-        <i class="pi pi-chevron-left" style="font-size:0.7rem;"></i> Anterior
-      </button>
-      <span class="small text-muted">Pág. {{ pagina.pagina + 1 }} de {{ pagina.totalPaginas }}</span>
-      <button class="btn btn-outline-secondary btn-sm" [disabled]="pagina.ultima" (click)="irPagina(pagina.pagina + 1)">
-        Siguiente <i class="pi pi-chevron-right" style="font-size:0.7rem;"></i>
-      </button>
+    <div class="d-flex justify-content-between align-items-center p-3 border-top">
+      <div class="d-flex align-items-center gap-2">
+        <small class="text-muted">Mostrar</small>
+        <select class="form-select form-select-sm" style="width:auto;" [(ngModel)]="filtros.tamanio" (change)="cambiarTamanio()">
+          <option *ngFor="let t of tamanios" [value]="t">{{ t }}</option>
+        </select>
+        <small class="text-muted">{{ pagina.totalElementos }} registros</small>
+      </div>
+      <div class="d-flex align-items-center gap-1" *ngIf="pagina.totalPaginas > 1">
+        <button class="btn btn-outline-secondary btn-sm" [disabled]="pagina.primera" (click)="irPagina(0)" title="Primera">
+          <i class="pi pi-step-backward" style="font-size:0.65rem;"></i>
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" [disabled]="pagina.primera" (click)="irPagina(pagina.pagina - 1)">
+          <i class="pi pi-chevron-left" style="font-size:0.65rem;"></i>
+        </button>
+        <ng-container *ngFor="let p of paginasVisibles">
+          <button *ngIf="p === -1" class="btn btn-sm btn-outline-secondary border-0 px-1" disabled>...</button>
+          <button *ngIf="p !== -1" class="btn btn-sm" [class.btn-primary]="p === pagina.pagina" [class.btn-outline-secondary]="p !== pagina.pagina" (click)="irPagina(p)">{{ p + 1 }}</button>
+        </ng-container>
+        <button class="btn btn-outline-secondary btn-sm" [disabled]="pagina.ultima" (click)="irPagina(pagina.pagina + 1)">
+          <i class="pi pi-chevron-right" style="font-size:0.65rem;"></i>
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" [disabled]="pagina.ultima" (click)="irPagina(pagina.totalPaginas - 1)" title="Última">
+          <i class="pi pi-step-forward" style="font-size:0.65rem;"></i>
+        </button>
+      </div>
     </div>
   </div>
 </div>

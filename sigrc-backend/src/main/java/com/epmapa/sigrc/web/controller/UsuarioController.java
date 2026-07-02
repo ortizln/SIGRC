@@ -2,6 +2,7 @@ package com.epmapa.sigrc.web.controller;
 
 import com.epmapa.sigrc.domain.dto.UsuarioCrearRequest;
 import com.epmapa.sigrc.domain.dto.UsuarioDTO;
+import com.epmapa.sigrc.domain.dto.UsuarioPermisoDTO;
 import com.epmapa.sigrc.domain.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -56,5 +57,20 @@ public class UsuarioController {
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         usuarioService.desactivar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/permisos")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Obtener permisos de módulos del usuario")
+    public ResponseEntity<List<UsuarioPermisoDTO>> obtenerPermisos(@PathVariable Integer id) {
+        return ResponseEntity.ok(usuarioService.obtenerPermisos(id));
+    }
+
+    @PutMapping("/{id}/permisos")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Guardar permisos de módulos del usuario")
+    public ResponseEntity<List<UsuarioPermisoDTO>> guardarPermisos(@PathVariable Integer id,
+                                                                     @RequestBody List<UsuarioPermisoDTO> permisos) {
+        return ResponseEntity.ok(usuarioService.guardarPermisos(id, permisos));
     }
 }

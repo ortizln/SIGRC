@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -70,6 +71,21 @@ public class CatalogoController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/areas/{id}/hard")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Eliminar área permanentemente")
+    public ResponseEntity<Map<String, Object>> eliminarAreaHard(@PathVariable Integer id) {
+        var area = areaRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Área no encontrada: " + id));
+        try {
+            areaRepository.delete(area);
+            areaRepository.flush();
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of("success", false, "message", "No se puede eliminar porque está siendo usado por otros datos."));
+        }
+    }
+
     @GetMapping("/sistemas")
     @Operation(summary = "Listar sistemas")
     public ResponseEntity<List<Sistema>> sistemas() {
@@ -112,6 +128,21 @@ public class CatalogoController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/sistemas/{id}/hard")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Eliminar sistema permanentemente")
+    public ResponseEntity<Map<String, Object>> eliminarSistemaHard(@PathVariable Integer id) {
+        var sistema = sistemaRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Sistema no encontrado: " + id));
+        try {
+            sistemaRepository.delete(sistema);
+            sistemaRepository.flush();
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of("success", false, "message", "No se puede eliminar porque está siendo usado por otros datos."));
+        }
+    }
+
     @GetMapping("/categorias")
     @Operation(summary = "Listar categorías")
     public ResponseEntity<List<Categoria>> categorias() {
@@ -149,6 +180,21 @@ public class CatalogoController {
         cat.setActivo(false);
         categoriaRepository.save(cat);
         return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/categorias/{id}/hard")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Eliminar categoría permanentemente")
+    public ResponseEntity<Map<String, Object>> eliminarCategoriaHard(@PathVariable Integer id) {
+        var cat = categoriaRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada: " + id));
+        try {
+            categoriaRepository.delete(cat);
+            categoriaRepository.flush();
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of("success", false, "message", "No se puede eliminar porque está siendo usado por otros datos."));
+        }
     }
 
     @GetMapping("/subcategorias/{idCategoria}")
@@ -189,5 +235,85 @@ public class CatalogoController {
         sc.setActivo(false);
         subcategoriaRepository.save(sc);
         return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/subcategorias/{id}/hard")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Eliminar subcategoría permanentemente")
+    public ResponseEntity<Map<String, Object>> eliminarSubcategoriaHard(@PathVariable Integer id) {
+        var sc = subcategoriaRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Subcategoría no encontrada: " + id));
+        try {
+            subcategoriaRepository.delete(sc);
+            subcategoriaRepository.flush();
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of("success", false, "message", "No se puede eliminar porque está siendo usado por otros datos."));
+        }
+    }
+
+    @PostMapping("/seed")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Poblar datos iniciales de catálogos")
+    public ResponseEntity<Map<String, Integer>> seed() {
+        int areas = 0, sistemas = 0, categorias = 0, subcategorias = 0;
+
+        if (areaRepository.count() == 0) {
+            areaRepository.saveAll(List.of(
+                Area.builder().codigo("ADM").nombre("Administración").descripcion("Administración General").build(),
+                Area.builder().codigo("SIST").nombre("Sistemas").descripcion("Departamento de Sistemas").build(),
+                Area.builder().codigo("CONT").nombre("Contabilidad").descripcion("Departamento de Contabilidad").build(),
+                Area.builder().codigo("TAL_HUM").nombre("Talento Humano").descripcion("Departamento de Talento Humano").build(),
+                Area.builder().codigo("FIN").nombre("Financiero").descripcion("Departamento Financiero").build(),
+                Area.builder().codigo("LEG").nombre("Asesoría Legal").descripcion("Asesoría Legal").build(),
+                Area.builder().codigo("OPE").nombre("Operaciones").descripcion("Departamento de Operaciones").build(),
+                Area.builder().codigo("COM").nombre("Comercialización").descripcion("Departamento Comercial").build()
+            ));
+            areas = 8;
+        }
+
+        if (sistemaRepository.count() == 0) {
+            sistemaRepository.saveAll(List.of(
+                Sistema.builder().codigo("SIGRC").nombre("SIGRC - Sistema de Gestión de Requerimientos, Cambios y Auditoría").descripcion("Sistema principal de gestión de TI").versionActual("1.0.0").tecnologia("Java / Angular").build(),
+                Sistema.builder().codigo("CONTABLE").nombre("Sistema Contable").descripcion("Sistema de contabilidad general").versionActual("3.2.1").tecnologia("PHP / MySQL").build(),
+                Sistema.builder().codigo("RRHH").nombre("Sistema de Recursos Humanos").descripcion("Gestión de personal").versionActual("2.0.0").tecnologia("C# / SQL Server").build(),
+                Sistema.builder().codigo("FACTUR").nombre("Sistema de Facturación").descripcion("Emisión de facturas y recibos").versionActual("4.1.0").tecnologia("PHP / PostgreSQL").build(),
+                Sistema.builder().codigo("SGA").nombre("Sistema de Gestión de Agua").descripcion("Control de consumo y cortes de agua").versionActual("5.0.0").tecnologia("Java / Oracle").build()
+            ));
+            sistemas = 5;
+        }
+
+        if (categoriaRepository.count() == 0) {
+            var categoriasList = new ArrayList<Categoria>();
+            categoriasList.add(Categoria.builder().codigo("INC").nombre("Incidencia").descripcion("Reporte de fallas o problemas en sistemas").build());
+            categoriasList.add(Categoria.builder().codigo("REQ").nombre("Requerimiento").descripcion("Solicitud de nueva funcionalidad o mejora").build());
+            categoriasList.add(Categoria.builder().codigo("CONS").nombre("Consulta").descripcion("Consulta sobre el funcionamiento del sistema").build());
+            categoriasList.add(Categoria.builder().codigo("SOP").nombre("Soporte").descripcion("Solicitud de soporte técnico").build());
+            categoriasList.add(Categoria.builder().codigo("MTO").nombre("Mantenimiento").descripcion("Mantenimiento preventivo o correctivo").build());
+            categoriaRepository.saveAll(categoriasList);
+            categorias = 5;
+
+            var incidencia = categoriasList.get(0);
+            var requerimiento = categoriasList.get(1);
+
+            subcategoriaRepository.saveAll(List.of(
+                Subcategoria.builder().codigo("INC-SIS").nombre("Falla de Sistema").descripcion("El sistema no responde o presenta errores").categoria(incidencia).build(),
+                Subcategoria.builder().codigo("INC-RED").nombre("Problema de Red").descripcion("Problemas de conectividad").categoria(incidencia).build(),
+                Subcategoria.builder().codigo("INC-HW").nombre("Falla de Hardware").descripcion("Problemas con equipos físicos").categoria(incidencia).build(),
+                Subcategoria.builder().codigo("INC-SEG").nombre("Incidente de Seguridad").descripcion("Posible vulnerabilidad o acceso no autorizado").categoria(incidencia).build(),
+                Subcategoria.builder().codigo("REQ-NVO").nombre("Nueva Funcionalidad").descripcion("Solicitud de una nueva funcionalidad").categoria(requerimiento).build(),
+                Subcategoria.builder().codigo("REQ-MEJ").nombre("Mejora").descripcion("Solicitud de mejora de funcionalidad existente").categoria(requerimiento).build(),
+                Subcategoria.builder().codigo("REQ-INT").nombre("Integración").descripcion("Solicitud de integración con otro sistema").categoria(requerimiento).build()
+            ));
+            subcategorias = 7;
+        }
+
+        var result = Map.of(
+            "areas", areas,
+            "sistemas", sistemas,
+            "categorias", categorias,
+            "subcategorias", subcategorias
+        );
+        return ResponseEntity.ok(result);
     }
 }

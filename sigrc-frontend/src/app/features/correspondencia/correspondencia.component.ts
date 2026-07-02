@@ -23,6 +23,7 @@ export class CorrespondenciaListComponent implements OnInit {
     idResponsable: '', fechaDesde: '', fechaHasta: '', pagina: 0, tamanio: 20
   };
   pagina: any = { pagina: 0, totalPaginas: 0, totalElementos: 0, primera: true, ultima: false };
+  tamanios = [10, 20, 50];
   estados = ESTADOS_CORRESPONDENCIA;
   prioridades = PRIORIDADES;
 
@@ -35,7 +36,11 @@ export class CorrespondenciaListComponent implements OnInit {
   ngOnInit() {
     const now = new Date();
     this.filtros.fechaHasta = now.toISOString().split('T')[0];
-    this.filtros.fechaDesde = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    this.filtros.fechaDesde = new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString().split('T')[0];
+    const user = this.auth.getUsuario();
+    if (user && user.rolCodigo !== 'ADMIN') {
+      this.filtros.idResponsable = user.idUsuario;
+    }
     this.buscar();
     this.svc.getTiposDocumento().subscribe(r => this.tiposDocumento = r);
   }
@@ -65,6 +70,25 @@ export class CorrespondenciaListComponent implements OnInit {
   buscar() { this.filtros.pagina = 0; this.cargar(); }
 
   irPagina(p: number) { this.filtros.pagina = p; this.cargar(); }
+
+  cambiarTamanio() {
+    this.filtros.pagina = 0;
+    this.cargar();
+  }
+
+  get paginasVisibles(): number[] {
+    const total = this.pagina.totalPaginas;
+    const actual = this.pagina.pagina;
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i);
+    const paginas: number[] = [0];
+    const inicio = Math.max(1, actual - 1);
+    const fin = Math.min(total - 2, actual + 1);
+    if (inicio > 1) paginas.push(-1);
+    for (let i = inicio; i <= fin; i++) paginas.push(i);
+    if (fin < total - 2) paginas.push(-1);
+    paginas.push(total - 1);
+    return paginas;
+  }
 
   private cargar() {
     this.svc.listar(this.filtros).subscribe(r => {

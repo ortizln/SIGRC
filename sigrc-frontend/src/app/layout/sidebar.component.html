@@ -19,16 +19,19 @@
       <a routerLink="/correspondencia" routerLinkActive="active" class="nav-item">
         <i class="pi pi-inbox sidebar-icon"></i>
         <span *ngIf="!collapsed">Correspondencia</span>
+        <i *ngIf="!collapsed" class="pi pi-info-circle nav-info-icon" title="Gestión de documentos recibidos en el Departamento de TI: registro, seguimiento, respuesta y archivo de documentos institucionales."></i>
       </a>
       <a routerLink="/tickets" routerLinkActive="active" class="nav-item">
         <i class="pi pi-ticket sidebar-icon"></i>
         <span *ngIf="!collapsed">Tickets</span>
+        <i *ngIf="!collapsed" class="pi pi-info-circle nav-info-icon" title="Gestión de solicitudes de servicio: incidentes, requerimientos, mejoras, cambios y consultas reportadas al Departamento de TI."></i>
       </a>
       <a routerLink="/cambios" routerLinkActive="active" class="nav-item">
         <i class="pi pi-sync sidebar-icon"></i>
         <span *ngIf="!collapsed">Cambios</span>
+        <i *ngIf="!collapsed" class="pi pi-info-circle nav-info-icon" title="Gestión de solicitudes de cambio: planificación, aprobación e implementación de cambios en los sistemas y servicios de TI."></i>
       </a>
-      <a routerLink="/versiones" routerLinkActive="active" class="nav-item">
+      <a routerLink="/versiones" routerLinkActive="active" class="nav-item" *ngIf="isAdmin()">
         <i class="pi pi-box sidebar-icon"></i>
         <span *ngIf="!collapsed">Versiones</span>
       </a>
@@ -46,6 +49,11 @@
         <i class="pi pi-shield sidebar-icon"></i>
         <span *ngIf="!collapsed">Roles</span>
       </a>
+      <a routerLink="/catalogos" routerLinkActive="active" class="nav-item" *ngIf="isAdmin()">
+        <i class="pi pi-database sidebar-icon"></i>
+        <span *ngIf="!collapsed">Catálogos</span>
+        <i *ngIf="!collapsed" class="pi pi-info-circle nav-info-icon" title="Administración de catálogos del sistema: áreas, sistemas, categorías, subcategorías y tipos de ticket."></i>
+      </a>
       <a routerLink="/reportes" routerLinkActive="active" class="nav-item" *ngIf="isAdminOrAuditor()">
         <i class="pi pi-chart-bar sidebar-icon"></i>
         <span *ngIf="!collapsed">Reportes</span>
@@ -59,6 +67,31 @@
     </nav>
 
     <div class="sidebar-footer">
+      <div class="notif-bell" (click)="toggleNotif()" title="Notificaciones">
+        <i class="pi pi-bell" style="font-size:1rem;"></i>
+        <span class="notif-badge" *ngIf="noLeidas > 0">{{ noLeidas }}</span>
+      </div>
+      <div class="notif-dropdown" *ngIf="notifAbierto" (click)="$event.stopPropagation()">
+        <div class="notif-header">
+          <strong>Notificaciones</strong>
+          <button class="btn btn-link btn-xs p-0" (click)="marcarTodas()" *ngIf="noLeidas > 0">Marcar todas leídas</button>
+        </div>
+        <div class="notif-list" *ngIf="notificaciones.length > 0; else sinNotif">
+          <div class="notif-item" *ngFor="let n of notificaciones" [class.no-leida]="!n.leida" (click)="irANotificacion(n)">
+            <div class="notif-icon">
+              <i class="pi" [ngClass]="{'pi-inbox': n.tipo === 'CORRESPONDENCIA', 'pi-ticket': n.tipo === 'TICKET', 'pi-sync': n.tipo === 'CAMBIO'}"></i>
+            </div>
+            <div class="notif-body">
+              <strong>{{ n.titulo }}</strong>
+              <p>{{ n.mensaje }}</p>
+              <small>{{ n.fecha | date:'short' }}</small>
+            </div>
+          </div>
+        </div>
+        <ng-template #sinNotif>
+          <div class="notif-empty">Sin notificaciones</div>
+        </ng-template>
+      </div>
       <div class="user-profile" *ngIf="!collapsed">
         <div class="user-avatar">{{ getInitial() }}</div>
         <div class="user-details">

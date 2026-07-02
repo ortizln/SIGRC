@@ -15,4 +15,12 @@ export class UsuarioService {
   crear(data: any): Observable<Usuario> { return this.http.post<Usuario>(this.apiUrl, data); }
   actualizar(id: number, data: any): Observable<Usuario> { return this.http.put<Usuario>(`${this.apiUrl}/${id}`, data); }
   eliminar(id: number): Observable<void> { return this.http.delete<void>(`${this.apiUrl}/${id}`); }
+
+  obtenerPermisos(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${id}/permisos`);
+  }
+
+  guardarPermisos(id: number, permisos: any[]): Observable<any[]> {
+    return this.http.put<any[]>(`${this.apiUrl}/${id}/permisos`, permisos);
+  }
 }

@@ -18,13 +18,16 @@ public class CambioService {
     private final UsuarioRepository usuarioRepository;
     private final SistemaRepository sistemaRepository;
     private final TicketRepository ticketRepository;
+    private final NotificacionWebSocketService notificacionService;
 
     public CambioService(CambioRepository cambioRepository, UsuarioRepository usuarioRepository,
-                         SistemaRepository sistemaRepository, TicketRepository ticketRepository) {
+                         SistemaRepository sistemaRepository, TicketRepository ticketRepository,
+                         NotificacionWebSocketService notificacionService) {
         this.cambioRepository = cambioRepository;
         this.usuarioRepository = usuarioRepository;
         this.sistemaRepository = sistemaRepository;
         this.ticketRepository = ticketRepository;
+        this.notificacionService = notificacionService;
     }
 
     public List<CambioDTO> listar() {
@@ -58,7 +61,9 @@ public class CambioService {
         if (dto.idTicket() != null)
             cambio.setTicket(Ticket.builder().idTicket(dto.idTicket()).build());
 
-        return toDTO(cambioRepository.save(cambio));
+        var entity = cambioRepository.save(cambio);
+        var result = toDTO(entity);
+        return result;
     }
 
     @Transactional

@@ -56,8 +56,16 @@ export class CorrespondenciaService {
     return this.http.post<CorrespondenciaAdjunto>(`${this.apiUrl}/${id}/adjuntos`, fd);
   }
 
-  descargarUrl(id: number, idAdjunto: number): string {
-    return `${this.apiUrl}/${id}/adjuntos/${idAdjunto}/descargar`;
+  descargar(id: number, idAdjunto: number, nombre: string) {
+    this.http.get(`${this.apiUrl}/${id}/adjuntos/${idAdjunto}/descargar`, { responseType: 'blob' })
+      .subscribe(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nombre;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      });
   }
 
   eliminarAdjunto(id: number, idAdjunto: number): Observable<void> {

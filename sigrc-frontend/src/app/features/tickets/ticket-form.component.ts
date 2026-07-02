@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { UsuarioService } from '@core/services/usuario.service';
 import { TicketService } from '@core/services/ticket.service';
 import { AdjuntoService } from '@core/services/adjunto.service';
 import { CatalogoService } from '@core/services/catalogo.service';
@@ -22,12 +23,14 @@ export class TicketFormComponent implements OnInit {
   subcategorias: any[] = [];
   archivos: File[] = [];
   cargando = false;
+  usuarios: any[] = [];
 
   constructor(
     private ticketSvc: TicketService,
     private adjuntoSvc: AdjuntoService,
     private catSvc: CatalogoService,
     private auth: AuthService,
+    private usuarioSvc: UsuarioService,
     private router: Router
   ) {}
 
@@ -40,6 +43,7 @@ export class TicketFormComponent implements OnInit {
     this.catSvc.getAreas().subscribe(r => this.areas = r);
     this.catSvc.getSistemas().subscribe(r => this.sistemas = r);
     this.catSvc.getCategorias().subscribe(r => this.categorias = r);
+    this.usuarioSvc.listar().subscribe(r => this.usuarios = r.filter(u => u.rolCodigo !== 'ADMIN'));
   }
 
   cargarSubcategorias() {

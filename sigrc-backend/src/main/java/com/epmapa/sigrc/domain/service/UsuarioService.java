@@ -2,9 +2,12 @@ package com.epmapa.sigrc.domain.service;
 
 import com.epmapa.sigrc.domain.dto.UsuarioCrearRequest;
 import com.epmapa.sigrc.domain.dto.UsuarioDTO;
+import com.epmapa.sigrc.domain.dto.UsuarioPermisoDTO;
 import com.epmapa.sigrc.domain.entity.Usuario;
+import com.epmapa.sigrc.domain.entity.UsuarioPermiso;
 import com.epmapa.sigrc.domain.repository.AreaRepository;
 import com.epmapa.sigrc.domain.repository.RolRepository;
+import com.epmapa.sigrc.domain.repository.UsuarioPermisoRepository;
 import com.epmapa.sigrc.domain.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,15 +24,18 @@ public class UsuarioService {
     private final AreaRepository areaRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
+    private final UsuarioPermisoRepository usuarioPermisoRepository;
 
     public UsuarioService(UsuarioRepository usuarioRepository, RolRepository rolRepository,
                            AreaRepository areaRepository, PasswordEncoder passwordEncoder,
-                           AuthService authService) {
+                           AuthService authService,
+                           UsuarioPermisoRepository usuarioPermisoRepository) {
         this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
         this.areaRepository = areaRepository;
         this.passwordEncoder = passwordEncoder;
         this.authService = authService;
+        this.usuarioPermisoRepository = usuarioPermisoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -105,5 +111,28 @@ public class UsuarioService {
             .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado: " + id));
         usuario.setActivo(false);
         usuarioRepository.save(usuario);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UsuarioPermisoDTO> obtenerPermisos(Integer idUsuario) {
+        return usuarioPermisoRepository.findByUsuarioIdUsuarioAndActivoTrue(idUsuario)
+            .stream()
+            .map(p -> new UsuarioPermisoDTO(p.getModulo(), p.getTipoAcceso()))
+            .toList();
+    }
+
+    @Transactional
+    public List<UsuarioPermisoDTO> guardarPermisos(Integer idUsuario, List<UsuarioPermisoDTO> permisos) {
+        var usuario = usuarioRepository.findById(idUsuario)
+            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado: " + idUsuario));
+        usuarioPermisoRepository.deleteByUsuarioIdUsuario(idUsuario);
+        for (var p : permisos) {
+            usuarioPermisoRepository.save(UsuarioPermiso.builder()
+                .usuario(usuario)
+                .modulo(p.modulo())
+                .tipoAcceso(p.tipoAcceso())
+                .build());
+        }
+        return obtenerPermisos(idUsuario);
     }
 }
