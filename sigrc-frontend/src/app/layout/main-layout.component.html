@@ -7,3 +7,14 @@
 <main class="main-content" [class.sidebar-collapsed]="sidebarCollapsed">
   <router-outlet></router-outlet>
 </main>
+<footer class="app-footer" [class.sidebar-collapsed]="sidebarCollapsed">
+  <div class="footer-content">
+    <span class="footer-logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="12 2 22 22 2 22 12 2" />
+      </svg>
+      <span class="footer-brand">ALANTECK</span>
+    </span>
+    <span class="footer-copy">&copy; 2026 ALANTECK. Todos los derechos reservados.</span>
+  </div>
+</footer>
