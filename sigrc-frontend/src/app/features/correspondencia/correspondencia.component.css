@@ -1,0 +1,39 @@
+.sortable-th {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sortable-th:hover {
+  color: var(--primary);
+}
+
+.sort-icon {
+  margin-left: 3px;
+  opacity: 0.4;
+}
+
+.sortable-th:hover .sort-icon,
+.sortable-th .pi-sort-up,
+.sortable-th .pi-sort-down {
+  opacity: 1;
+}
+
+.badge-sentido {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.badge-ingreso {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badge-salida {
+  background: #fef3c7;
+  color: #b45309;
+}

@@ -1,8 +1,8 @@
 <div class="container-fluid px-0 animate-fade-in" style="max-width:1000px;">
   <div class="d-flex justify-content-between align-items-start mb-4">
     <div class="page-header mb-0">
-      <h2>Nuevo Documento</h2>
-      <p>Registre la recepción de un documento en el Departamento de TI</p>
+      <h2>{{ form.sentido === 'SALIDA' ? 'Nuevo Documento de Salida' : 'Nuevo Documento de Ingreso' }}</h2>
+      <p>{{ form.sentido === 'SALIDA' ? 'Registre la emisión de un documento desde el Departamento de TI' : 'Registre la recepción de un documento en el Departamento de TI' }}</p>
     </div>
     <a routerLink="/correspondencia" class="btn btn-outline-secondary btn-sm">
       <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
@@ -19,7 +19,13 @@
         <i class="pi pi-file" style="color:var(--primary);"></i> Datos del Documento
       </h6>
       <div class="row g-3">
-        <div class="col-md-4">
+        <div class="col-md-3">
+          <label class="form-label">Sentido <span class="text-danger">*</span></label>
+          <select [(ngModel)]="form.sentido" name="sentido" class="form-select" (change)="onSentidoChange()">
+            <option *ngFor="let s of sentidos" [value]="s.value">{{ s.label }}</option>
+          </select>
+        </div>
+        <div class="col-md-3">
           <label class="form-label">Tipo de Documento <span class="text-danger">*</span></label>
           <select #tipoModel="ngModel" [(ngModel)]="form.idTipoDocumento" name="idTipoDocumento" required class="form-select"
                   [class.is-invalid]="tipoModel.invalid && tipoModel.touched">
@@ -58,27 +64,27 @@
 
     <div class="card-modern p-4 mt-3">
       <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
-        <i class="pi pi-user" style="color:var(--secondary);"></i> Remitente
+        <i class="pi pi-user" style="color:var(--secondary);"></i> {{ form.sentido === 'SALIDA' ? 'Destinatario' : 'Remitente' }}
       </h6>
       <div class="row g-3">
         <div class="col-md-4">
-          <label class="form-label">Persona que Entrega <span class="text-danger">*</span></label>
+          <label class="form-label">{{ form.sentido === 'SALIDA' ? 'Persona que Recibe' : 'Persona que Entrega' }} <span class="text-danger">*</span></label>
           <input #perModel="ngModel" [(ngModel)]="form.personaEntrega" name="personaEntrega" required
-                 class="form-control" placeholder="Nombre completo"
+                 class="form-control" [placeholder]="form.sentido === 'SALIDA' ? 'Nombre del destinatario' : 'Nombre completo'"
                  [class.is-invalid]="perModel.invalid && perModel.touched">
-          <div class="validation-feedback" *ngIf="perModel.invalid && perModel.touched">Ingrese el nombre del remitente</div>
+          <div class="validation-feedback" *ngIf="perModel.invalid && perModel.touched">Ingrese el nombre</div>
         </div>
         <div class="col-md-4">
           <label class="form-label">Cargo</label>
-          <input [(ngModel)]="form.cargo" name="cargo" class="form-control" placeholder="Cargo del remitente">
+          <input [(ngModel)]="form.cargo" name="cargo" class="form-control" placeholder="Cargo">
         </div>
         <div class="col-md-4">
-          <label class="form-label">Institución</label>
-          <input [(ngModel)]="form.institucion" name="institucion" class="form-control" placeholder="Institución de origen">
+          <label class="form-label">{{ form.sentido === 'SALIDA' ? 'Institución Destino' : 'Institución' }}</label>
+          <input [(ngModel)]="form.institucion" name="institucion" class="form-control" [placeholder]="form.sentido === 'SALIDA' ? 'Institución de destino' : 'Institución de origen'">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Departamento Remitente</label>
-          <input [(ngModel)]="form.departamentoRemitente" name="departamentoRemitente" class="form-control" placeholder="Departamento de origen">
+          <label class="form-label">{{ form.sentido === 'SALIDA' ? 'Departamento Destino' : 'Departamento Remitente' }}</label>
+          <input [(ngModel)]="form.departamentoRemitente" name="departamentoRemitente" class="form-control" [placeholder]="form.sentido === 'SALIDA' ? 'Departamento de destino' : 'Departamento de origen'">
         </div>
         <div class="col-md-6">
           <label class="form-label">Fecha del Documento <span class="text-danger">*</span></label>
@@ -90,16 +96,16 @@
 
     <div class="card-modern p-4 mt-3">
       <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
-        <i class="pi pi-clock" style="color:var(--warning);"></i> Recepción
+        <i class="pi pi-clock" style="color:var(--warning);"></i> {{ form.sentido === 'SALIDA' ? 'Envío' : 'Recepción' }}
       </h6>
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label">Fecha de Recepción <span class="text-danger">*</span></label>
+          <label class="form-label">{{ form.sentido === 'SALIDA' ? 'Fecha de Envío' : 'Fecha de Recepción' }} <span class="text-danger">*</span></label>
           <input #fRecModel="ngModel" [(ngModel)]="form.fechaRecepcion" name="fechaRecepcion" type="date" required
                  class="form-control" [class.is-invalid]="fRecModel.invalid && fRecModel.touched">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Hora de Recepción <span class="text-danger">*</span></label>
+          <label class="form-label">{{ form.sentido === 'SALIDA' ? 'Hora de Envío' : 'Hora de Recepción' }} <span class="text-danger">*</span></label>
           <input #hRecModel="ngModel" [(ngModel)]="form.horaRecepcion" name="horaRecepcion" type="time" required
                  class="form-control" [class.is-invalid]="hRecModel.invalid && hRecModel.touched">
         </div>
@@ -121,6 +127,22 @@
           </div>
           <div class="form-text">Seleccione los departamentos mencionados o etiquetados en el documento</div>
         </div>
+      </div>
+    </div>
+
+    <div class="card-modern p-4 mt-3" *ngIf="form.sentido === 'SALIDA'">
+      <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+        <i class="pi pi-link" style="color:var(--primary);"></i> Documentos de Referencia
+      </h6>
+      <p class="small text-muted mb-2">Seleccione los documentos de ingreso que dieron origen a esta salida</p>
+      <div class="d-flex flex-wrap gap-2" *ngIf="documentosIngreso.length > 0">
+        <label *ngFor="let d of documentosIngreso" class="chip-checkbox" [class.active]="form.idsReferencias.includes(d.idCorrespondencia)">
+          <input type="checkbox" [checked]="form.idsReferencias.includes(d.idCorrespondencia)" (change)="toggleReferencia(d.idCorrespondencia)" hidden>
+          <span>{{ d.numeroInterno }} - {{ d.asunto }}</span>
+        </label>
+      </div>
+      <div *ngIf="documentosIngreso.length === 0" class="text-muted small py-2">
+        No hay documentos de ingreso disponibles
       </div>
     </div>
 

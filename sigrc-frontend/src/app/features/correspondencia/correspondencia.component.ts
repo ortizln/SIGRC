@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { CorrespondenciaService } from '@core/services/correspondencia.service';
 import { CatalogoService } from '@core/services/catalogo.service';
 import { AuthService } from '@core/services/auth.service';
-import { ESTADOS_CORRESPONDENCIA, PRIORIDADES } from '@shared/models/correspondencia.model';
+import { ESTADOS_CORRESPONDENCIA, PRIORIDADES, SENTIDOS } from '@shared/models/correspondencia.model';
 
 @Component({
   selector: 'app-correspondencia',
@@ -20,12 +20,26 @@ export class CorrespondenciaListComponent implements OnInit {
   usuarios: any[] = [];
   filtros: any = {
     texto: '', estado: '', prioridad: '', idTipoDocumento: '',
-    idResponsable: '', fechaDesde: '', fechaHasta: '', pagina: 0, tamanio: 20
+    idResponsable: '', fechaDesde: '', fechaHasta: '', pagina: 0, tamanio: 20,
+    sortBy: 'creado_en', sortDir: 'desc'
   };
   pagina: any = { pagina: 0, totalPaginas: 0, totalElementos: 0, primera: true, ultima: false };
   tamanios = [10, 20, 50];
   estados = ESTADOS_CORRESPONDENCIA;
   prioridades = PRIORIDADES;
+  sentidos = SENTIDOS;
+  columnas = [
+    { key: 'sentido', label: 'Tipo' },
+    { key: 'numero_interno', label: 'N° Interno' },
+    { key: 'codigo_documento', label: 'Código' },
+    { key: 'id_tipo_documento', label: 'Doc.' },
+    { key: 'asunto', label: 'Asunto' },
+    { key: 'persona_entrega', label: 'Remitente/Dest.' },
+    { key: 'prioridad', label: 'Prioridad' },
+    { key: 'estado', label: 'Estado' },
+    { key: 'id_responsable', label: 'Responsable' },
+    { key: 'fecha_recepcion', label: 'Fec. Rec/Env' },
+  ];
 
   constructor(
     private svc: CorrespondenciaService,
@@ -65,6 +79,21 @@ export class CorrespondenciaListComponent implements OnInit {
 
   prioridadClass(p: string): string {
     return p === 'ALTA' ? 'text-danger' : p === 'MEDIA' ? 'text-warning' : 'text-success';
+  }
+
+  ordenar(columna: string) {
+    if (this.filtros.sortBy === columna) {
+      this.filtros.sortDir = this.filtros.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.filtros.sortBy = columna;
+      this.filtros.sortDir = 'asc';
+    }
+    this.buscar();
+  }
+
+  sortIcon(columna: string): string {
+    if (this.filtros.sortBy !== columna) return 'pi pi-sort-alt';
+    return this.filtros.sortDir === 'asc' ? 'pi pi-sort-up' : 'pi pi-sort-down';
   }
 
   buscar() { this.filtros.pagina = 0; this.cargar(); }

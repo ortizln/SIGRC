@@ -18,6 +18,7 @@ export interface Correspondencia {
   responsableNombre: string;
   prioridad: string;
   estado: string;
+  sentido: string;
   requiereRespuesta: boolean;
   fechaLimiteRespuesta: string;
   generaTicket: boolean;
@@ -32,6 +33,7 @@ export interface Correspondencia {
   historial: CorrespondenciaHistorial[];
   respuestas: CorrespondenciaRespuesta[];
   ticketsVinculados: TicketVinculado[];
+  referencias: CorrespondenciaReferencia[];
 }
 
 export interface CorrespondenciaCrearRequest {
@@ -48,11 +50,20 @@ export interface CorrespondenciaCrearRequest {
   departamentoRemitente?: string;
   idResponsable?: number;
   prioridad: string;
+  sentido?: string;
   requiereRespuesta?: boolean;
   fechaLimiteRespuesta?: string;
   generaTicket?: boolean;
   observaciones?: string;
   areasEtiquetadas?: number[];
+  idsReferencias?: number[];
+}
+
+export interface CorrespondenciaReferencia {
+  idCorrespondencia: number;
+  numeroInterno: string;
+  asunto: string;
+  codigoDocumento: string;
 }
 
 export interface CorrespondenciaAdjunto {
@@ -134,6 +145,11 @@ export interface TendenciaMensual {
   mes: string;
   cantidad: number;
 }
+
+export const SENTIDOS = [
+  { value: 'INGRESO', label: 'Ingreso' },
+  { value: 'SALIDA', label: 'Salida' },
+];
 
 export const ESTADOS_CORRESPONDENCIA = [
   { value: 'RECIBIDO', label: 'Recibido' },

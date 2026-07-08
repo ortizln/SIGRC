@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { CorrespondenciaService } from '@core/services/correspondencia.service';
 import { CatalogoService } from '@core/services/catalogo.service';
 import { AuthService } from '@core/services/auth.service';
-import { ESTADOS_CORRESPONDENCIA, PRIORIDADES } from '@shared/models/correspondencia.model';
+import { ESTADOS_CORRESPONDENCIA, PRIORIDADES, SENTIDOS } from '@shared/models/correspondencia.model';
 
 @Component({
   selector: 'app-correspondencia-form',
@@ -20,8 +20,10 @@ export class CorrespondenciaFormComponent implements OnInit {
     idTipoDocumento: null, fechaDocumento: '', fechaRecepcion: '',
     horaRecepcion: '', personaEntrega: '', cargo: '', institucion: '',
     departamentoRemitente: '', idResponsable: null, prioridad: 'MEDIA',
+    sentido: 'INGRESO',
     requiereRespuesta: false, fechaLimiteRespuesta: '',
-    generaTicket: false, observaciones: '', areasEtiquetadas: []
+    generaTicket: false, observaciones: '', areasEtiquetadas: [],
+    idsReferencias: []
   };
   tiposDocumento: any[] = [];
   areas: any[] = [];
@@ -30,6 +32,8 @@ export class CorrespondenciaFormComponent implements OnInit {
   cargando = false;
   errorMessage = '';
   prioridades = PRIORIDADES;
+  sentidos = SENTIDOS;
+  documentosIngreso: any[] = [];
 
   constructor(
     private svc: CorrespondenciaService,
@@ -48,6 +52,26 @@ export class CorrespondenciaFormComponent implements OnInit {
     const dentro10Dias = new Date(now);
     dentro10Dias.setDate(dentro10Dias.getDate() + 10);
     this.form.fechaLimiteRespuesta = dentro10Dias.toISOString().split('T')[0];
+  }
+
+  onSentidoChange() {
+    if (this.form.sentido === 'SALIDA') {
+      this.cargarDocumentosIngreso();
+    } else {
+      this.documentosIngreso = [];
+      this.form.idsReferencias = [];
+    }
+  }
+
+  cargarDocumentosIngreso() {
+    this.svc.listar({ sentido: 'INGRESO', pagina: 0, tamanio: 200, sortBy: 'fecha_recepcion', sortDir: 'desc' })
+      .subscribe(r => this.documentosIngreso = r.contenido);
+  }
+
+  toggleReferencia(id: number) {
+    const idx = this.form.idsReferencias.indexOf(id);
+    if (idx >= 0) this.form.idsReferencias.splice(idx, 1);
+    else this.form.idsReferencias.push(id);
   }
 
   onArchivosSeleccionados(event: any) {

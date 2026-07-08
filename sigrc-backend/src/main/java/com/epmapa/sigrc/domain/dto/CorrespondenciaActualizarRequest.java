@@ -17,9 +17,11 @@ public record CorrespondenciaActualizarRequest(
     String departamentoRemitente,
     Integer idResponsable,
     String prioridad,
+    String sentido,
     Boolean requiereRespuesta,
     LocalDate fechaLimiteRespuesta,
     Boolean generaTicket,
     String observaciones,
-    List<Integer> areasEtiquetadas
+    List<Integer> areasEtiquetadas,
+    List<Integer> idsReferencias
 ) {}

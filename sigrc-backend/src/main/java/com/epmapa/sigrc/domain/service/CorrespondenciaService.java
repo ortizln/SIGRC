@@ -5,7 +5,6 @@ import com.epmapa.sigrc.domain.entity.*;
 import com.epmapa.sigrc.domain.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -20,7 +19,6 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -77,6 +75,7 @@ public class CorrespondenciaService {
                 : null;
 
         String numeroInterno = generarNumeroInterno();
+        String sentido = request.sentido() != null ? request.sentido() : "INGRESO";
 
         Correspondencia entity = Correspondencia.builder()
                 .numeroInterno(numeroInterno)
@@ -94,6 +93,7 @@ public class CorrespondenciaService {
                 .responsable(responsable)
                 .prioridad(request.prioridad() != null ? request.prioridad() : "MEDIA")
                 .estado("RECIBIDO")
+                .sentido(sentido)
                 .requiereRespuesta(request.requiereRespuesta() != null && request.requiereRespuesta())
                 .fechaLimiteRespuesta(request.fechaLimiteRespuesta())
                 .generaTicket(request.generaTicket() != null && request.generaTicket())
@@ -104,9 +104,13 @@ public class CorrespondenciaService {
         entity = repository.save(entity);
 
         guardarAreasEtiquetadas(entity, request.areasEtiquetadas());
+        guardarReferencias(entity, request.idsReferencias());
 
-        registrarHistorial(entity, null, "RECIBIDO", "CREACION",
-                "Documento recibido y registrado en el sistema", creadoPor);
+        String accionHistorial = "INGRESO".equals(sentido) ? "CREACION" : "EMISION";
+        String detalleHistorial = "INGRESO".equals(sentido)
+                ? "Documento recibido y registrado en el sistema"
+                : "Documento emitido y registrado en el sistema";
+        registrarHistorial(entity, null, "RECIBIDO", accionHistorial, detalleHistorial, creadoPor);
 
         if (entity.getGeneraTicket()) {
             generarTicketDesdeCorrespondencia(entity, creadoPor);
@@ -125,11 +129,16 @@ public class CorrespondenciaService {
     @Transactional(readOnly = true)
     public PaginacionDTO<CorrespondenciaDTO> listar(String texto, String estado, String prioridad,
                                             Integer idTipoDocumento, Integer idResponsable,
+                                            String sentido,
                                             LocalDate fechaDesde, LocalDate fechaHasta,
-                                            int pagina, int tamanio) {
-        Pageable pageable = PageRequest.of(pagina, tamanio);
+                                            int pagina, int tamanio,
+                                            String sortBy, String sortDir) {
+        String columna = sortBy != null ? sortBy : "creado_en";
+        String direccion = sortDir != null && sortDir.equalsIgnoreCase("asc") ? "ASC" : "DESC";
+        Sort sort = Sort.by(Sort.Direction.fromString(direccion), columna);
+        Pageable pageable = PageRequest.of(pagina, tamanio, sort);
         var page = repository.buscar(texto, estado, prioridad, idTipoDocumento, idResponsable,
-                        fechaDesde, fechaHasta, pageable)
+                        sentido, fechaDesde, fechaHasta, pageable)
                 .map(this::toDTO);
         return new PaginacionDTO<>(page.getContent(), page.getNumber(), page.getSize(),
                 page.getTotalElements(), page.getTotalPages(), page.isFirst(), page.isLast());
@@ -166,12 +175,18 @@ public class CorrespondenciaService {
         if (request.fechaLimiteRespuesta() != null) entity.setFechaLimiteRespuesta(request.fechaLimiteRespuesta());
         if (request.generaTicket() != null) entity.setGeneraTicket(request.generaTicket());
         if (request.observaciones() != null) entity.setObservaciones(request.observaciones());
+        if (request.sentido() != null) entity.setSentido(request.sentido());
 
         entity = repository.save(entity);
 
         if (request.areasEtiquetadas() != null) {
             areaRepository.deleteByCorrespondenciaIdCorrespondencia(entity.getIdCorrespondencia());
             guardarAreasEtiquetadas(entity, request.areasEtiquetadas());
+        }
+        if (request.idsReferencias() != null) {
+            entity.getReferencias().clear();
+            guardarReferencias(entity, request.idsReferencias());
+            repository.save(entity);
         }
 
         Usuario usuario = usuarioRepository.getReferenceById(idUsuario);
@@ -490,6 +505,15 @@ public class CorrespondenciaService {
         }
     }
 
+    private void guardarReferencias(Correspondencia entity, List<Integer> idsReferencias) {
+        if (idsReferencias == null) return;
+        entity.getReferencias().clear();
+        for (Integer idRef : idsReferencias) {
+            Correspondencia ref = repository.getReferenceById(idRef);
+            entity.getReferencias().add(ref);
+        }
+    }
+
     private void registrarHistorial(Correspondencia entity, String estadoAnterior,
                                      String estadoNuevo, String accion, String detalle, Usuario usuario) {
         CorrespondenciaHistorial h = CorrespondenciaHistorial.builder()
@@ -508,6 +532,14 @@ public class CorrespondenciaService {
                 .stream().map(ca -> ca.getArea().getIdArea()).collect(Collectors.toList());
         List<String> areaNombres = areaRepository.findByCorrespondenciaIdCorrespondencia(entity.getIdCorrespondencia())
                 .stream().map(ca -> ca.getArea().getNombre()).collect(Collectors.toList());
+
+        List<CorrespondenciaReferenciaDTO> referencias = entity.getReferencias().stream()
+                .map(ref -> new CorrespondenciaReferenciaDTO(
+                        ref.getIdCorrespondencia(),
+                        ref.getNumeroInterno(),
+                        ref.getAsunto(),
+                        ref.getCodigoDocumento()))
+                .collect(Collectors.toList());
 
         return new CorrespondenciaDTO(
                 entity.getIdCorrespondencia(),
@@ -529,6 +561,7 @@ public class CorrespondenciaService {
                 entity.getResponsable() != null ? entity.getResponsable().getNombres() : null,
                 entity.getPrioridad(),
                 entity.getEstado(),
+                entity.getSentido(),
                 entity.getRequiereRespuesta(),
                 entity.getFechaLimiteRespuesta(),
                 entity.getGeneraTicket(),
@@ -542,7 +575,8 @@ public class CorrespondenciaService {
                 listarAdjuntos(entity.getIdCorrespondencia()),
                 obtenerHistorial(entity.getIdCorrespondencia()),
                 obtenerRespuestas(entity.getIdCorrespondencia()),
-                obtenerTicketsVinculados(entity.getIdCorrespondencia())
+                obtenerTicketsVinculados(entity.getIdCorrespondencia()),
+                referencias
         );
     }
 

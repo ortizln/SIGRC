@@ -7,6 +7,9 @@
       <div class="d-flex align-items-center gap-2">
         <h2 class="mb-0">{{ doc?.numeroInterno }}</h2>
         <span class="badge-estado" [class]="'badge-' + estadoBadge(doc?.estado)">{{ estadoLabel(doc?.estado) }}</span>
+        <span class="badge-sentido" [class.badge-ingreso]="doc?.sentido === 'INGRESO'" [class.badge-salida]="doc?.sentido === 'SALIDA'">
+          {{ doc?.sentido === 'INGRESO' ? 'Ingreso' : 'Salida' }}
+        </span>
       </div>
     </div>
     <div class="d-flex gap-2" *ngIf="doc">
@@ -45,6 +48,20 @@
         <div *ngIf="doc.observaciones">
           <h6 class="fw-semibold">Observaciones</h6>
           <p class="text-muted">{{ doc.observaciones }}</p>
+        </div>
+      </div>
+
+      <div class="card-modern p-4 mt-3" *ngIf="doc?.referencias && doc.referencias.length > 0">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-link" style="color:var(--primary);"></i> Documentos de Referencia
+        </h6>
+        <div *ngFor="let r of doc.referencias" class="d-flex align-items-center gap-2 mb-2">
+          <i class="pi pi-file" style="font-size:0.8rem;color:var(--primary);"></i>
+          <code style="color:var(--primary);font-weight:600;">{{ r.numeroInterno }}</code>
+          <span class="small flex-grow-1">{{ r.asunto }}</span>
+          <a [routerLink]="['/correspondencia', r.idCorrespondencia]" class="btn btn-soft-primary btn-xs">
+            <i class="pi pi-external-link" style="font-size:0.7rem;"></i>
+          </a>
         </div>
       </div>
 

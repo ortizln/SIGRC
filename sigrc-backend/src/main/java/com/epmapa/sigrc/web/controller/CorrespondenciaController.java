@@ -42,12 +42,15 @@ public class CorrespondenciaController {
             @RequestParam(required = false) String prioridad,
             @RequestParam(required = false) Integer idTipoDocumento,
             @RequestParam(required = false) Integer idResponsable,
+            @RequestParam(required = false) String sentido,
             @RequestParam(required = false) LocalDate fechaDesde,
             @RequestParam(required = false) LocalDate fechaHasta,
             @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "20") int tamanio) {
+            @RequestParam(defaultValue = "20") int tamanio,
+            @RequestParam(defaultValue = "creado_en") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         return ResponseEntity.ok(service.listar(texto, estado, prioridad, idTipoDocumento,
-                idResponsable, fechaDesde, fechaHasta, pagina, tamanio));
+                idResponsable, sentido, fechaDesde, fechaHasta, pagina, tamanio, sortBy, sortDir));
     }
 
     @GetMapping("/{id}")

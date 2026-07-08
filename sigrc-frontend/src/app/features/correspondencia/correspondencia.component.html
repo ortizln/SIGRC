@@ -29,6 +29,13 @@
           <option *ngFor="let p of prioridades" [value]="p.value">{{ p.label }}</option>
         </select>
       </div>
+      <div class="col-md-1">
+        <label class="form-label mb-1" style="font-size:0.72rem;">Sentido</label>
+        <select [(ngModel)]="filtros.sentido" class="form-select form-select-sm" (change)="buscar()">
+          <option value="">Todos</option>
+          <option *ngFor="let s of sentidos" [value]="s.value">{{ s.label }}</option>
+        </select>
+      </div>
       <div class="col-md-2">
         <label class="form-label mb-1" style="font-size:0.72rem;">Tipo Documento</label>
         <select [(ngModel)]="filtros.idTipoDocumento" class="form-select form-select-sm" (change)="buscar()">
@@ -57,25 +64,25 @@
       <table class="table-modern">
         <thead>
           <tr>
-            <th>N° Interno</th>
-            <th>Código</th>
-            <th>Tipo</th>
-            <th>Asunto</th>
-            <th>Remitente</th>
-            <th>Prioridad</th>
-            <th>Estado</th>
-            <th>Responsable</th>
-            <th>Recepción</th>
+            <th *ngFor="let col of columnas" class="sortable-th" (click)="ordenar(col.key)">
+              {{ col.label }}
+              <i class="sort-icon" [class]="sortIcon(col.key)" style="font-size:0.6rem;"></i>
+            </th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let d of documentos" class="animate-fade-in">
+            <td>
+              <span class="badge-sentido" [class.badge-ingreso]="d.sentido === 'INGRESO'" [class.badge-salida]="d.sentido === 'SALIDA'">
+                {{ d.sentido === 'INGRESO' ? 'IN' : 'SA' }}
+              </span>
+            </td>
             <td><code class="fw-bold" style="color:var(--primary);font-size:0.75rem;">{{ d.numeroInterno }}</code></td>
             <td class="small">{{ d.codigoDocumento || '—' }}</td>
             <td class="small text-muted">{{ d.tipoDocumentoNombre }}</td>
-            <td style="max-width:220px;">
-              <span class="text-truncate d-inline-block" style="max-width:220px;" [title]="d.asunto">{{ d.asunto }}</span>
+            <td style="max-width:200px;">
+              <span class="text-truncate d-inline-block" style="max-width:200px;" [title]="d.asunto">{{ d.asunto }}</span>
             </td>
             <td class="small">{{ d.personaEntrega }}</td>
             <td>
@@ -93,7 +100,7 @@
             </td>
           </tr>
           <tr *ngIf="(!documentos || documentos.length === 0)">
-            <td colspan="10" class="empty-state">
+            <td colspan="11" class="empty-state">
               <div class="empty-icon"><i class="pi pi-inbox" style="font-size:2.5rem;"></i></div>
               <h5>No se encontraron documentos</h5>
               <p>Intente ajustar los filtros o <a routerLink="/correspondencia/nuevo">registre un nuevo documento</a></p>

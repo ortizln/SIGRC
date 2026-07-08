@@ -24,6 +24,7 @@ public record CorrespondenciaDTO(
     String responsableNombre,
     String prioridad,
     String estado,
+    String sentido,
     Boolean requiereRespuesta,
     LocalDate fechaLimiteRespuesta,
     Boolean generaTicket,
@@ -37,5 +38,6 @@ public record CorrespondenciaDTO(
     List<CorrespondenciaAdjuntoDTO> adjuntos,
     List<CorrespondenciaHistorialDTO> historial,
     List<CorrespondenciaRespuestaDTO> respuestas,
-    List<TicketVinculadoDTO> ticketsVinculados
+    List<TicketVinculadoDTO> ticketsVinculados,
+    List<CorrespondenciaReferenciaDTO> referencias
 ) {}

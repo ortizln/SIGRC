@@ -5,6 +5,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "correspondencia", schema = "sigrc")
@@ -61,6 +63,10 @@ public class Correspondencia {
     private String estado;
 
     @Builder.Default
+    @Column(nullable = false, length = 10)
+    private String sentido = "INGRESO";
+
+    @Builder.Default
     @Column(nullable = false)
     private Boolean requiereRespuesta = false;
 
@@ -84,4 +90,14 @@ public class Correspondencia {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creado_por", nullable = false)
     private Usuario creadoPor;
+
+    @ManyToMany
+    @JoinTable(
+        name = "correspondencia_referencia",
+        schema = "sigrc",
+        joinColumns = @JoinColumn(name = "id_correspondencia"),
+        inverseJoinColumns = @JoinColumn(name = "id_referencia")
+    )
+    @Builder.Default
+    private List<Correspondencia> referencias = new ArrayList<>();
 }
