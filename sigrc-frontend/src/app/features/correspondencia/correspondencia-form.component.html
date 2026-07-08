@@ -69,19 +69,31 @@
       <ng-container *ngIf="form.sentido === 'SALIDA'">
         <div class="row g-3">
           <div class="col-12">
-            <label class="form-label">Seleccione los destinatarios</label>
-            <div class="d-flex flex-wrap gap-2">
-              <label *ngFor="let d of destinatariosDisponibles" class="chip-checkbox"
-                     [class.active]="form.destinatariosSeleccionados.includes(d.id)"
-                     [class.chip-usuario]="d.tipo === 'Usuario'"
-                     [class.chip-area]="d.tipo === 'Área'">
-                <input autocomplete="off" type="checkbox" [checked]="form.destinatariosSeleccionados.includes(d.id)"
-                       (change)="toggleDestinatario(d.id)" hidden>
-                <span>{{ d.label }}</span>
-                <small class="chip-tipo">{{ d.tipo }}</small>
-              </label>
+            <label class="form-label">Agregar destinatarios</label>
+            <div class="destinatario-search-wrapper">
+              <input autocomplete="off" class="form-control" placeholder="Buscar usuario o área..."
+                     [(ngModel)]="busquedaDestinatario" name="busquedaDest"
+                     (input)="filtrarDestinatarios()" (focus)="filtrarDestinatarios()"
+                     (keydown.enter)="agregarPrimerSugerencia()" (blur)="cerrarSugerencias()">
+              <div class="sugerencias-dropdown" *ngIf="sugerenciasFiltradas.length > 0">
+                <button type="button" *ngFor="let d of sugerenciasFiltradas" class="sugerencia-item"
+                        [class.sugerencia-usuario]="d.tipo === 'Usuario'"
+                        [class.sugerencia-area]="d.tipo === 'Área'"
+                        (mousedown)="agregarDestinatario(d); $event.preventDefault()">
+                  <span>{{ d.label }}</span>
+                  <small>{{ d.tipo }}</small>
+                </button>
+              </div>
             </div>
-            <div class="form-text">Seleccione los usuarios y/o áreas a quienes va dirigido el documento</div>
+            <div class="d-flex flex-wrap gap-2 mt-2" *ngIf="form.destinatariosSeleccionados.length > 0">
+              <span *ngFor="let sel of getDestinatariosSeleccionados()" class="destinatario-pill"
+                    [class.pill-usuario]="sel.tipo === 'Usuario'"
+                    [class.pill-area]="sel.tipo === 'Área'">
+                {{ sel.label }}
+                <button type="button" class="pill-remove" (click)="removerDestinatario(sel.id)">&times;</button>
+              </span>
+            </div>
+            <div class="form-text">Busque y agregue usuarios y/o áreas destinatarias del documento</div>
           </div>
           <div class="col-md-6">
             <label class="form-label">Cargo</label>

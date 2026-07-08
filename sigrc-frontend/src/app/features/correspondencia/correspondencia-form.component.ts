@@ -112,21 +112,62 @@ export class CorrespondenciaFormComponent implements OnInit {
     else this.form.idsReferencias.push(id);
   }
 
-  onDestinatariosChange() {
+  busquedaDestinatario = '';
+  sugerenciasFiltradas: any[] = [];
+
+  filtrarDestinatarios() {
+    const texto = this.busquedaDestinatario?.toLowerCase().trim() || '';
+    if (!texto) {
+      this.sugerenciasFiltradas = this.destinatariosDisponibles.filter(
+        d => !this.form.destinatariosSeleccionados.includes(d.id)
+      ).slice(0, 10);
+    } else {
+      this.sugerenciasFiltradas = this.destinatariosDisponibles.filter(
+        d => !this.form.destinatariosSeleccionados.includes(d.id)
+          && d.label.toLowerCase().includes(texto)
+      ).slice(0, 10);
+    }
+  }
+
+  agregarPrimerSugerencia() {
+    if (this.sugerenciasFiltradas.length > 0) {
+      this.agregarDestinatario(this.sugerenciasFiltradas[0]);
+    }
+  }
+
+  cerrarSugerencias() {
+    setTimeout(() => this.sugerenciasFiltradas = [], 200);
+  }
+
+  agregarDestinatario(d: any) {
+    if (!this.form.destinatariosSeleccionados.includes(d.id)) {
+      this.form.destinatariosSeleccionados.push(d.id);
+    }
+    this.busquedaDestinatario = '';
+    this.sugerenciasFiltradas = [];
+    this.actualizarPersonaEntrega();
+  }
+
+  removerDestinatario(id: string) {
+    const idx = this.form.destinatariosSeleccionados.indexOf(id);
+    if (idx >= 0) this.form.destinatariosSeleccionados.splice(idx, 1);
+    this.actualizarPersonaEntrega();
+  }
+
+  getDestinatariosSeleccionados(): any[] {
+    return this.form.destinatariosSeleccionados.map((id: string) =>
+      this.destinatariosDisponibles.find(d => d.id === id)
+    ).filter(Boolean);
+  }
+
+  private actualizarPersonaEntrega() {
     this.form.personaEntrega = this.form.destinatariosSeleccionados
       .map((id: string) => {
-        const encontrado = this.destinatariosDisponibles.find(d => d.id === id);
-        return encontrado ? encontrado.label : '';
+        const d = this.destinatariosDisponibles.find(x => x.id === id);
+        return d ? d.label : '';
       })
       .filter((n: string) => n)
       .join(', ');
-  }
-
-  toggleDestinatario(id: string) {
-    const idx = this.form.destinatariosSeleccionados.indexOf(id);
-    if (idx >= 0) this.form.destinatariosSeleccionados.splice(idx, 1);
-    else this.form.destinatariosSeleccionados.push(id);
-    this.onDestinatariosChange();
   }
 
   onArchivosSeleccionados(event: any) {
