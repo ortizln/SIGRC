@@ -54,3 +54,21 @@
 .min-width-0 {
   min-width: 0;
 }
+
+.badge-destinatario {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+.badge-usuario {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.badge-area {
+  background: #fef3c7;
+  color: #92400e;
+}

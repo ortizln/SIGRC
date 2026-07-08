@@ -23,5 +23,6 @@ public record CorrespondenciaActualizarRequest(
     Boolean generaTicket,
     String observaciones,
     List<Integer> areasEtiquetadas,
-    List<Integer> idsReferencias
+    List<Integer> idsReferencias,
+    List<CorrespondenciaDestinatarioDTO> destinatarios
 ) {}

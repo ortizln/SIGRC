@@ -7,7 +7,7 @@
     <a routerLink="/tickets" class="btn btn-outline-secondary btn-sm">← Volver</a>
   </div>
 
-  <form (ngSubmit)="guardar()" #ticketForm="ngForm">
+  <form autocomplete="off" (ngSubmit)="guardar()" #ticketForm="ngForm">
     <div class="card-modern p-4 animate-fade-in">
       <div class="row g-3">
         <!-- Tipo -->
@@ -16,7 +16,7 @@
             Tipo de Ticket <span class="text-danger">*</span>
             <span class="help-tip ms-1" title="Clasificación del ticket según su naturaleza">?</span>
           </label>
-          <select #tipoModel="ngModel" [(ngModel)]="form.tipo" name="tipo" required class="form-select" [class.is-invalid]="tipoModel.invalid && tipoModel.touched">
+          <select autocomplete="off" #tipoModel="ngModel" [(ngModel)]="form.tipo" name="tipo" required class="form-select" [class.is-invalid]="tipoModel.invalid && tipoModel.touched">
             <option value="">Seleccione...</option>
             <option value="INCIDENTE">Incidente</option>
             <option value="REQUERIMIENTO">Requerimiento</option>
@@ -35,7 +35,7 @@
             Prioridad <span class="text-danger">*</span>
             <span class="help-tip ms-1" title="Nivel de urgencia del ticket">?</span>
           </label>
-          <select #prioModel="ngModel" [(ngModel)]="form.prioridad" name="prioridad" required class="form-select" [class.is-invalid]="prioModel.invalid && prioModel.touched">
+          <select autocomplete="off" #prioModel="ngModel" [(ngModel)]="form.prioridad" name="prioridad" required class="form-select" [class.is-invalid]="prioModel.invalid && prioModel.touched">
             <option value="">Seleccione...</option>
             <option value="CRITICA">Crítica</option>
             <option value="ALTA">Alta</option>
@@ -51,7 +51,7 @@
             Área <span class="text-danger">*</span>
             <span class="help-tip ms-1" title="Área institucional responsable">?</span>
           </label>
-          <select #areaModel="ngModel" [(ngModel)]="form.idArea" name="idArea" required class="form-select" [class.is-invalid]="areaModel.invalid && areaModel.touched">
+          <select autocomplete="off" #areaModel="ngModel" [(ngModel)]="form.idArea" name="idArea" required class="form-select" [class.is-invalid]="areaModel.invalid && areaModel.touched">
             <option value="">Seleccione...</option>
             <option *ngFor="let a of areas" [value]="a.idArea">{{ a.nombre }}</option>
           </select>
@@ -64,7 +64,7 @@
             Sistema
             <span class="help-tip ms-1" title="Sistema informático relacionado">?</span>
           </label>
-          <select [(ngModel)]="form.idSistema" name="idSistema" class="form-select">
+          <select autocomplete="off" [(ngModel)]="form.idSistema" name="idSistema" class="form-select">
             <option value="">Seleccione...</option>
             <option *ngFor="let s of sistemas" [value]="s.idSistema">{{ s.nombre }}</option>
           </select>
@@ -77,7 +77,7 @@
             Responsable
             <span class="help-tip ms-1" title="Usuario asignado para resolver el ticket">?</span>
           </label>
-          <select [(ngModel)]="form.idResponsable" name="idResponsable" class="form-select">
+          <select autocomplete="off" [(ngModel)]="form.idResponsable" name="idResponsable" class="form-select">
             <option value="">Seleccione...</option>
             <option *ngFor="let u of usuarios" [value]="u.idUsuario">{{ u.nombres }} {{ u.apellidos }}</option>
           </select>
@@ -90,7 +90,7 @@
             Categoría
             <span class="help-tip ms-1" title="Categoría temática del ticket">?</span>
           </label>
-          <select [(ngModel)]="form.idCategoria" name="idCategoria" class="form-select" (change)="cargarSubcategorias()">
+          <select autocomplete="off" [(ngModel)]="form.idCategoria" name="idCategoria" class="form-select" (change)="cargarSubcategorias()">
             <option value="">Seleccione...</option>
             <option *ngFor="let c of categorias" [value]="c.idCategoria">{{ c.nombre }}</option>
           </select>
@@ -102,7 +102,7 @@
             Subcategoría
             <span class="help-tip ms-1" title="Subcategoría específica del ticket">?</span>
           </label>
-          <select [(ngModel)]="form.idSubcategoria" name="idSubcategoria" class="form-select">
+          <select autocomplete="off" [(ngModel)]="form.idSubcategoria" name="idSubcategoria" class="form-select">
             <option value="">Seleccione...</option>
             <option *ngFor="let s of subcategorias" [value]="s.idSubcategoria">{{ s.nombre }}</option>
           </select>
@@ -114,7 +114,7 @@
             Asunto <span class="text-danger">*</span>
             <span class="help-tip ms-1" title="Título descriptivo del ticket">?</span>
           </label>
-          <input #asuntoModel="ngModel" [(ngModel)]="form.asunto" name="asunto" required
+          <input autocomplete="off" #asuntoModel="ngModel" [(ngModel)]="form.asunto" name="asunto" required
                  class="form-control" maxlength="300"
                  [class.is-invalid]="asuntoModel.invalid && asuntoModel.touched"
                  placeholder="Describa brevemente el ticket">
@@ -128,7 +128,7 @@
             Descripción <span class="text-danger">*</span>
             <span class="help-tip ms-1" title="Detalle completo del ticket, incluyendo pasos para reproducir si aplica">?</span>
           </label>
-          <textarea #descModel="ngModel" [(ngModel)]="form.descripcion" name="descripcion" required
+          <textarea autocomplete="off" #descModel="ngModel" [(ngModel)]="form.descripcion" name="descripcion" required
                     class="form-control" rows="5"
                     [class.is-invalid]="descModel.invalid && descModel.touched"
                     placeholder="Describa el detalle completo del ticket..." style="min-height:120px;resize:vertical;"></textarea>
@@ -146,7 +146,7 @@
                (click)="fileInput.click()"
                (dragover)="$event.preventDefault()"
                (drop)="$event.preventDefault(); onArchivosSeleccionados($event.dataTransfer!)">
-            <input #fileInput type="file" multiple hidden (change)="onArchivosSeleccionados($event)" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.zip,.txt">
+            <input autocomplete="off" #fileInput type="file" multiple hidden (change)="onArchivosSeleccionados($event)" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.zip,.txt">
             <div class="text-center py-3" *ngIf="archivos.length === 0">
               <div style="font-size:2rem;line-height:1;">📎</div>
               <div class="small text-muted mt-1">Haga clic o arrastre archivos aquí</div>

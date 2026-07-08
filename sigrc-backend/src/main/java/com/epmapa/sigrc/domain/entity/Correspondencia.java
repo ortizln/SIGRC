@@ -100,4 +100,8 @@ public class Correspondencia {
     )
     @Builder.Default
     private List<Correspondencia> referencias = new ArrayList<>();
+
+    @OneToMany(mappedBy = "correspondencia", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<CorrespondenciaDestinatario> destinatarios = new ArrayList<>();
 }

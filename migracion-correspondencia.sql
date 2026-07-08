@@ -15,3 +15,15 @@ CREATE TABLE IF NOT EXISTS correspondencia_referencia (
   id_referencia      INTEGER NOT NULL REFERENCES correspondencia(id_correspondencia),
   PRIMARY KEY (id_correspondencia, id_referencia)
 );
+
+-- 4. Tabla de destinatarios para documentos de SALIDA (relacional)
+CREATE TABLE IF NOT EXISTS correspondencia_destinatario (
+  id_correspondencia_destinatario BIGSERIAL PRIMARY KEY,
+  id_correspondencia              BIGINT       NOT NULL,
+  tipo                            VARCHAR(20)  NOT NULL,
+  id_destinatario                 BIGINT       NOT NULL,
+  nombre                          VARCHAR(300) NOT NULL,
+  FOREIGN KEY (id_correspondencia) REFERENCES correspondencia(id_correspondencia) ON DELETE CASCADE
+);
+
+COMMENT ON COLUMN correspondencia_destinatario.tipo IS 'USUARIO o AREA';

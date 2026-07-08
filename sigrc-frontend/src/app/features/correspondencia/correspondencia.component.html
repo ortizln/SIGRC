@@ -13,43 +13,43 @@
     <div class="row g-2">
       <div class="col-md-3">
         <label class="form-label mb-1" style="font-size:0.72rem;">Buscar</label>
-        <input [(ngModel)]="filtros.texto" placeholder="Número, asunto o código..." class="form-control form-control-sm" (input)="buscar()">
+        <input autocomplete="off" [(ngModel)]="filtros.texto" placeholder="Número, asunto o código..." class="form-control form-control-sm" (input)="buscar()">
       </div>
       <div class="col-md-2">
         <label class="form-label mb-1" style="font-size:0.72rem;">Estado</label>
-        <select [(ngModel)]="filtros.estado" class="form-select form-select-sm" (change)="buscar()">
+        <select autocomplete="off" [(ngModel)]="filtros.estado" class="form-select form-select-sm" (change)="buscar()">
           <option value="">Todos</option>
           <option *ngFor="let e of estados" [value]="e.value">{{ e.label }}</option>
         </select>
       </div>
       <div class="col-md-2">
         <label class="form-label mb-1" style="font-size:0.72rem;">Prioridad</label>
-        <select [(ngModel)]="filtros.prioridad" class="form-select form-select-sm" (change)="buscar()">
+        <select autocomplete="off" [(ngModel)]="filtros.prioridad" class="form-select form-select-sm" (change)="buscar()">
           <option value="">Todas</option>
           <option *ngFor="let p of prioridades" [value]="p.value">{{ p.label }}</option>
         </select>
       </div>
       <div class="col-md-1">
         <label class="form-label mb-1" style="font-size:0.72rem;">Sentido</label>
-        <select [(ngModel)]="filtros.sentido" class="form-select form-select-sm" (change)="buscar()">
+        <select autocomplete="off" [(ngModel)]="filtros.sentido" class="form-select form-select-sm" (change)="buscar()">
           <option value="">Todos</option>
           <option *ngFor="let s of sentidos" [value]="s.value">{{ s.label }}</option>
         </select>
       </div>
       <div class="col-md-2">
         <label class="form-label mb-1" style="font-size:0.72rem;">Tipo Documento</label>
-        <select [(ngModel)]="filtros.idTipoDocumento" class="form-select form-select-sm" (change)="buscar()">
+        <select autocomplete="off" [(ngModel)]="filtros.idTipoDocumento" class="form-select form-select-sm" (change)="buscar()">
           <option value="">Todos</option>
           <option *ngFor="let t of tiposDocumento" [value]="t.idTipoDocumento">{{ t.nombre }}</option>
         </select>
       </div>
       <div class="col-md-1">
         <label class="form-label mb-1" style="font-size:0.72rem;">Desde</label>
-        <input [(ngModel)]="filtros.fechaDesde" type="date" class="form-control form-control-sm" (change)="buscar()">
+        <input autocomplete="off" [(ngModel)]="filtros.fechaDesde" type="date" class="form-control form-control-sm" (change)="buscar()">
       </div>
       <div class="col-md-1">
         <label class="form-label mb-1" style="font-size:0.72rem;">Hasta</label>
-        <input [(ngModel)]="filtros.fechaHasta" type="date" class="form-control form-control-sm" (change)="buscar()">
+        <input autocomplete="off" [(ngModel)]="filtros.fechaHasta" type="date" class="form-control form-control-sm" (change)="buscar()">
       </div>
       <div class="col-md-1 d-flex align-items-end">
         <a routerLink="/correspondencia/dashboard" class="btn btn-soft-primary btn-sm w-100">
@@ -112,7 +112,7 @@
     <div class="d-flex justify-content-between align-items-center p-3 border-top">
       <div class="d-flex align-items-center gap-2">
         <small class="text-muted">Mostrar</small>
-        <select class="form-select form-select-sm" style="width:auto;" [(ngModel)]="filtros.tamanio" (change)="cambiarTamanio()">
+        <select autocomplete="off" class="form-select form-select-sm" style="width:auto;" [(ngModel)]="filtros.tamanio" (change)="cambiarTamanio()">
           <option *ngFor="let t of tamanios" [value]="t">{{ t }}</option>
         </select>
         <small class="text-muted">{{ pagina.totalElementos }} registros</small>

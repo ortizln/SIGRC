@@ -14,11 +14,11 @@
     <div class="row g-2">
       <div class="col-md-3">
         <label class="form-label mb-1" style="font-size:0.72rem;">Buscar</label>
-        <input [(ngModel)]="filtros.texto" placeholder="Buscar por asunto o número..." class="form-control form-control-sm" (input)="buscar()">
+        <input autocomplete="off" [(ngModel)]="filtros.texto" placeholder="Buscar por asunto o número..." class="form-control form-control-sm" (input)="buscar()">
       </div>
       <div class="col-md-3">
         <label class="form-label mb-1" style="font-size:0.72rem;">Estado</label>
-        <select [(ngModel)]="filtros.estado" class="form-select form-select-sm" (change)="buscar()">
+        <select autocomplete="off" [(ngModel)]="filtros.estado" class="form-select form-select-sm" (change)="buscar()">
           <option value="">Todos los estados</option>
           <option value="NUEVO">Nuevo</option>
           <option value="ASIGNADO">Asignado</option>
@@ -33,7 +33,7 @@
       </div>
       <div class="col-md-3">
         <label class="form-label mb-1" style="font-size:0.72rem;">Tipo</label>
-        <select [(ngModel)]="filtros.tipo" class="form-select form-select-sm" (change)="buscar()">
+        <select autocomplete="off" [(ngModel)]="filtros.tipo" class="form-select form-select-sm" (change)="buscar()">
           <option value="">Todos los tipos</option>
           <option value="INCIDENTE">Incidente</option>
           <option value="REQUERIMIENTO">Requerimiento</option>
@@ -45,7 +45,7 @@
       </div>
       <div class="col-md-3">
         <label class="form-label mb-1" style="font-size:0.72rem;">Prioridad</label>
-        <select [(ngModel)]="filtros.prioridad" class="form-select form-select-sm" (change)="buscar()">
+        <select autocomplete="off" [(ngModel)]="filtros.prioridad" class="form-select form-select-sm" (change)="buscar()">
           <option value="">Todas las prioridades</option>
           <option value="CRITICA">Crítica</option>
           <option value="ALTA">Alta</option>
@@ -110,7 +110,7 @@
     <div class="d-flex justify-content-between align-items-center p-3 border-top">
       <div class="d-flex align-items-center gap-2">
         <small class="text-muted">Mostrar</small>
-        <select class="form-select form-select-sm" style="width:auto;" [(ngModel)]="filtros.tamanio" (change)="cambiarTamanio()">
+        <select autocomplete="off" class="form-select form-select-sm" style="width:auto;" [(ngModel)]="filtros.tamanio" (change)="cambiarTamanio()">
           <option *ngFor="let t of tamanios" [value]="t">{{ t }}</option>
         </select>
         <small class="text-muted">{{ pagina.totalElementos }} registros</small>

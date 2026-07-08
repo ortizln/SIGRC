@@ -20,6 +20,27 @@
   color: white;
 }
 
+.chip-usuario.active {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.chip-area.active {
+  background: #b45309;
+  border-color: #b45309;
+}
+
+.chip-tipo {
+  font-size: 0.6rem;
+  opacity: 0.7;
+  margin-left: 0.3rem;
+  font-weight: 400;
+}
+
+.chip-checkbox.active .chip-tipo {
+  opacity: 0.85;
+}
+
 .upload-zone {
   border: 2px dashed var(--surface-border);
   border-radius: var(--radius);

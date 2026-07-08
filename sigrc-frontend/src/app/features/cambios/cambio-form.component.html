@@ -9,7 +9,7 @@
     </a>
   </div>
 
-  <form (ngSubmit)="guardar()" #formRef="ngForm">
+  <form autocomplete="off" (ngSubmit)="guardar()" #formRef="ngForm">
     <div class="card-modern p-4">
       <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
         <i class="pi pi-info-circle" style="color:var(--primary);"></i> Información del Cambio
@@ -17,21 +17,21 @@
       <div class="row g-3">
         <div class="col-12">
           <label class="form-label">Título <span class="text-danger">*</span></label>
-          <input #tituloModel="ngModel" [(ngModel)]="form.titulo" name="titulo" required maxlength="200"
+          <input autocomplete="off" #tituloModel="ngModel" [(ngModel)]="form.titulo" name="titulo" required maxlength="200"
                  class="form-control" placeholder="Título descriptivo del cambio"
                  [class.is-invalid]="tituloModel.invalid && tituloModel.touched">
           <div class="validation-feedback" *ngIf="tituloModel.invalid && tituloModel.touched">Ingrese el título del cambio</div>
         </div>
         <div class="col-12">
           <label class="form-label">Descripción <span class="text-danger">*</span></label>
-          <textarea #descModel="ngModel" [(ngModel)]="form.descripcion" name="descripcion" required
+          <textarea autocomplete="off" #descModel="ngModel" [(ngModel)]="form.descripcion" name="descripcion" required
                     class="form-control" rows="4" placeholder="Describa el cambio a realizar"
                     [class.is-invalid]="descModel.invalid && descModel.touched"></textarea>
           <div class="validation-feedback" *ngIf="descModel.invalid && descModel.touched">Ingrese la descripción del cambio</div>
         </div>
         <div class="col-12">
           <label class="form-label">Justificación <span class="text-danger">*</span></label>
-          <textarea #justModel="ngModel" [(ngModel)]="form.justificacion" name="justificacion" required
+          <textarea autocomplete="off" #justModel="ngModel" [(ngModel)]="form.justificacion" name="justificacion" required
                     class="form-control" rows="3" placeholder="Justifique la necesidad del cambio"
                     [class.is-invalid]="justModel.invalid && justModel.touched"></textarea>
           <div class="validation-feedback" *ngIf="justModel.invalid && justModel.touched">Ingrese la justificación del cambio</div>
@@ -46,7 +46,7 @@
       <div class="row g-3">
         <div class="col-md-4">
           <label class="form-label">Tipo <span class="text-danger">*</span></label>
-          <select [(ngModel)]="form.tipo" name="tipo" class="form-select">
+          <select autocomplete="off" [(ngModel)]="form.tipo" name="tipo" class="form-select">
             <option value="NORMAL">Normal</option>
             <option value="EMERGENTE">Emergente</option>
             <option value="ESTANDAR">Estándar</option>
@@ -54,7 +54,7 @@
         </div>
         <div class="col-md-4">
           <label class="form-label">Impacto <span class="text-danger">*</span></label>
-          <select [(ngModel)]="form.impacto" name="impacto" class="form-select">
+          <select autocomplete="off" [(ngModel)]="form.impacto" name="impacto" class="form-select">
             <option value="BAJO">Bajo</option>
             <option value="MEDIO">Medio</option>
             <option value="ALTO">Alto</option>
@@ -62,7 +62,7 @@
         </div>
         <div class="col-md-4">
           <label class="form-label">Riesgo <span class="text-danger">*</span></label>
-          <select [(ngModel)]="form.riesgo" name="riesgo" class="form-select">
+          <select autocomplete="off" [(ngModel)]="form.riesgo" name="riesgo" class="form-select">
             <option value="BAJO">Bajo</option>
             <option value="MEDIO">Medio</option>
             <option value="ALTO">Alto</option>
@@ -70,7 +70,7 @@
         </div>
         <div class="col-md-6">
           <label class="form-label">Sistema Afectado</label>
-          <select [(ngModel)]="form.idSistema" name="idSistema" class="form-select">
+          <select autocomplete="off" [(ngModel)]="form.idSistema" name="idSistema" class="form-select">
             <option [ngValue]="null">Seleccione...</option>
             <option *ngFor="let s of sistemas" [value]="s.idSistema">{{ s.nombre }}</option>
           </select>
@@ -85,12 +85,12 @@
       <div class="row g-3">
         <div class="col-12">
           <label class="form-label">Plan de Implementación</label>
-          <textarea [(ngModel)]="form.planImplementacion" name="planImplementacion"
+          <textarea autocomplete="off" [(ngModel)]="form.planImplementacion" name="planImplementacion"
                     class="form-control" rows="3" placeholder="Pasos para implementar el cambio"></textarea>
         </div>
         <div class="col-12">
           <label class="form-label">Plan de Retorno</label>
-          <textarea [(ngModel)]="form.planRetorno" name="planRetorno"
+          <textarea autocomplete="off" [(ngModel)]="form.planRetorno" name="planRetorno"
                     class="form-control" rows="3" placeholder="Pasos para revertir el cambio si es necesario"></textarea>
         </div>
       </div>

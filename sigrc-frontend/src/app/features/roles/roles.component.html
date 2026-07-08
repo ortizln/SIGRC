@@ -59,22 +59,22 @@
       <h5 class="fw-bold mb-0">{{ editandoRol ? 'Editar Rol' : 'Nuevo Rol' }}</h5>
     </div>
 
-    <form (ngSubmit)="guardarRol()" #rolFormElem="ngForm">
+    <form autocomplete="off" (ngSubmit)="guardarRol()" #rolFormElem="ngForm">
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label">Código <span class="text-danger">*</span><span class="help-tip ms-1" title="Identificador único del rol (ej: ADMIN, TECNICO)">?</span></label>
-          <input #codModel="ngModel" [(ngModel)]="rolForm.codigo" name="codigo" required class="form-control" [class.is-invalid]="codModel.invalid && codModel.touched" placeholder="ej: ANALISTA">
+          <input autocomplete="off" #codModel="ngModel" [(ngModel)]="rolForm.codigo" name="codigo" required class="form-control" [class.is-invalid]="codModel.invalid && codModel.touched" placeholder="ej: ANALISTA">
           <div class="validation-feedback" *ngIf="codModel.invalid && codModel.touched">El código es obligatorio</div>
           <div class="form-text">Código único en mayúsculas. Ej: <code>ANALISTA_TI</code></div>
         </div>
         <div class="col-md-6">
           <label class="form-label">Nombre <span class="text-danger">*</span></label>
-          <input #nomRolModel="ngModel" [(ngModel)]="rolForm.nombre" name="nombre" required class="form-control" [class.is-invalid]="nomRolModel.invalid && nomRolModel.touched" placeholder="Analista TI">
+          <input autocomplete="off" #nomRolModel="ngModel" [(ngModel)]="rolForm.nombre" name="nombre" required class="form-control" [class.is-invalid]="nomRolModel.invalid && nomRolModel.touched" placeholder="Analista TI">
           <div class="validation-feedback" *ngIf="nomRolModel.invalid && nomRolModel.touched">El nombre es obligatorio</div>
         </div>
         <div class="col-12">
           <label class="form-label">Descripción<span class="help-tip ms-1" title="Descripción del alcance y responsabilidades del rol">?</span></label>
-          <textarea [(ngModel)]="rolForm.descripcion" name="descripcion" class="form-control" style="min-height:80px;resize:vertical;" placeholder="Responsabilidades y alcance del rol..."></textarea>
+          <textarea autocomplete="off" [(ngModel)]="rolForm.descripcion" name="descripcion" class="form-control" style="min-height:80px;resize:vertical;" placeholder="Responsabilidades y alcance del rol..."></textarea>
         </div>
       </div>
 
@@ -103,23 +103,23 @@
     <!-- Definir nuevo permiso -->
     <div class="bg-light p-3 rounded-3 border mb-3 animate-fade-in" *ngIf="gestionarDefiniciones">
       <h6 class="fw-bold mb-3 text-muted" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.03em;">Definir Nuevo Permiso</h6>
-      <form (ngSubmit)="crearPermiso()" #permisoFormDef="ngForm">
+      <form autocomplete="off" (ngSubmit)="crearPermiso()" #permisoFormDef="ngForm">
         <div class="row g-2">
           <div class="col-md-12 mb-2"><small class="text-muted">Complete los campos para crear un nuevo permiso que luego podrá asignar a este rol</small></div>
           <div class="col-md-3">
-            <input #codPermModel="ngModel" [(ngModel)]="permisoForm.codigo" name="pCodigo" required class="form-control form-control-sm" [class.is-invalid]="codPermModel.invalid && codPermModel.touched" placeholder="Código *">
+            <input autocomplete="off" #codPermModel="ngModel" [(ngModel)]="permisoForm.codigo" name="pCodigo" required class="form-control form-control-sm" [class.is-invalid]="codPermModel.invalid && codPermModel.touched" placeholder="Código *">
             <div class="form-text">Ej: <code>TICKET_CREAR</code></div>
           </div>
           <div class="col-md-3">
-            <input #nomPermModel="ngModel" [(ngModel)]="permisoForm.nombre" name="pNombre" required class="form-control form-control-sm" [class.is-invalid]="nomPermModel.invalid && nomPermModel.touched" placeholder="Nombre *">
+            <input autocomplete="off" #nomPermModel="ngModel" [(ngModel)]="permisoForm.nombre" name="pNombre" required class="form-control form-control-sm" [class.is-invalid]="nomPermModel.invalid && nomPermModel.touched" placeholder="Nombre *">
             <div class="form-text">Ej: <code>Crear Ticket</code></div>
           </div>
           <div class="col-md-2">
-            <input #modPermModel="ngModel" [(ngModel)]="permisoForm.modulo" name="pModulo" required class="form-control form-control-sm" [class.is-invalid]="modPermModel.invalid && modPermModel.touched" placeholder="Módulo *">
+            <input autocomplete="off" #modPermModel="ngModel" [(ngModel)]="permisoForm.modulo" name="pModulo" required class="form-control form-control-sm" [class.is-invalid]="modPermModel.invalid && modPermModel.touched" placeholder="Módulo *">
             <div class="form-text">Ej: <code>TICKETS</code></div>
           </div>
           <div class="col-md-2">
-            <select [(ngModel)]="permisoForm.tipoAcceso" name="pTipo" class="form-select form-select-sm">
+            <select autocomplete="off" [(ngModel)]="permisoForm.tipoAcceso" name="pTipo" class="form-select form-select-sm">
               <option value="LECTURA">Lectura</option>
               <option value="ESCRITURA">Escritura</option>
               <option value="ADMIN">Admin</option>
@@ -132,7 +132,7 @@
             </button>
           </div>
           <div class="col-12">
-            <input [(ngModel)]="permisoForm.descripcion" name="pDesc" class="form-control form-control-sm" placeholder="Descripción (opcional)">
+            <input autocomplete="off" [(ngModel)]="permisoForm.descripcion" name="pDesc" class="form-control form-control-sm" placeholder="Descripción (opcional)">
           </div>
         </div>
       </form>
@@ -159,7 +159,7 @@
             <span>📁</span> {{ grupo.modulo }}
           </h6>
           <label class="d-flex align-items-center gap-2 py-1 px-1 rounded" style="cursor:pointer;font-size:0.82rem;transition:background 0.15s;" *ngFor="let p of grupo.permisos">
-            <input type="checkbox" class="form-check-input" [checked]="permisoSeleccionado.has(p.idPermiso)" (change)="togglePermiso(p.idPermiso)" style="accent-color:var(--primary);">
+            <input autocomplete="off" type="checkbox" class="form-check-input" [checked]="permisoSeleccionado.has(p.idPermiso)" (change)="togglePermiso(p.idPermiso)" style="accent-color:var(--primary);">
             <span>{{ p.nombre }}</span>
             <small class="text-muted ms-auto" style="font-size:0.65rem;">{{ p.tipoAcceso }}</small>
           </label>

@@ -11,10 +11,10 @@
       <p>Sistema Institucional de Gestión<br>de Requerimientos, Cambios y Auditoría</p>
       <small>EPMAPA-T</small>
     </div>
-    <form (ngSubmit)="login()" #loginForm="ngForm">
+    <form autocomplete="off" (ngSubmit)="login()" #loginForm="ngForm">
       <div class="mb-3">
         <label class="form-label">Usuario</label>
-        <input #usernameModel="ngModel" [(ngModel)]="username" name="username" required
+        <input autocomplete="off" #usernameModel="ngModel" [(ngModel)]="username" name="username" required
           placeholder="Ingrese su usuario" class="form-control"
           [class.is-invalid]="usernameModel.invalid && usernameModel.touched"
           autocomplete="username">
@@ -25,7 +25,7 @@
       <div class="mb-3">
         <label class="form-label">Contraseña</label>
         <div class="password-wrapper">
-          <input #passwordModel="ngModel" [(ngModel)]="password" name="password"
+          <input autocomplete="off" #passwordModel="ngModel" [(ngModel)]="password" name="password"
             [type]="showPassword ? 'text' : 'password'" required
             placeholder="Ingrese su contraseña" class="form-control"
             [class.is-invalid]="passwordModel.invalid && passwordModel.touched"

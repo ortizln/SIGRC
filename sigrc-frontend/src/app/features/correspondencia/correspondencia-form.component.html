@@ -9,7 +9,7 @@
     </a>
   </div>
 
-  <form (ngSubmit)="guardar()" #formRef="ngForm">
+  <form autocomplete="off" (ngSubmit)="guardar()" #formRef="ngForm">
     <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage">
       {{ errorMessage }}
       <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Cerrar"></button>
@@ -21,13 +21,13 @@
       <div class="row g-3">
         <div class="col-md-3">
           <label class="form-label">Sentido <span class="text-danger">*</span></label>
-          <select [(ngModel)]="form.sentido" name="sentido" class="form-select" (change)="onSentidoChange()">
+          <select autocomplete="off" [(ngModel)]="form.sentido" name="sentido" class="form-select" (change)="onSentidoChange()">
             <option *ngFor="let s of sentidos" [value]="s.value">{{ s.label }}</option>
           </select>
         </div>
         <div class="col-md-3">
           <label class="form-label">Tipo de Documento <span class="text-danger">*</span></label>
-          <select #tipoModel="ngModel" [(ngModel)]="form.idTipoDocumento" name="idTipoDocumento" required class="form-select"
+          <select autocomplete="off" #tipoModel="ngModel" [(ngModel)]="form.idTipoDocumento" name="idTipoDocumento" required class="form-select"
                   [class.is-invalid]="tipoModel.invalid && tipoModel.touched">
             <option [ngValue]="null">Seleccione...</option>
             <option *ngFor="let t of tiposDocumento" [value]="t.idTipoDocumento">{{ t.nombre }}</option>
@@ -36,62 +36,96 @@
         </div>
         <div class="col-md-4">
           <label class="form-label">Código del Documento <span class="text-danger">*</span></label>
-          <input #codModel="ngModel" [(ngModel)]="form.codigoDocumento" name="codigoDocumento" required
+          <input autocomplete="off" #codModel="ngModel" [(ngModel)]="form.codigoDocumento" name="codigoDocumento" required
                  class="form-control" placeholder="Ej: MEMO-2024-001"
                  [class.is-invalid]="codModel.invalid && codModel.touched">
           <div class="validation-feedback" *ngIf="codModel.invalid && codModel.touched">Ingrese el código del documento</div>
         </div>
         <div class="col-md-4">
           <label class="form-label">Prioridad <span class="text-danger">*</span></label>
-          <select #prioModel="ngModel" [(ngModel)]="form.prioridad" name="prioridad" required class="form-select"
+          <select autocomplete="off" #prioModel="ngModel" [(ngModel)]="form.prioridad" name="prioridad" required class="form-select"
                   [class.is-invalid]="prioModel.invalid && prioModel.touched">
             <option *ngFor="let p of prioridades" [value]="p.value">{{ p.label }}</option>
           </select>
         </div>
         <div class="col-12">
           <label class="form-label">Asunto <span class="text-danger">*</span></label>
-          <input #asuntoModel="ngModel" [(ngModel)]="form.asunto" name="asunto" required
+          <input autocomplete="off" #asuntoModel="ngModel" [(ngModel)]="form.asunto" name="asunto" required
                  class="form-control" maxlength="300" placeholder="Asunto del documento"
                  [class.is-invalid]="asuntoModel.invalid && asuntoModel.touched">
           <div class="validation-feedback" *ngIf="asuntoModel.invalid && asuntoModel.touched">Ingrese el asunto del documento</div>
         </div>
         <div class="col-12">
           <label class="form-label">Resumen Ejecutivo</label>
-          <textarea [(ngModel)]="form.resumenEjecutivo" name="resumenEjecutivo" class="form-control" rows="3" placeholder="Resumen del contenido del documento"></textarea>
+          <textarea autocomplete="off" [(ngModel)]="form.resumenEjecutivo" name="resumenEjecutivo" class="form-control" rows="3" placeholder="Resumen del contenido del documento"></textarea>
         </div>
       </div>
     </div>
 
     <div class="card-modern p-4 mt-3">
       <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
-        <i class="pi pi-user" style="color:var(--secondary);"></i> {{ form.sentido === 'SALIDA' ? 'Destinatario' : 'Remitente' }}
+        <i class="pi pi-user" style="color:var(--secondary);"></i> {{ form.sentido === 'SALIDA' ? 'Destinatarios' : 'Remitente' }}
       </h6>
-      <div class="row g-3">
-        <div class="col-md-4">
-          <label class="form-label">{{ form.sentido === 'SALIDA' ? 'Persona que Recibe' : 'Persona que Entrega' }} <span class="text-danger">*</span></label>
-          <input #perModel="ngModel" [(ngModel)]="form.personaEntrega" name="personaEntrega" required
-                 class="form-control" [placeholder]="form.sentido === 'SALIDA' ? 'Nombre del destinatario' : 'Nombre completo'"
-                 [class.is-invalid]="perModel.invalid && perModel.touched">
-          <div class="validation-feedback" *ngIf="perModel.invalid && perModel.touched">Ingrese el nombre</div>
+      <ng-container *ngIf="form.sentido === 'SALIDA'">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Seleccione los destinatarios</label>
+            <div class="d-flex flex-wrap gap-2">
+              <label *ngFor="let d of destinatariosDisponibles" class="chip-checkbox"
+                     [class.active]="form.destinatariosSeleccionados.includes(d.id)"
+                     [class.chip-usuario]="d.tipo === 'Usuario'"
+                     [class.chip-area]="d.tipo === 'Área'">
+                <input autocomplete="off" type="checkbox" [checked]="form.destinatariosSeleccionados.includes(d.id)"
+                       (change)="toggleDestinatario(d.id)" hidden>
+                <span>{{ d.label }}</span>
+                <small class="chip-tipo">{{ d.tipo }}</small>
+              </label>
+            </div>
+            <div class="form-text">Seleccione los usuarios y/o áreas a quienes va dirigido el documento</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Cargo</label>
+            <input autocomplete="off" [(ngModel)]="form.cargo" name="cargo" class="form-control" placeholder="Cargo del remitente">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Institución</label>
+            <input autocomplete="off" [(ngModel)]="form.institucion" name="institucion" class="form-control" placeholder="Institución de origen">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Fecha del Documento <span class="text-danger">*</span></label>
+            <input autocomplete="off" #fDocModel="ngModel" [(ngModel)]="form.fechaDocumento" name="fechaDocumento" type="date" required
+                   class="form-control" [class.is-invalid]="fDocModel.invalid && fDocModel.touched">
+          </div>
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Cargo</label>
-          <input [(ngModel)]="form.cargo" name="cargo" class="form-control" placeholder="Cargo">
+      </ng-container>
+      <ng-container *ngIf="form.sentido !== 'SALIDA'">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Persona que Entrega <span class="text-danger">*</span></label>
+            <input autocomplete="off" #perModel="ngModel" [(ngModel)]="form.personaEntrega" name="personaEntrega" required
+                   class="form-control" placeholder="Nombre completo"
+                   [class.is-invalid]="perModel.invalid && perModel.touched">
+            <div class="validation-feedback" *ngIf="perModel.invalid && perModel.touched">Ingrese el nombre</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Cargo</label>
+            <input autocomplete="off" [(ngModel)]="form.cargo" name="cargo" class="form-control" placeholder="Cargo del remitente">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Institución</label>
+            <input autocomplete="off" [(ngModel)]="form.institucion" name="institucion" class="form-control" placeholder="Institución de origen">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Departamento Remitente</label>
+            <input autocomplete="off" [(ngModel)]="form.departamentoRemitente" name="departamentoRemitente" class="form-control" placeholder="Departamento de origen">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Fecha del Documento <span class="text-danger">*</span></label>
+            <input autocomplete="off" #fDocModel="ngModel" [(ngModel)]="form.fechaDocumento" name="fechaDocumento" type="date" required
+                   class="form-control" [class.is-invalid]="fDocModel.invalid && fDocModel.touched">
+          </div>
         </div>
-        <div class="col-md-4">
-          <label class="form-label">{{ form.sentido === 'SALIDA' ? 'Institución Destino' : 'Institución' }}</label>
-          <input [(ngModel)]="form.institucion" name="institucion" class="form-control" [placeholder]="form.sentido === 'SALIDA' ? 'Institución de destino' : 'Institución de origen'">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">{{ form.sentido === 'SALIDA' ? 'Departamento Destino' : 'Departamento Remitente' }}</label>
-          <input [(ngModel)]="form.departamentoRemitente" name="departamentoRemitente" class="form-control" [placeholder]="form.sentido === 'SALIDA' ? 'Departamento de destino' : 'Departamento de origen'">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Fecha del Documento <span class="text-danger">*</span></label>
-          <input #fDocModel="ngModel" [(ngModel)]="form.fechaDocumento" name="fechaDocumento" type="date" required
-                 class="form-control" [class.is-invalid]="fDocModel.invalid && fDocModel.touched">
-        </div>
-      </div>
+      </ng-container>
     </div>
 
     <div class="card-modern p-4 mt-3">
@@ -101,12 +135,12 @@
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label">{{ form.sentido === 'SALIDA' ? 'Fecha de Envío' : 'Fecha de Recepción' }} <span class="text-danger">*</span></label>
-          <input #fRecModel="ngModel" [(ngModel)]="form.fechaRecepcion" name="fechaRecepcion" type="date" required
+          <input autocomplete="off" #fRecModel="ngModel" [(ngModel)]="form.fechaRecepcion" name="fechaRecepcion" type="date" required
                  class="form-control" [class.is-invalid]="fRecModel.invalid && fRecModel.touched">
         </div>
         <div class="col-md-6">
           <label class="form-label">{{ form.sentido === 'SALIDA' ? 'Hora de Envío' : 'Hora de Recepción' }} <span class="text-danger">*</span></label>
-          <input #hRecModel="ngModel" [(ngModel)]="form.horaRecepcion" name="horaRecepcion" type="time" required
+          <input autocomplete="off" #hRecModel="ngModel" [(ngModel)]="form.horaRecepcion" name="horaRecepcion" type="time" required
                  class="form-control" [class.is-invalid]="hRecModel.invalid && hRecModel.touched">
         </div>
       </div>
@@ -121,7 +155,7 @@
           <label class="form-label">Áreas / Departamentos Mencionados</label>
           <div class="d-flex flex-wrap gap-2">
             <label *ngFor="let a of areas" class="chip-checkbox" [class.active]="form.areasEtiquetadas.includes(a.idArea)">
-              <input type="checkbox" [checked]="form.areasEtiquetadas.includes(a.idArea)" (change)="toggleArea(a.idArea)" hidden>
+              <input autocomplete="off" type="checkbox" [checked]="form.areasEtiquetadas.includes(a.idArea)" (change)="toggleArea(a.idArea)" hidden>
               <span>{{ a.nombre }}</span>
             </label>
           </div>
@@ -130,19 +164,27 @@
       </div>
     </div>
 
-    <div class="card-modern p-4 mt-3" *ngIf="form.sentido === 'SALIDA'">
+    <div class="card-modern p-4 mt-3">
       <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
         <i class="pi pi-link" style="color:var(--primary);"></i> Documentos de Referencia
       </h6>
-      <p class="small text-muted mb-2">Seleccione los documentos de ingreso que dieron origen a esta salida</p>
-      <div class="d-flex flex-wrap gap-2" *ngIf="documentosIngreso.length > 0">
-        <label *ngFor="let d of documentosIngreso" class="chip-checkbox" [class.active]="form.idsReferencias.includes(d.idCorrespondencia)">
-          <input type="checkbox" [checked]="form.idsReferencias.includes(d.idCorrespondencia)" (change)="toggleReferencia(d.idCorrespondencia)" hidden>
-          <span>{{ d.numeroInterno }} - {{ d.asunto }}</span>
+      <div class="input-group input-group-sm mb-3">
+        <input autocomplete="off" class="form-control" placeholder="Buscar documentos para referenciar..." [(ngModel)]="busquedaReferencia" (input)="buscarReferencias()" name="busquedaRef">
+        <button class="btn btn-outline-secondary btn-sm" type="button" (click)="busquedaReferencia = ''; documentosReferencia = [];">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+      <div class="d-flex flex-wrap gap-2" *ngIf="documentosReferencia.length > 0">
+        <label *ngFor="let d of documentosReferencia" class="chip-checkbox" [class.active]="form.idsReferencias.includes(d.idCorrespondencia)">
+          <input autocomplete="off" type="checkbox" [checked]="form.idsReferencias.includes(d.idCorrespondencia)" (change)="toggleReferencia(d.idCorrespondencia)" hidden>
+          <span><code>{{ d.numeroInterno }}</code> {{ d.asunto }}</span>
         </label>
       </div>
-      <div *ngIf="documentosIngreso.length === 0" class="text-muted small py-2">
-        No hay documentos de ingreso disponibles
+      <div *ngIf="documentosReferencia.length === 0 && busquedaReferencia" class="text-muted small py-2">
+        Sin resultados para "{{ busquedaReferencia }}"
+      </div>
+      <div *ngIf="documentosReferencia.length === 0 && !busquedaReferencia" class="text-muted small py-2">
+        Escriba en el buscador para encontrar documentos
       </div>
     </div>
 
@@ -153,20 +195,34 @@
       <div class="row g-3">
         <div class="col-md-4">
           <div class="form-check">
-            <input type="checkbox" id="requiereRespuesta" [(ngModel)]="form.requiereRespuesta" name="requiereRespuesta" class="form-check-input">
-            <label class="form-check-label fw-medium" for="requiereRespuesta">¿Requiere Respuesta?</label>
+            <input autocomplete="off" type="checkbox" id="requiereRespuesta" [(ngModel)]="form.requiereRespuesta" name="requiereRespuesta" class="form-check-input">
+            <label class="form-check-label fw-medium" for="requiereRespuesta">
+              {{ form.sentido === 'SALIDA' ? '¿Espera Respuesta?' : '¿Requiere Respuesta?' }}
+            </label>
           </div>
         </div>
         <div class="col-md-4" *ngIf="form.requiereRespuesta">
-          <label class="form-label">Fecha Límite de Respuesta</label>
-          <input [(ngModel)]="form.fechaLimiteRespuesta" name="fechaLimiteRespuesta" type="date" class="form-control">
+          <label class="form-label">{{ form.sentido === 'SALIDA' ? 'Fecha Esperada de Respuesta' : 'Fecha Límite de Respuesta' }}</label>
+          <input autocomplete="off" [(ngModel)]="form.fechaLimiteRespuesta" name="fechaLimiteRespuesta" type="date" class="form-control">
         </div>
         <div class="col-md-4">
-          <div class="form-check">
-            <input type="checkbox" id="generaTicket" [(ngModel)]="form.generaTicket" name="generaTicket" class="form-check-input">
-            <label class="form-check-label fw-medium" for="generaTicket">¿Genera Ticket?</label>
-          </div>
-          <div class="form-text">Se creará automáticamente un ticket en SIGRC</div>
+          <ng-container *ngIf="form.sentido === 'SALIDA'">
+            <label class="form-label">Vincular Ticket</label>
+            <select [(ngModel)]="form.idTicketVinculado" name="idTicketVinculado" class="form-select">
+              <option [ngValue]="null">Ninguno</option>
+              <option *ngFor="let t of ticketsDisponibles" [value]="t.idTicket">
+                {{ t.numeroTicket }} — {{ t.asunto }}
+              </option>
+            </select>
+            <div class="form-text">Seleccione el ticket al que responde este documento</div>
+          </ng-container>
+          <ng-container *ngIf="form.sentido !== 'SALIDA'">
+            <div class="form-check">
+              <input autocomplete="off" type="checkbox" id="generaTicket" [(ngModel)]="form.generaTicket" name="generaTicket" class="form-check-input">
+              <label class="form-check-label fw-medium" for="generaTicket">¿Genera Ticket?</label>
+            </div>
+            <div class="form-text">Se creará automáticamente un ticket en SIGRC</div>
+          </ng-container>
         </div>
       </div>
     </div>
@@ -178,7 +234,7 @@
       <div class="upload-zone" (click)="fileInput.click()"
            (dragover)="$event.preventDefault()"
            (drop)="$event.preventDefault(); onArchivosSeleccionados($event.dataTransfer!)">
-        <input #fileInput type="file" multiple hidden (change)="onArchivosSeleccionados($event)"
+        <input autocomplete="off" #fileInput type="file" multiple hidden (change)="onArchivosSeleccionados($event)"
                accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
         <div class="text-center py-4" *ngIf="archivos.length === 0">
           <i class="pi pi-upload" style="font-size:2rem;color:var(--text-muted);"></i>
@@ -200,7 +256,7 @@
       <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
         <i class="pi pi-comment" style="color:var(--text-muted);"></i> Observaciones
       </h6>
-      <textarea [(ngModel)]="form.observaciones" name="observaciones" class="form-control" rows="3" placeholder="Observaciones adicionales"></textarea>
+      <textarea autocomplete="off" [(ngModel)]="form.observaciones" name="observaciones" class="form-control" rows="3" placeholder="Observaciones adicionales"></textarea>
     </div>
 
     <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">

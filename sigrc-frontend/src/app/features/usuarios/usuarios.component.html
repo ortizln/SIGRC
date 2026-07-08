@@ -69,16 +69,16 @@
       <div class="col-md-7">
         <div class="card-modern p-4 h-100">
           <h6 class="fw-bold mb-3">Datos del Usuario</h6>
-          <form (ngSubmit)="guardar()" #usuarioForm="ngForm">
+          <form autocomplete="off" (ngSubmit)="guardar()" #usuarioForm="ngForm">
             <div class="row g-3">
               <div class="col-md-6">
                 <label class="form-label">Username <span class="text-danger">*</span></label>
-                <input #unModel="ngModel" [(ngModel)]="form.username" name="username" required class="form-control" [class.is-invalid]="unModel.invalid && unModel.touched" placeholder="ej: jperez">
+                <input autocomplete="off" #unModel="ngModel" [(ngModel)]="form.username" name="username" required class="form-control" [class.is-invalid]="unModel.invalid && unModel.touched" placeholder="ej: jperez">
                 <div class="validation-feedback" *ngIf="unModel.invalid && unModel.touched">El username es obligatorio</div>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Email <span class="text-danger">*</span></label>
-                <input #emailModel="ngModel" [(ngModel)]="form.email" name="email" type="email" required class="form-control" [class.is-invalid]="emailModel.invalid && emailModel.touched" placeholder="juan.perez@epmapa.gob.ec">
+                <input autocomplete="off" #emailModel="ngModel" [(ngModel)]="form.email" name="email" type="email" required class="form-control" [class.is-invalid]="emailModel.invalid && emailModel.touched" placeholder="juan.perez@epmapa.gob.ec">
                 <div class="validation-feedback" *ngIf="emailModel.invalid && emailModel.touched">
                   <span *ngIf="emailModel.errors?.['required']">El email es obligatorio</span>
                   <span *ngIf="emailModel.errors?.['email']">Ingrese un correo válido</span>
@@ -86,27 +86,27 @@
               </div>
               <div class="col-md-6">
                 <label class="form-label">Nombres <span class="text-danger">*</span></label>
-                <input #nomModel="ngModel" [(ngModel)]="form.nombres" name="nombres" required class="form-control" [class.is-invalid]="nomModel.invalid && nomModel.touched" placeholder="Juan Alberto">
+                <input autocomplete="off" #nomModel="ngModel" [(ngModel)]="form.nombres" name="nombres" required class="form-control" [class.is-invalid]="nomModel.invalid && nomModel.touched" placeholder="Juan Alberto">
                 <div class="validation-feedback" *ngIf="nomModel.invalid && nomModel.touched">Los nombres son obligatorios</div>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Apellidos <span class="text-danger">*</span></label>
-                <input #apeModel="ngModel" [(ngModel)]="form.apellidos" name="apellidos" required class="form-control" [class.is-invalid]="apeModel.invalid && apeModel.touched" placeholder="Pérez García">
+                <input autocomplete="off" #apeModel="ngModel" [(ngModel)]="form.apellidos" name="apellidos" required class="form-control" [class.is-invalid]="apeModel.invalid && apeModel.touched" placeholder="Pérez García">
                 <div class="validation-feedback" *ngIf="apeModel.invalid && apeModel.touched">Los apellidos son obligatorios</div>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Contraseña {{ editando ? '(dejar vacío)' : '*' }}</label>
-                <input #passModel="ngModel" [(ngModel)]="form.password" name="password" type="password" [required]="!editando" class="form-control" [class.is-invalid]="(passModel.invalid && passModel.touched) && !editando" placeholder="••••••••" minlength="6">
+                <input autocomplete="off" #passModel="ngModel" [(ngModel)]="form.password" name="password" type="password" [required]="!editando" class="form-control" [class.is-invalid]="(passModel.invalid && passModel.touched) && !editando" placeholder="••••••••" minlength="6">
                 <div class="validation-feedback" *ngIf="passModel.invalid && passModel.touched && !editando">Mínimo 6 caracteres</div>
                 <div class="form-text">{{ editando ? 'Solo si desea cambiar la contraseña' : 'Mínimo 6 caracteres' }}</div>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Teléfono</label>
-                <input [(ngModel)]="form.telefono" name="telefono" class="form-control" placeholder="0999999999">
+                <input autocomplete="off" [(ngModel)]="form.telefono" name="telefono" class="form-control" placeholder="0999999999">
               </div>
               <div class="col-md-6">
                 <label class="form-label">Rol <span class="text-danger">*</span></label>
-                <select #rolModel="ngModel" [(ngModel)]="form.rolCodigo" name="rol" required class="form-select" [class.is-invalid]="rolModel.invalid && rolModel.touched">
+                <select autocomplete="off" #rolModel="ngModel" [(ngModel)]="form.rolCodigo" name="rol" required class="form-select" [class.is-invalid]="rolModel.invalid && rolModel.touched">
                   <option value="">Seleccionar...</option>
                   <option *ngFor="let r of roles" [value]="r.codigo">{{ r.nombre }}</option>
                 </select>
@@ -114,14 +114,14 @@
               </div>
               <div class="col-md-6">
                 <label class="form-label">Área</label>
-                <select [(ngModel)]="form.idArea" name="area" class="form-select">
+                <select autocomplete="off" [(ngModel)]="form.idArea" name="area" class="form-select">
                   <option [ngValue]="null">Sin área</option>
                   <option *ngFor="let a of areas" [value]="a.idArea">{{ a.nombre }}</option>
                 </select>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Cargo</label>
-                <input [(ngModel)]="form.cargo" name="cargo" class="form-control" placeholder="Ej: Analista TI">
+                <input autocomplete="off" [(ngModel)]="form.cargo" name="cargo" class="form-control" placeholder="Ej: Analista TI">
               </div>
             </div>
           </form>
@@ -138,11 +138,11 @@
               <span class="fw-medium small">{{ m.nombre }}</span>
               <div class="d-flex gap-2">
                 <label class="permiso-check" [class.active]="permisosModulo[m.clave]?.lectura">
-                  <input type="checkbox" [checked]="permisosModulo[m.clave]?.lectura" (change)="toggleLectura(m.clave)">
+                  <input autocomplete="off" type="checkbox" [checked]="permisosModulo[m.clave]?.lectura" (change)="toggleLectura(m.clave)">
                   <i class="pi pi-eye"></i> Ver
                 </label>
                 <label class="permiso-check" [class.active]="permisosModulo[m.clave]?.escritura" [class.disabled]="!permisosModulo[m.clave]?.lectura">
-                  <input type="checkbox" [checked]="permisosModulo[m.clave]?.escritura" [disabled]="!permisosModulo[m.clave]?.lectura" (change)="permisosModulo[m.clave].escritura = !permisosModulo[m.clave].escritura">
+                  <input autocomplete="off" type="checkbox" [checked]="permisosModulo[m.clave]?.escritura" [disabled]="!permisosModulo[m.clave]?.lectura" (change)="permisosModulo[m.clave].escritura = !permisosModulo[m.clave].escritura">
                   <i class="pi pi-pencil"></i> Crear
                 </label>
               </div>

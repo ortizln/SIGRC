@@ -32,6 +32,7 @@ public class CorrespondenciaService {
     private final CorrespondenciaRespuestaRepository respuestaRepository;
     private final CorrespondenciaTicketRepository ticketRepository;
     private final CorrespondenciaAreaRepository areaRepository;
+    private final CorrespondenciaDestinatarioRepository destinatarioRepository;
     private final UsuarioRepository usuarioRepository;
     private final AreaRepository areaCatRepository;
     private final TicketService ticketService;
@@ -47,6 +48,7 @@ public class CorrespondenciaService {
                                   CorrespondenciaRespuestaRepository respuestaRepository,
                                   CorrespondenciaTicketRepository ticketRepository,
                                   CorrespondenciaAreaRepository areaRepository,
+                                  CorrespondenciaDestinatarioRepository destinatarioRepository,
                                   UsuarioRepository usuarioRepository,
                                   AreaRepository areaCatRepository,
                                   TicketService ticketService,
@@ -58,6 +60,7 @@ public class CorrespondenciaService {
         this.respuestaRepository = respuestaRepository;
         this.ticketRepository = ticketRepository;
         this.areaRepository = areaRepository;
+        this.destinatarioRepository = destinatarioRepository;
         this.usuarioRepository = usuarioRepository;
         this.areaCatRepository = areaCatRepository;
         this.ticketService = ticketService;
@@ -77,6 +80,15 @@ public class CorrespondenciaService {
         String numeroInterno = generarNumeroInterno();
         String sentido = request.sentido() != null ? request.sentido() : "INGRESO";
 
+        if ("INGRESO".equals(sentido) && (request.personaEntrega() == null || request.personaEntrega().isBlank())) {
+            throw new IllegalArgumentException("Persona que entrega es obligatoria para documentos de ingreso");
+        }
+
+        String personaEntrega = request.personaEntrega();
+        if ("SALIDA".equals(sentido) && (personaEntrega == null || personaEntrega.isBlank())) {
+            personaEntrega = "";
+        }
+
         Correspondencia entity = Correspondencia.builder()
                 .numeroInterno(numeroInterno)
                 .codigoDocumento(request.codigoDocumento())
@@ -86,7 +98,7 @@ public class CorrespondenciaService {
                 .fechaDocumento(request.fechaDocumento())
                 .fechaRecepcion(request.fechaRecepcion())
                 .horaRecepcion(request.horaRecepcion())
-                .personaEntrega(request.personaEntrega())
+                .personaEntrega(personaEntrega)
                 .cargo(request.cargo())
                 .institucion(request.institucion())
                 .departamentoRemitente(request.departamentoRemitente())
@@ -105,6 +117,7 @@ public class CorrespondenciaService {
 
         guardarAreasEtiquetadas(entity, request.areasEtiquetadas());
         guardarReferencias(entity, request.idsReferencias());
+        guardarDestinatarios(entity, request.destinatarios());
 
         String accionHistorial = "INGRESO".equals(sentido) ? "CREACION" : "EMISION";
         String detalleHistorial = "INGRESO".equals(sentido)
@@ -187,6 +200,10 @@ public class CorrespondenciaService {
             entity.getReferencias().clear();
             guardarReferencias(entity, request.idsReferencias());
             repository.save(entity);
+        }
+        if (request.destinatarios() != null) {
+            destinatarioRepository.deleteByCorrespondenciaIdCorrespondencia(entity.getIdCorrespondencia());
+            guardarDestinatarios(entity, request.destinatarios());
         }
 
         Usuario usuario = usuarioRepository.getReferenceById(idUsuario);
@@ -514,6 +531,19 @@ public class CorrespondenciaService {
         }
     }
 
+    private void guardarDestinatarios(Correspondencia entity, List<CorrespondenciaDestinatarioDTO> destinatarios) {
+        if (destinatarios == null) return;
+        for (CorrespondenciaDestinatarioDTO dto : destinatarios) {
+            CorrespondenciaDestinatario d = CorrespondenciaDestinatario.builder()
+                    .correspondencia(entity)
+                    .tipo(dto.tipo())
+                    .idDestinatario(dto.idDestinatario())
+                    .nombre(dto.nombre())
+                    .build();
+            destinatarioRepository.save(d);
+        }
+    }
+
     private void registrarHistorial(Correspondencia entity, String estadoAnterior,
                                      String estadoNuevo, String accion, String detalle, Usuario usuario) {
         CorrespondenciaHistorial h = CorrespondenciaHistorial.builder()
@@ -540,6 +570,10 @@ public class CorrespondenciaService {
                         ref.getAsunto(),
                         ref.getCodigoDocumento()))
                 .collect(Collectors.toList());
+
+        List<CorrespondenciaDestinatarioDTO> destinatariosDTO = destinatarioRepository
+                .findByCorrespondenciaIdCorrespondencia(entity.getIdCorrespondencia())
+                .stream().map(this::toDestinatarioDTO).collect(Collectors.toList());
 
         return new CorrespondenciaDTO(
                 entity.getIdCorrespondencia(),
@@ -576,7 +610,17 @@ public class CorrespondenciaService {
                 obtenerHistorial(entity.getIdCorrespondencia()),
                 obtenerRespuestas(entity.getIdCorrespondencia()),
                 obtenerTicketsVinculados(entity.getIdCorrespondencia()),
-                referencias
+                referencias,
+                destinatariosDTO
+        );
+    }
+
+    private CorrespondenciaDestinatarioDTO toDestinatarioDTO(CorrespondenciaDestinatario d) {
+        return new CorrespondenciaDestinatarioDTO(
+                d.getIdCorrespondenciaDestinatario(),
+                d.getTipo(),
+                d.getIdDestinatario(),
+                d.getNombre()
         );
     }
 

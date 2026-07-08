@@ -34,6 +34,7 @@ export interface Correspondencia {
   respuestas: CorrespondenciaRespuesta[];
   ticketsVinculados: TicketVinculado[];
   referencias: CorrespondenciaReferencia[];
+  destinatarios: CorrespondenciaDestinatario[];
 }
 
 export interface CorrespondenciaCrearRequest {
@@ -57,6 +58,14 @@ export interface CorrespondenciaCrearRequest {
   observaciones?: string;
   areasEtiquetadas?: number[];
   idsReferencias?: number[];
+  destinatarios?: { tipo: string; idDestinatario: number; nombre: string }[];
+}
+
+export interface CorrespondenciaDestinatario {
+  idCorrespondenciaDestinatario: number;
+  tipo: string;
+  idDestinatario: number;
+  nombre: string;
 }
 
 export interface CorrespondenciaReferencia {

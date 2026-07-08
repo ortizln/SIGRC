@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CorrespondenciaService } from '@core/services/correspondencia.service';
 import { CatalogoService } from '@core/services/catalogo.service';
+import { UsuarioService } from '@core/services/usuario.service';
+import { TicketService } from '@core/services/ticket.service';
 import { AuthService } from '@core/services/auth.service';
 import { ESTADOS_CORRESPONDENCIA, PRIORIDADES, SENTIDOS } from '@shared/models/correspondencia.model';
 
@@ -23,21 +25,28 @@ export class CorrespondenciaFormComponent implements OnInit {
     sentido: 'INGRESO',
     requiereRespuesta: false, fechaLimiteRespuesta: '',
     generaTicket: false, observaciones: '', areasEtiquetadas: [],
-    idsReferencias: []
+    idsReferencias: [], destinatariosSeleccionados: [],
+    idTicketVinculado: null
   };
   tiposDocumento: any[] = [];
   areas: any[] = [];
   usuarios: any[] = [];
+  destinatariosDisponibles: any[] = [];
   archivos: File[] = [];
   cargando = false;
   errorMessage = '';
   prioridades = PRIORIDADES;
   sentidos = SENTIDOS;
-  documentosIngreso: any[] = [];
+  busquedaReferencia = '';
+  documentosReferencia: any[] = [];
+  ticketsDisponibles: any[] = [];
+  private timerBusqueda: any;
 
   constructor(
     private svc: CorrespondenciaService,
     private catSvc: CatalogoService,
+    private usuarioSvc: UsuarioService,
+    private ticketSvc: TicketService,
     private auth: AuthService,
     private router: Router
   ) {}
@@ -45,6 +54,10 @@ export class CorrespondenciaFormComponent implements OnInit {
   ngOnInit() {
     this.svc.getTiposDocumento().subscribe(r => this.tiposDocumento = r);
     this.catSvc.getAreas().subscribe(r => this.areas = r);
+    this.usuarioSvc.listar().subscribe(r => {
+      this.usuarios = r;
+      this.armarDestinatarios();
+    });
     const now = new Date();
     this.form.fechaRecepcion = now.toISOString().split('T')[0];
     this.form.horaRecepcion = now.toTimeString().slice(0, 5);
@@ -54,24 +67,66 @@ export class CorrespondenciaFormComponent implements OnInit {
     this.form.fechaLimiteRespuesta = dentro10Dias.toISOString().split('T')[0];
   }
 
+  armarDestinatarios() {
+    this.destinatariosDisponibles = [
+      ...this.usuarios.map(u => ({ id: `u${u.idUsuario}`, label: `${u.nombres} ${u.apellidos}`, tipo: 'Usuario' })),
+      ...this.areas.map(a => ({ id: `a${a.idArea}`, label: a.nombre, tipo: 'Área' }))
+    ];
+  }
+
   onSentidoChange() {
     if (this.form.sentido === 'SALIDA') {
-      this.cargarDocumentosIngreso();
+      this.form.idTicketVinculado = null;
+      this.cargarTickets();
     } else {
-      this.documentosIngreso = [];
       this.form.idsReferencias = [];
+      this.form.destinatariosSeleccionados = [];
+      this.form.personaEntrega = '';
+      this.form.idTicketVinculado = null;
     }
   }
 
-  cargarDocumentosIngreso() {
-    this.svc.listar({ sentido: 'INGRESO', pagina: 0, tamanio: 200, sortBy: 'fecha_recepcion', sortDir: 'desc' })
-      .subscribe(r => this.documentosIngreso = r.contenido);
+  cargarTickets() {
+    this.ticketSvc.listar({ pagina: 0, tamanio: 100, sortBy: 'creado_en', sortDir: 'desc' })
+      .subscribe(r => this.ticketsDisponibles = r.contenido);
+  }
+
+  buscarReferencias() {
+    if (this.timerBusqueda) clearTimeout(this.timerBusqueda);
+    const texto = this.busquedaReferencia?.trim();
+    if (!texto || texto.length < 2) {
+      this.documentosReferencia = [];
+      return;
+    }
+    this.timerBusqueda = setTimeout(() => {
+      this.svc.listar({ texto, pagina: 0, tamanio: 30, sortBy: 'fecha_recepcion', sortDir: 'desc' })
+        .subscribe(r => {
+          this.documentosReferencia = r.contenido;
+        });
+    }, 300);
   }
 
   toggleReferencia(id: number) {
     const idx = this.form.idsReferencias.indexOf(id);
     if (idx >= 0) this.form.idsReferencias.splice(idx, 1);
     else this.form.idsReferencias.push(id);
+  }
+
+  onDestinatariosChange() {
+    this.form.personaEntrega = this.form.destinatariosSeleccionados
+      .map((id: string) => {
+        const encontrado = this.destinatariosDisponibles.find(d => d.id === id);
+        return encontrado ? encontrado.label : '';
+      })
+      .filter((n: string) => n)
+      .join(', ');
+  }
+
+  toggleDestinatario(id: string) {
+    const idx = this.form.destinatariosSeleccionados.indexOf(id);
+    if (idx >= 0) this.form.destinatariosSeleccionados.splice(idx, 1);
+    else this.form.destinatariosSeleccionados.push(id);
+    this.onDestinatariosChange();
   }
 
   onArchivosSeleccionados(event: any) {
@@ -88,16 +143,59 @@ export class CorrespondenciaFormComponent implements OnInit {
     else this.form.areasEtiquetadas.push(id);
   }
 
+  private buildDestinatarios(): any[] {
+    return this.form.destinatariosSeleccionados.map((id: string) => {
+      const dest = this.destinatariosDisponibles.find((d: any) => d.id === id);
+      const isUser = id.startsWith('u');
+      return {
+        tipo: isUser ? 'USUARIO' : 'AREA',
+        idDestinatario: parseInt(id.substring(1), 10),
+        nombre: dest?.label || ''
+      };
+    });
+  }
+
   guardar() {
     if (this.cargando) return;
     this.cargando = true;
     this.errorMessage = '';
-    this.svc.crear(this.form).subscribe({
+
+    const body: any = {
+      asunto: this.form.asunto,
+      resumenEjecutivo: this.form.resumenEjecutivo || null,
+      codigoDocumento: this.form.codigoDocumento,
+      idTipoDocumento: this.form.idTipoDocumento,
+      fechaDocumento: this.form.fechaDocumento,
+      fechaRecepcion: this.form.fechaRecepcion,
+      horaRecepcion: this.form.horaRecepcion,
+      personaEntrega: this.form.personaEntrega || '',
+      cargo: this.form.cargo || null,
+      institucion: this.form.institucion || null,
+      departamentoRemitente: this.form.departamentoRemitente || null,
+      idResponsable: this.form.idResponsable || null,
+      prioridad: this.form.prioridad,
+      sentido: this.form.sentido,
+      requiereRespuesta: this.form.requiereRespuesta,
+      fechaLimiteRespuesta: this.form.fechaLimiteRespuesta || null,
+      generaTicket: this.form.sentido !== 'SALIDA' ? this.form.generaTicket : false,
+      observaciones: this.form.observaciones || null,
+      areasEtiquetadas: this.form.areasEtiquetadas,
+      idsReferencias: this.form.idsReferencias,
+      destinatarios: this.form.sentido === 'SALIDA' ? this.buildDestinatarios() : null
+    };
+
+    this.svc.crear(body).subscribe({
       next: async r => {
         const id = r.idCorrespondencia;
+
         for (const f of this.archivos) {
           try { await this.svc.subirAdjunto(id, f, 'ANEXO').toPromise(); } catch (_) {}
         }
+
+        if (this.form.sentido === 'SALIDA' && this.form.idTicketVinculado) {
+          this.svc.vincularTicket(id, this.form.idTicketVinculado).subscribe();
+        }
+
         this.router.navigate(['/correspondencia', id]);
       },
       error: (err) => {
