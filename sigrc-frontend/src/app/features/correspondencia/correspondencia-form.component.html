@@ -96,14 +96,6 @@
             <div class="form-text">Busque y agregue usuarios y/o áreas destinatarias del documento</div>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Cargo</label>
-            <input autocomplete="off" [(ngModel)]="form.cargo" name="cargo" class="form-control" placeholder="Cargo del remitente">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Institución</label>
-            <input autocomplete="off" [(ngModel)]="form.institucion" name="institucion" class="form-control" placeholder="Institución de origen">
-          </div>
-          <div class="col-md-6">
             <label class="form-label">Fecha del Documento <span class="text-danger">*</span></label>
             <input autocomplete="off" #fDocModel="ngModel" [(ngModel)]="form.fechaDocumento" name="fechaDocumento" type="date" required
                    class="form-control" [class.is-invalid]="fDocModel.invalid && fDocModel.touched">

@@ -35,6 +35,7 @@ public class CorrespondenciaService {
     private final CorrespondenciaDestinatarioRepository destinatarioRepository;
     private final UsuarioRepository usuarioRepository;
     private final AreaRepository areaCatRepository;
+    private final UsuarioPermisoRepository usuarioPermisoRepository;
     private final TicketService ticketService;
     private final NotificacionWebSocketService notificacionService;
 
@@ -51,6 +52,7 @@ public class CorrespondenciaService {
                                   CorrespondenciaDestinatarioRepository destinatarioRepository,
                                   UsuarioRepository usuarioRepository,
                                   AreaRepository areaCatRepository,
+                                  UsuarioPermisoRepository usuarioPermisoRepository,
                                   TicketService ticketService,
                                   NotificacionWebSocketService notificacionService) {
         this.repository = repository;
@@ -63,22 +65,25 @@ public class CorrespondenciaService {
         this.destinatarioRepository = destinatarioRepository;
         this.usuarioRepository = usuarioRepository;
         this.areaCatRepository = areaCatRepository;
+        this.usuarioPermisoRepository = usuarioPermisoRepository;
         this.ticketService = ticketService;
         this.notificacionService = notificacionService;
     }
 
     @Transactional
     public CorrespondenciaDTO crear(CorrespondenciaCrearRequest request, Integer idUsuario) {
+        verificarPermisoModulo(idUsuario, "CORRESPONDENCIA", "ESCRITURA");
         CorrespondenciaDocumentoTipo tipoDoc = tipoDocRepository.findById(request.idTipoDocumento())
                 .orElseThrow(() -> new EntityNotFoundException("Tipo de documento no encontrado"));
         Usuario creadoPor = usuarioRepository.getReferenceById(idUsuario);
 
+        String sentido = request.sentido() != null ? request.sentido() : "INGRESO";
+
         Usuario responsable = request.idResponsable() != null
                 ? usuarioRepository.getReferenceById(request.idResponsable())
-                : null;
+                : ("SALIDA".equals(sentido) ? creadoPor : null);
 
         String numeroInterno = generarNumeroInterno();
-        String sentido = request.sentido() != null ? request.sentido() : "INGRESO";
 
         if ("INGRESO".equals(sentido) && (request.personaEntrega() == null || request.personaEntrega().isBlank())) {
             throw new IllegalArgumentException("Persona que entrega es obligatoria para documentos de ingreso");
@@ -166,6 +171,7 @@ public class CorrespondenciaService {
 
     @Transactional
     public CorrespondenciaDTO actualizar(Integer id, CorrespondenciaActualizarRequest request, Integer idUsuario) {
+        verificarPermisoModulo(idUsuario, "CORRESPONDENCIA", "ESCRITURA");
         Correspondencia entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
 
@@ -541,6 +547,19 @@ public class CorrespondenciaService {
                     .nombre(dto.nombre())
                     .build();
             destinatarioRepository.save(d);
+        }
+    }
+
+    private void verificarPermisoModulo(Integer idUsuario, String modulo, String tipoAcceso) {
+        var usuario = usuarioRepository.findById(idUsuario).orElseThrow();
+        if ("ADMIN".equals(usuario.getRol().getCodigo())) return;
+        var permiso = usuarioPermisoRepository.findByUsuarioIdUsuarioAndModuloAndActivoTrue(idUsuario, modulo);
+        if (permiso.isEmpty()) {
+            throw new SecurityException("No tiene acceso al módulo " + modulo);
+        }
+        String acceso = permiso.get().getTipoAcceso();
+        if ("LECTURA".equals(acceso) && "ESCRITURA".equals(tipoAcceso)) {
+            throw new SecurityException("No tiene permisos de escritura en el módulo " + modulo);
         }
     }
 

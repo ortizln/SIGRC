@@ -3,7 +3,9 @@ package com.epmapa.sigrc.domain.service;
 import com.epmapa.sigrc.domain.dto.LoginRequest;
 import com.epmapa.sigrc.domain.dto.LoginResponse;
 import com.epmapa.sigrc.domain.dto.UsuarioDTO;
+import com.epmapa.sigrc.domain.dto.UsuarioPermisoDTO;
 import com.epmapa.sigrc.domain.entity.Usuario;
+import com.epmapa.sigrc.domain.repository.UsuarioPermisoRepository;
 import com.epmapa.sigrc.domain.repository.UsuarioRepository;
 import com.epmapa.sigrc.security.JwtTokenProvider;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,12 +22,15 @@ public class AuthService {
     private final AuthenticationManager authManager;
     private final JwtTokenProvider tokenProvider;
     private final UsuarioRepository usuarioRepository;
+    private final UsuarioPermisoRepository usuarioPermisoRepository;
 
     public AuthService(AuthenticationManager authManager, JwtTokenProvider tokenProvider,
-                       UsuarioRepository usuarioRepository) {
+                       UsuarioRepository usuarioRepository,
+                       UsuarioPermisoRepository usuarioPermisoRepository) {
         this.authManager = authManager;
         this.tokenProvider = tokenProvider;
         this.usuarioRepository = usuarioRepository;
+        this.usuarioPermisoRepository = usuarioPermisoRepository;
     }
 
     @Transactional
@@ -67,6 +72,11 @@ public class AuthService {
     }
 
     public UsuarioDTO toUsuarioDTO(Usuario u) {
+        var permisos = usuarioPermisoRepository.findByUsuarioIdUsuarioAndActivoTrue(u.getIdUsuario())
+            .stream()
+            .map(p -> new UsuarioPermisoDTO(p.getModulo(), p.getTipoAcceso()))
+            .toList();
+
         return new UsuarioDTO(
             u.getIdUsuario(), u.getUsername(), u.getEmail(),
             u.getNombres(), u.getApellidos(),
@@ -76,7 +86,8 @@ public class AuthService {
             u.getArea() != null ? u.getArea().getIdArea() : null,
             u.getRol().getCodigo(), u.getRol().getNombre(),
             u.getTelefono(), u.getActivo(),
-            u.getDebeCambiarPassword(), u.getBloqueado()
+            u.getDebeCambiarPassword(), u.getBloqueado(),
+            permisos
         );
     }
 }

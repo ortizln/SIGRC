@@ -13,7 +13,7 @@
       </div>
     </div>
     <div class="d-flex gap-2" *ngIf="doc">
-      <a *ngIf="auth.hasRole('ADMIN') || auth.hasRole('JEFE_TI')" [routerLink]="['/correspondencia/editar', doc.idCorrespondencia]" class="btn btn-outline-primary btn-sm">
+      <a *ngIf="auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')" [routerLink]="['/correspondencia/editar', doc.idCorrespondencia]" class="btn btn-outline-primary btn-sm">
         <i class="pi pi-pencil" style="font-size:0.7rem;"></i> Editar
       </a>
     </div>
@@ -164,7 +164,7 @@
           </button>
         </div>
 
-        <div *ngIf="!doc.generaTicket && (auth.hasRole('ADMIN') || auth.hasRole('JEFE_TI') || auth.hasRole('TECNICO'))">
+        <div *ngIf="!doc.generaTicket && doc.sentido !== 'SALIDA' && (auth.hasRole('ADMIN') || auth.hasRole('JEFE_TI') || auth.hasRole('TECNICO'))">
           <button class="btn btn-outline-primary btn-sm w-100" (click)="generarTicket()">
             <i class="pi pi-ticket" style="font-size:0.7rem;"></i> Generar Ticket
           </button>

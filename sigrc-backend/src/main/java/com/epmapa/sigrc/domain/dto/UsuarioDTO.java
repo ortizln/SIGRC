@@ -1,5 +1,7 @@
 package com.epmapa.sigrc.domain.dto;
 
+import java.util.List;
+
 public record UsuarioDTO(
     Integer idUsuario,
     String username,
@@ -15,5 +17,6 @@ public record UsuarioDTO(
     String telefono,
     Boolean activo,
     Boolean debeCambiarPassword,
-    Boolean bloqueado
+    Boolean bloqueado,
+    List<UsuarioPermisoDTO> permisos
 ) {}

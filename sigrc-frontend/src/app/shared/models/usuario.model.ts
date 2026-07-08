@@ -1,3 +1,8 @@
+export interface UsuarioPermiso {
+  modulo: string;
+  tipoAcceso: string;
+}
+
 export interface Usuario {
   idUsuario: number;
   username: string;
@@ -14,4 +19,5 @@ export interface Usuario {
   activo: boolean;
   debeCambiarPassword: boolean;
   bloqueado: boolean;
+  permisos: UsuarioPermiso[];
 }

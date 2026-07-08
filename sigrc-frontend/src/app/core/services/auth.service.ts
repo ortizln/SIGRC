@@ -43,4 +43,15 @@ export class AuthService {
     const u = this.getUsuario();
     return u && u.rolCodigo === rol;
   }
+
+  canModulo(modulo: string, tipoAcceso: string): boolean {
+    const u = this.getUsuario();
+    if (!u) return false;
+    if (u.rolCodigo === 'ADMIN') return true;
+    if (!u.permisos || u.permisos.length === 0) return false;
+    const permiso = u.permisos.find((p: any) => p.modulo === modulo);
+    if (!permiso) return false;
+    if (tipoAcceso === 'LECTURA') return true;
+    return permiso.tipoAcceso === 'ESCRITURA';
+  }
 }

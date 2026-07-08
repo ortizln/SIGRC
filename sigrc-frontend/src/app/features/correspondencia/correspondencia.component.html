@@ -4,7 +4,7 @@
       <h2>Correspondencia Institucional</h2>
       <p>Gestión de documentos recibidos en el Departamento de TI</p>
     </div>
-    <a routerLink="/correspondencia/nuevo" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+    <a *ngIf="auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')" routerLink="/correspondencia/nuevo" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
       <i class="pi pi-plus" style="font-size:0.8rem;"></i> Nuevo Documento
     </a>
   </div>
