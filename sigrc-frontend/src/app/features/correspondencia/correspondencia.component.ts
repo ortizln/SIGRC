@@ -148,6 +148,10 @@ export class CorrespondenciaListComponent implements OnInit {
     return count;
   }
 
+  responsablesNombres(d: any): string {
+    return d.responsables?.map((r: any) => r.nombre).join(', ') || '—';
+  }
+
   private cargar() {
     this.svc.listar(this.filtros).subscribe(r => {
       this.documentos = r.contenido;
