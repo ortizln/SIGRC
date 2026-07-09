@@ -20,29 +20,30 @@ public interface CorrespondenciaRepository extends JpaRepository<Correspondencia
            "(:estado IS NULL OR c.estado = :estado) AND " +
            "(:prioridad IS NULL OR c.prioridad = :prioridad) AND " +
            "(:idTipoDocumento IS NULL OR c.id_tipo_documento = :idTipoDocumento) AND " +
-           "(:idResponsable IS NULL OR c.id_responsable = :idResponsable) AND " +
-           "(:sentido IS NULL OR c.sentido = :sentido) AND " +
-            "(CAST(:fechaDesde AS date) IS NULL OR c.fecha_recepcion >= CAST(:fechaDesde AS date)) AND " +
-            "(CAST(:fechaHasta AS date) IS NULL OR c.fecha_recepcion <= CAST(:fechaHasta AS date))",
-            countQuery = "SELECT COUNT(*) FROM sigrc.correspondencia c WHERE c.activo = true AND " +
+            "((:idResponsable IS NULL AND :idUsuario IS NULL) OR c.id_responsable = :idResponsable OR c.creado_por = :idUsuario) AND " +
+            "(:sentido IS NULL OR c.sentido = :sentido) AND " +
+             "(CAST(:fechaDesde AS date) IS NULL OR c.fecha_recepcion >= CAST(:fechaDesde AS date)) AND " +
+             "(CAST(:fechaHasta AS date) IS NULL OR c.fecha_recepcion <= CAST(:fechaHasta AS date))",
+             countQuery = "SELECT COUNT(*) FROM sigrc.correspondencia c WHERE c.activo = true AND " +
             "(:texto IS NULL OR LOWER(CAST(c.asunto AS TEXT)) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(CAST(c.numero_interno AS TEXT)) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(CAST(c.codigo_documento AS TEXT)) LIKE LOWER(CONCAT('%',:texto,'%'))) AND " +
             "(:estado IS NULL OR c.estado = :estado) AND " +
             "(:prioridad IS NULL OR c.prioridad = :prioridad) AND " +
             "(:idTipoDocumento IS NULL OR c.id_tipo_documento = :idTipoDocumento) AND " +
-            "(:idResponsable IS NULL OR c.id_responsable = :idResponsable) AND " +
+            "((:idResponsable IS NULL AND :idUsuario IS NULL) OR c.id_responsable = :idResponsable OR c.creado_por = :idUsuario) AND " +
             "(:sentido IS NULL OR c.sentido = :sentido) AND " +
-            "(CAST(:fechaDesde AS date) IS NULL OR c.fecha_recepcion >= CAST(:fechaDesde AS date)) AND " +
-            "(CAST(:fechaHasta AS date) IS NULL OR c.fecha_recepcion <= CAST(:fechaHasta AS date))",
+             "(CAST(:fechaDesde AS date) IS NULL OR c.fecha_recepcion >= CAST(:fechaDesde AS date)) AND " +
+             "(CAST(:fechaHasta AS date) IS NULL OR c.fecha_recepcion <= CAST(:fechaHasta AS date))",
            nativeQuery = true)
     Page<Correspondencia> buscar(@Param("texto") String texto,
-                                  @Param("estado") String estado,
-                                  @Param("prioridad") String prioridad,
-                                  @Param("idTipoDocumento") Integer idTipoDocumento,
-                                  @Param("idResponsable") Integer idResponsable,
-                                  @Param("sentido") String sentido,
-                                  @Param("fechaDesde") LocalDate fechaDesde,
-                                  @Param("fechaHasta") LocalDate fechaHasta,
-                                  Pageable pageable);
+                                   @Param("estado") String estado,
+                                   @Param("prioridad") String prioridad,
+                                   @Param("idTipoDocumento") Integer idTipoDocumento,
+                                   @Param("idResponsable") Integer idResponsable,
+                                   @Param("idUsuario") Integer idUsuario,
+                                   @Param("sentido") String sentido,
+                                   @Param("fechaDesde") LocalDate fechaDesde,
+                                   @Param("fechaHasta") LocalDate fechaHasta,
+                                   Pageable pageable);
 
     @Query("SELECT c FROM Correspondencia c WHERE c.activo = true AND c.requiereRespuesta = true AND c.fechaLimiteRespuesta < CURRENT_DATE AND c.estado <> 'ARCHIVADO' AND c.estado <> 'RESPONDIDO'")
     List<Correspondencia> findVencidos();

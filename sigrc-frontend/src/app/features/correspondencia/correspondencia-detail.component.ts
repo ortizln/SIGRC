@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CorrespondenciaService } from '@core/services/correspondencia.service';
 import { AuthService } from '@core/services/auth.service';
@@ -32,6 +32,7 @@ export class CorrespondenciaDetailComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private svc: CorrespondenciaService,
     private usuarioSvc: UsuarioService,
     public auth: AuthService
@@ -138,6 +139,14 @@ export class CorrespondenciaDetailComponent implements OnInit {
     this.svc.generarTicket(this.doc.idCorrespondencia).subscribe(r => {
       this.tickets.push(r);
       this.doc.generaTicket = true;
+    });
+  }
+
+  eliminarDocumento() {
+    if (!this.doc) return;
+    if (!confirm(`¿Eliminar el documento ${this.doc.numeroInterno}?`)) return;
+    this.svc.eliminar(this.doc.idCorrespondencia).subscribe(() => {
+      this.router.navigate(['/correspondencia']);
     });
   }
 

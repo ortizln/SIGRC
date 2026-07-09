@@ -169,6 +169,11 @@
             <i class="pi pi-ticket" style="font-size:0.7rem;"></i> Generar Ticket
           </button>
         </div>
+        <div class="mt-3" *ngIf="auth.hasRole('ADMIN')">
+          <button class="btn btn-outline-danger btn-sm w-100" (click)="eliminarDocumento()">
+            <i class="pi pi-trash" style="font-size:0.7rem;"></i> Eliminar Documento
+          </button>
+        </div>
       </div>
 
       <div class="card-modern p-4 mt-3" *ngIf="showRespuestaForm">

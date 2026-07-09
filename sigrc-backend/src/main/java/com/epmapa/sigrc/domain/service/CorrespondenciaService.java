@@ -147,6 +147,7 @@ public class CorrespondenciaService {
     @Transactional(readOnly = true)
     public PaginacionDTO<CorrespondenciaDTO> listar(String texto, String estado, String prioridad,
                                             Integer idTipoDocumento, Integer idResponsable,
+                                            Integer idUsuario,
                                             String sentido,
                                             LocalDate fechaDesde, LocalDate fechaHasta,
                                             int pagina, int tamanio,
@@ -156,7 +157,7 @@ public class CorrespondenciaService {
         Sort sort = Sort.by(Sort.Direction.fromString(direccion), columna);
         Pageable pageable = PageRequest.of(pagina, tamanio, sort);
         var page = repository.buscar(texto, estado, prioridad, idTipoDocumento, idResponsable,
-                        sentido, fechaDesde, fechaHasta, pageable)
+                        idUsuario, sentido, fechaDesde, fechaHasta, pageable)
                 .map(this::toDTO);
         return new PaginacionDTO<>(page.getContent(), page.getNumber(), page.getSize(),
                 page.getTotalElements(), page.getTotalPages(), page.isFirst(), page.isLast());
@@ -554,9 +555,7 @@ public class CorrespondenciaService {
         var usuario = usuarioRepository.findById(idUsuario).orElseThrow();
         if ("ADMIN".equals(usuario.getRol().getCodigo())) return;
         var permiso = usuarioPermisoRepository.findByUsuarioIdUsuarioAndModuloAndActivoTrue(idUsuario, modulo);
-        if (permiso.isEmpty()) {
-            throw new SecurityException("No tiene acceso al módulo " + modulo);
-        }
+        if (permiso.isEmpty()) return;
         String acceso = permiso.get().getTipoAcceso();
         if ("LECTURA".equals(acceso) && "ESCRITURA".equals(tipoAcceso)) {
             throw new SecurityException("No tiene permisos de escritura en el módulo " + modulo);
