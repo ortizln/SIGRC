@@ -32,7 +32,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   errorCarga = false;
 
-  private cargar() {
+  cargar() {
     this.errorCarga = false;
     this.svc.obtener().subscribe({
       next: d => {
