@@ -30,11 +30,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.sub?.unsubscribe();
   }
 
+  errorCarga = false;
+
   private cargar() {
-    this.svc.obtener().subscribe(d => {
-      this.data = d;
-      const all = [...(d.ticketsPorEstado || []), ...(d.ticketsPorPrioridad || [])];
-      all.forEach((i: any) => { if (i.cantidad > this.maxCount) this.maxCount = i.cantidad; });
+    this.errorCarga = false;
+    this.svc.obtener().subscribe({
+      next: d => {
+        this.data = d;
+        const all = [...(d.ticketsPorEstado || []), ...(d.ticketsPorPrioridad || [])];
+        all.forEach((i: any) => { if (i.cantidad > this.maxCount) this.maxCount = i.cantidad; });
+      },
+      error: () => { this.errorCarga = true; }
     });
   }
 

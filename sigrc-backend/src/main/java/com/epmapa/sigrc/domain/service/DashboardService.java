@@ -18,8 +18,8 @@ public class DashboardService {
     }
 
     public DashboardDTO obtenerDashboard() {
-        long abiertos = ticketRepository.countByEstadoNotIn(List.of("CERRADO", "RECHAZADO"));
-        long cerrados = ticketRepository.countByEstadoIn(List.of("CERRADO", "RECHAZADO"));
+        long abiertos = ticketRepository.contarAbiertos(List.of("CERRADO", "RECHAZADO"));
+        long cerrados = ticketRepository.contarCerrados(List.of("CERRADO", "RECHAZADO"));
         long vencidos = ticketRepository.countVencidos();
         long sinAsignar = ticketRepository.countByEstado("NUEVO");
         double tiempoPromedio = Optional.ofNullable(ticketRepository.avgTiempoAtencionHoras()).orElse(0.0);

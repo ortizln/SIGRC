@@ -4,6 +4,15 @@
     <p>Indicadores de gestión del sistema SIGRC</p>
   </div>
 
+  <div class="alert alert-danger d-flex align-items-center gap-2 animate-fade-in" role="alert" *ngIf="errorCarga">
+    <i class="pi pi-exclamation-triangle" style="font-size:1rem;"></i>
+    <div>
+      <strong>Error al cargar el dashboard</strong>
+      <p class="mb-0 small">No se pudieron obtener los indicadores. Verifique la conexión con el servidor o intente más tarde.</p>
+    </div>
+    <button class="btn btn-sm btn-outline-danger ms-auto flex-shrink-0" (click)="cargar()">Reintentar</button>
+  </div>
+
   <!-- KPI Cards -->
   <div class="kpi-grid">
     <div class="kpi-card">

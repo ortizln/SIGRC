@@ -70,7 +70,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
     @Query(value = "SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (fecha_cierre - creado_en)) / 3600.0), 0) FROM sigrc.tickets WHERE fecha_cierre IS NOT NULL", nativeQuery = true)
     Double avgTiempoAtencionHoras();
 
-    @Query("SELECT FUNCTION('TO_CHAR', t.creadoEn, 'YYYY-MM') as mes, COUNT(t) FROM Ticket t WHERE t.creadoEn >= :desde GROUP BY mes ORDER BY mes")
+    @Query(value = "SELECT TO_CHAR(t.creado_en, 'YYYY-MM') as mes, COUNT(*) FROM sigrc.tickets t WHERE t.creado_en >= :desde GROUP BY mes ORDER BY mes", nativeQuery = true)
     List<Object[]> tendenciasMensuales(@Param("desde") LocalDateTime desde);
 
     @Query("SELECT t FROM Ticket t WHERE t.estado NOT IN ('CERRADO','RECHAZADO') AND t.fechaLimite < CURRENT_TIMESTAMP")
@@ -78,9 +78,9 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
 
     long countByEstadoAndResponsableIdUsuario(String estado, Integer idResponsable);
 
-    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.estado NOT IN :estados")
-    long countByEstadoNotIn(@Param("estados") List<String> estados);
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.activo = true AND t.estado NOT IN (:estados)")
+    long contarAbiertos(@Param("estados") List<String> estados);
 
-    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.estado IN :estados")
-    long countByEstadoIn(@Param("estados") List<String> estados);
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.activo = true AND t.estado IN (:estados)")
+    long contarCerrados(@Param("estados") List<String> estados);
 }
