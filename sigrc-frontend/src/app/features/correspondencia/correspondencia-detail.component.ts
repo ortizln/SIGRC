@@ -6,6 +6,7 @@ import { CorrespondenciaService } from '@core/services/correspondencia.service';
 import { AuthService } from '@core/services/auth.service';
 import { UsuarioService } from '@core/services/usuario.service';
 import { ESTADOS_CORRESPONDENCIA } from '@shared/models/correspondencia.model';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-correspondencia-detail',
@@ -144,9 +145,22 @@ export class CorrespondenciaDetailComponent implements OnInit {
 
   eliminarDocumento() {
     if (!this.doc) return;
-    if (!confirm(`¿Eliminar el documento ${this.doc.numeroInterno}?`)) return;
-    this.svc.eliminar(this.doc.idCorrespondencia).subscribe(() => {
-      this.router.navigate(['/correspondencia']);
+    Swal.fire({
+      title: '¿Anular documento?',
+      text: `El documento ${this.doc.numeroInterno} quedará inactivo pero se conservará como evidencia.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, anular',
+      cancelButtonText: 'Cancelar'
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.svc.eliminar(this.doc.idCorrespondencia).subscribe(() => {
+          Swal.fire('Anulado', 'El documento ha sido anulado correctamente.', 'success');
+          this.router.navigate(['/correspondencia']);
+        });
+      }
     });
   }
 

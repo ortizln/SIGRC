@@ -4,6 +4,7 @@ import com.epmapa.sigrc.domain.dto.*;
 import com.epmapa.sigrc.domain.entity.CorrespondenciaDocumentoTipo;
 import com.epmapa.sigrc.domain.service.CorrespondenciaService;
 import com.epmapa.sigrc.security.UserPrincipal;
+import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -204,8 +205,10 @@ public class CorrespondenciaController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','JEFE_TI')")
     @Operation(summary = "Anular documento (soft-delete)")
-    public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
-        service.eliminar(id);
+    public ResponseEntity<Void> eliminar(@PathVariable Integer id, Authentication auth,
+                                          HttpServletRequest request) {
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
+        service.eliminar(id, idUsuario, request);
         return ResponseEntity.noContent().build();
     }
 }

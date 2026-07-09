@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import jakarta.servlet.http.HttpServletRequest;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
@@ -36,6 +37,7 @@ public class CorrespondenciaService {
     private final UsuarioRepository usuarioRepository;
     private final AreaRepository areaCatRepository;
     private final UsuarioPermisoRepository usuarioPermisoRepository;
+    private final AuditoriaService auditoriaService;
     private final TicketService ticketService;
     private final NotificacionWebSocketService notificacionService;
 
@@ -53,6 +55,7 @@ public class CorrespondenciaService {
                                   UsuarioRepository usuarioRepository,
                                   AreaRepository areaCatRepository,
                                   UsuarioPermisoRepository usuarioPermisoRepository,
+                                  AuditoriaService auditoriaService,
                                   TicketService ticketService,
                                   NotificacionWebSocketService notificacionService) {
         this.repository = repository;
@@ -66,6 +69,7 @@ public class CorrespondenciaService {
         this.usuarioRepository = usuarioRepository;
         this.areaCatRepository = areaCatRepository;
         this.usuarioPermisoRepository = usuarioPermisoRepository;
+        this.auditoriaService = auditoriaService;
         this.ticketService = ticketService;
         this.notificacionService = notificacionService;
     }
@@ -496,11 +500,19 @@ public class CorrespondenciaService {
     }
 
     @Transactional
-    public void eliminar(Integer id) {
+    public void eliminar(Integer id, Integer idUsuario, HttpServletRequest request) {
         Correspondencia entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
         entity.setActivo(false);
         repository.save(entity);
+
+        var usuario = usuarioRepository.findById(idUsuario).orElse(null);
+        auditoriaService.registrar(
+            usuario != null ? usuario.getUsername() : "desconocido",
+            idUsuario, "Anulación de documento " + entity.getNumeroInterno(),
+            "ANULACION", "correspondencia", id,
+            entity, null, request, "EXITO"
+        );
     }
 
     @Transactional(readOnly = true)
