@@ -14,6 +14,7 @@ public record CambioDTO(
     String estado,
     String planImplementacion,
     String planRetorno,
+    String planArchivo,
     LocalDateTime fechaAprobacion,
     LocalDateTime fechaInicio,
     LocalDateTime fechaImplementacion,

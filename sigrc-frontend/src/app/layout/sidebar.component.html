@@ -12,55 +12,55 @@
 
     <nav class="sidebar-nav">
       <div class="nav-section-title" *ngIf="!collapsed">Módulos</div>
-      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item" *ngIf="canModulo('DASHBOARD', 'LECTURA')">
         <i class="pi pi-home sidebar-icon"></i>
         <span *ngIf="!collapsed">Dashboard</span>
       </a>
-      <a routerLink="/correspondencia" routerLinkActive="active" class="nav-item">
+      <a routerLink="/correspondencia" routerLinkActive="active" class="nav-item" *ngIf="canModulo('CORRESPONDENCIA', 'LECTURA')">
         <i class="pi pi-inbox sidebar-icon"></i>
         <span *ngIf="!collapsed">Correspondencia</span>
         <i *ngIf="!collapsed" class="pi pi-info-circle nav-info-icon" title="Gestión de documentos recibidos en el Departamento de TI: registro, seguimiento, respuesta y archivo de documentos institucionales."></i>
       </a>
-      <a routerLink="/tickets" routerLinkActive="active" class="nav-item">
+      <a routerLink="/tickets" routerLinkActive="active" class="nav-item" *ngIf="canModulo('TICKETS', 'LECTURA')">
         <i class="pi pi-ticket sidebar-icon"></i>
         <span *ngIf="!collapsed">Tickets</span>
         <i *ngIf="!collapsed" class="pi pi-info-circle nav-info-icon" title="Gestión de solicitudes de servicio: incidentes, requerimientos, mejoras, cambios y consultas reportadas al Departamento de TI."></i>
       </a>
-      <a routerLink="/cambios" routerLinkActive="active" class="nav-item">
+      <a routerLink="/cambios" routerLinkActive="active" class="nav-item" *ngIf="canModulo('CAMBIOS', 'LECTURA')">
         <i class="pi pi-sync sidebar-icon"></i>
         <span *ngIf="!collapsed">Cambios</span>
         <i *ngIf="!collapsed" class="pi pi-info-circle nav-info-icon" title="Gestión de solicitudes de cambio: planificación, aprobación e implementación de cambios en los sistemas y servicios de TI."></i>
       </a>
-      <a routerLink="/versiones" routerLinkActive="active" class="nav-item" *ngIf="isAdmin()">
+      <a routerLink="/versiones" routerLinkActive="active" class="nav-item" *ngIf="canModulo('VERSIONES', 'LECTURA')">
         <i class="pi pi-box sidebar-icon"></i>
         <span *ngIf="!collapsed">Versiones</span>
       </a>
 
       <div class="nav-section-title" *ngIf="!collapsed">Administración</div>
-      <a routerLink="/auditoria" routerLinkActive="active" class="nav-item" *ngIf="isAdminOrAuditor()">
+      <a routerLink="/auditoria" routerLinkActive="active" class="nav-item" *ngIf="canModulo('AUDITORIA', 'LECTURA')">
         <i class="pi pi-clipboard sidebar-icon"></i>
         <span *ngIf="!collapsed">Auditoría</span>
       </a>
-      <a routerLink="/usuarios" routerLinkActive="active" class="nav-item" *ngIf="isAdmin()">
+      <a routerLink="/usuarios" routerLinkActive="active" class="nav-item" *ngIf="canModulo('USUARIOS', 'LECTURA')">
         <i class="pi pi-users sidebar-icon"></i>
         <span *ngIf="!collapsed">Usuarios</span>
       </a>
-      <a routerLink="/roles" routerLinkActive="active" class="nav-item" *ngIf="isAdmin()">
+      <a routerLink="/roles" routerLinkActive="active" class="nav-item" *ngIf="canModulo('ROLES', 'LECTURA')">
         <i class="pi pi-shield sidebar-icon"></i>
         <span *ngIf="!collapsed">Roles</span>
       </a>
-      <a routerLink="/catalogos" routerLinkActive="active" class="nav-item" *ngIf="isAdmin()">
+      <a routerLink="/catalogos" routerLinkActive="active" class="nav-item" *ngIf="canModulo('CATALOGOS', 'LECTURA')">
         <i class="pi pi-database sidebar-icon"></i>
         <span *ngIf="!collapsed">Catálogos</span>
         <i *ngIf="!collapsed" class="pi pi-info-circle nav-info-icon" title="Administración de catálogos del sistema: áreas, sistemas, categorías, subcategorías y tipos de ticket."></i>
       </a>
-      <a routerLink="/reportes" routerLinkActive="active" class="nav-item" *ngIf="isAdminOrAuditor()">
+      <a routerLink="/reportes" routerLinkActive="active" class="nav-item" *ngIf="canModulo('REPORTES', 'LECTURA')">
         <i class="pi pi-chart-bar sidebar-icon"></i>
         <span *ngIf="!collapsed">Reportes</span>
       </a>
 
       <div class="nav-section-title" *ngIf="!collapsed">Consultas</div>
-      <a routerLink="/conocimiento" routerLinkActive="active" class="nav-item">
+      <a routerLink="/conocimiento" routerLinkActive="active" class="nav-item" *ngIf="canModulo('CONOCIMIENTO', 'LECTURA')">
         <i class="pi pi-book sidebar-icon"></i>
         <span *ngIf="!collapsed">Base Conocimiento</span>
       </a>

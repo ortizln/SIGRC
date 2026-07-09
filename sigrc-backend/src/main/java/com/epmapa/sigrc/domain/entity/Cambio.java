@@ -46,6 +46,7 @@ public class Cambio {
     private Usuario responsable;
     private String planImplementacion;
     private String planRetorno;
+    private String planArchivo;
     private LocalDateTime fechaAprobacion;
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaImplementacion;

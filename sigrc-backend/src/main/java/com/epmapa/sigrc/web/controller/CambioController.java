@@ -4,9 +4,13 @@ import com.epmapa.sigrc.domain.dto.CambioDTO;
 import com.epmapa.sigrc.domain.service.CambioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -60,5 +64,29 @@ public class CambioController {
     @Operation(summary = "Aprobar cambio")
     public ResponseEntity<CambioDTO> aprobar(@PathVariable Integer id, @RequestParam Integer idAprobador) {
         return ResponseEntity.ok(cambioService.aprobar(id, idAprobador));
+    }
+
+    @PostMapping("/{id}/plan-archivo")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_TI')")
+    @Operation(summary = "Subir archivo de planificación")
+    public ResponseEntity<Void> subirPlanArchivo(@PathVariable Integer id,
+                                                  @RequestParam("file") MultipartFile file) {
+        cambioService.subirPlanArchivo(id, file);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/plan-archivo")
+    @Operation(summary = "Descargar archivo de planificación")
+    public ResponseEntity<Resource> descargarPlanArchivo(@PathVariable Integer id) {
+        var resource = cambioService.descargarPlanArchivo(id);
+        var cambio = cambioService.obtenerPorId(id);
+        var nombre = "plan_cambio_" + id;
+        if (cambio.planArchivo() != null && cambio.planArchivo().contains("|")) {
+            nombre = cambio.planArchivo().split("\\|", 2)[1];
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombre + "\"")
+                .body(resource);
     }
 }

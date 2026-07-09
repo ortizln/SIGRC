@@ -4,11 +4,20 @@ import com.epmapa.sigrc.domain.dto.CambioDTO;
 import com.epmapa.sigrc.domain.entity.*;
 import com.epmapa.sigrc.domain.repository.*;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,6 +28,9 @@ public class CambioService {
     private final SistemaRepository sistemaRepository;
     private final TicketRepository ticketRepository;
     private final NotificacionWebSocketService notificacionService;
+
+    @Value("${app.upload.path:./uploads}")
+    private String uploadPath;
 
     public CambioService(CambioRepository cambioRepository, UsuarioRepository usuarioRepository,
                          SistemaRepository sistemaRepository, TicketRepository ticketRepository,
@@ -94,6 +106,43 @@ public class CambioService {
     }
 
     @Transactional
+    public void subirPlanArchivo(Integer idCambio, MultipartFile file) {
+        try {
+            var cambio = cambioRepository.findById(idCambio)
+                .orElseThrow(() -> new EntityNotFoundException("Cambio no encontrado: " + idCambio));
+            var uploadDir = Paths.get(uploadPath, "cambios", idCambio.toString());
+            Files.createDirectories(uploadDir);
+            var extension = "";
+            var nombreOriginal = file.getOriginalFilename();
+            if (nombreOriginal != null && nombreOriginal.contains(".")) {
+                extension = nombreOriginal.substring(nombreOriginal.lastIndexOf("."));
+            }
+            var nombreArchivo = UUID.randomUUID().toString() + extension;
+            Files.copy(file.getInputStream(), uploadDir.resolve(nombreArchivo));
+            cambio.setPlanArchivo(nombreArchivo + "|" + (nombreOriginal != null ? nombreOriginal : "plan"));
+            cambioRepository.save(cambio);
+        } catch (IOException e) {
+            throw new RuntimeException("Error al subir archivo de planificación", e);
+        }
+    }
+
+    public Resource descargarPlanArchivo(Integer idCambio) {
+        var cambio = cambioRepository.findById(idCambio)
+            .orElseThrow(() -> new EntityNotFoundException("Cambio no encontrado: " + idCambio));
+        if (cambio.getPlanArchivo() == null || cambio.getPlanArchivo().isBlank())
+            throw new RuntimeException("El cambio no tiene archivo de planificación");
+        var parts = cambio.getPlanArchivo().split("\\|", 2);
+        try {
+            var ruta = Paths.get(uploadPath, "cambios", idCambio.toString(), parts[0]);
+            var resource = new UrlResource(ruta.toUri());
+            if (resource.exists() && resource.isReadable()) return resource;
+            throw new RuntimeException("No se pudo leer el archivo de planificación");
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Error al leer archivo de planificación", e);
+        }
+    }
+
+    @Transactional
     public void eliminar(Integer id) {
         var cambio = cambioRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Cambio no encontrado: " + id));
@@ -106,7 +155,7 @@ public class CambioService {
             c.getIdCambio(), c.getCodigoCambio(), c.getTitulo(),
             c.getDescripcion(), c.getJustificacion(), c.getTipo(),
             c.getImpacto(), c.getRiesgo(), c.getEstado(),
-            c.getPlanImplementacion(), c.getPlanRetorno(),
+            c.getPlanImplementacion(), c.getPlanRetorno(), c.getPlanArchivo(),
             c.getFechaAprobacion(), c.getFechaInicio(), c.getFechaImplementacion(),
             c.getFechaVerificacion(), c.getResultado(), c.getLeccionesAprendidas(),
             c.getCreadoEn(),

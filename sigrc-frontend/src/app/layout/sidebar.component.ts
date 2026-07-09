@@ -33,6 +33,7 @@ export class SidebarComponent {
 
   isAdmin(): boolean { return this.auth.hasRole('ADMIN'); }
   isAdminOrAuditor(): boolean { return this.auth.hasRole('ADMIN') || this.auth.hasRole('AUDITOR'); }
+  canModulo(modulo: string, tipo: string): boolean { return this.auth.canModulo(modulo, tipo); }
 
   toggleNotif() { this.notifAbierto = !this.notifAbierto; }
 

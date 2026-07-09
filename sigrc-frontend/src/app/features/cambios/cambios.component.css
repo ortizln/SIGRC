@@ -1,0 +1,135 @@
+/* ─── Form sections (shared pattern) ─── */
+.form-section {
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin-top: 0.75rem;
+  transition: var(--transition);
+}
+
+.form-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.form-section-header strong {
+  display: block;
+  font-size: 0.87rem;
+  color: var(--text-primary);
+}
+
+.form-section-header small {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.form-section-header i {
+  font-size: 1rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.step-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  white-space: nowrap;
+  font-size: 0.7rem;
+}
+
+.upload-zone {
+  border: 2px dashed var(--surface-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  background: #fafbfc;
+}
+.upload-zone:hover {
+  border-color: var(--primary);
+  background: var(--primary-bg);
+}
+
+.destinatario-search-wrapper {
+  position: relative;
+}
+
+.sugerencias-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
+.sugerencia-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sugerencia-item:hover {
+  background: var(--surface);
+}
+
+.sugerencia-item small {
+  font-size: 0.65rem;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.destinatario-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.pill-usuario {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.pill-remove {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.6;
+  color: inherit;
+}
+
+.pill-remove:hover {
+  opacity: 1;
+}

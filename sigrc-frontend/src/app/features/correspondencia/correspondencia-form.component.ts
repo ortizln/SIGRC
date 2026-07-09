@@ -73,7 +73,7 @@ export class CorrespondenciaFormComponent implements OnInit {
       ...this.usuarios.map(u => ({ id: `u${u.idUsuario}`, label: `${u.nombres} ${u.apellidos}`, tipo: 'Usuario' })),
       ...this.areas.map(a => ({ id: `a${a.idArea}`, label: a.nombre, tipo: 'Área' }))
     ];
-    this.responsablesDisponibles = this.usuarios;
+    this.responsablesDisponibles = this.usuarios.filter((u: any) => u.rolCodigo !== 'ADMIN');
   }
 
   busquedaResponsable = '';

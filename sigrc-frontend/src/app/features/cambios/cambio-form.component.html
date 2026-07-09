@@ -1,48 +1,88 @@
-<div class="container-fluid px-0 animate-fade-in" style="max-width:900px;">
-  <div class="d-flex justify-content-between align-items-start mb-4">
-    <div class="page-header mb-0">
-      <h2>Nueva Solicitud de Cambio</h2>
-      <p>Registre una solicitud de cambio en el Departamento de TI</p>
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1000px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>Nueva Solicitud de Cambio</h2>
+        <p>Registre una solicitud de cambio en el Departamento de TI</p>
+      </div>
+      <a routerLink="/cambios" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
     </div>
-    <a routerLink="/cambios" class="btn btn-outline-secondary btn-sm">
-      <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
-    </a>
+    <div class="d-flex gap-1 mt-3" style="font-size:0.72rem;">
+      <div class="step-pill active" style="background:var(--primary);color:#fff;"><i class="pi pi-info-circle me-1" style="font-size:0.6rem;"></i> Información</div>
+      <div class="step-pill" style="background:var(--secondary-bg);color:var(--secondary);"><i class="pi pi-tag me-1" style="font-size:0.6rem;"></i> Clasificación</div>
+      <div class="step-pill" style="background:var(--secondary-bg);color:var(--secondary);"><i class="pi pi-file me-1" style="font-size:0.6rem;"></i> Planificación</div>
+    </div>
   </div>
 
   <form autocomplete="off" (ngSubmit)="guardar()" #formRef="ngForm">
-    <div class="card-modern p-4">
-      <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
-        <i class="pi pi-info-circle" style="color:var(--primary);"></i> Información del Cambio
-      </h6>
+
+    <!-- 1. Información del Cambio -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-info-circle" style="color:var(--primary);"></i>
+        <div>
+          <strong>Información del Cambio</strong>
+          <small>Título, descripción y justificación</small>
+        </div>
+      </div>
       <div class="row g-3">
         <div class="col-12">
           <label class="form-label">Título <span class="text-danger">*</span></label>
           <input autocomplete="off" #tituloModel="ngModel" [(ngModel)]="form.titulo" name="titulo" required maxlength="200"
                  class="form-control" placeholder="Título descriptivo del cambio"
                  [class.is-invalid]="tituloModel.invalid && tituloModel.touched">
-          <div class="validation-feedback" *ngIf="tituloModel.invalid && tituloModel.touched">Ingrese el título del cambio</div>
+          <div class="validation-feedback" *ngIf="tituloModel.invalid && tituloModel.touched">Campo obligatorio</div>
         </div>
         <div class="col-12">
           <label class="form-label">Descripción <span class="text-danger">*</span></label>
           <textarea autocomplete="off" #descModel="ngModel" [(ngModel)]="form.descripcion" name="descripcion" required
                     class="form-control" rows="4" placeholder="Describa el cambio a realizar"
                     [class.is-invalid]="descModel.invalid && descModel.touched"></textarea>
-          <div class="validation-feedback" *ngIf="descModel.invalid && descModel.touched">Ingrese la descripción del cambio</div>
+          <div class="validation-feedback" *ngIf="descModel.invalid && descModel.touched">Campo obligatorio</div>
         </div>
         <div class="col-12">
           <label class="form-label">Justificación <span class="text-danger">*</span></label>
           <textarea autocomplete="off" #justModel="ngModel" [(ngModel)]="form.justificacion" name="justificacion" required
                     class="form-control" rows="3" placeholder="Justifique la necesidad del cambio"
                     [class.is-invalid]="justModel.invalid && justModel.touched"></textarea>
-          <div class="validation-feedback" *ngIf="justModel.invalid && justModel.touched">Ingrese la justificación del cambio</div>
+          <div class="validation-feedback" *ngIf="justModel.invalid && justModel.touched">Campo obligatorio</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Ticket Relacionado <small class="text-muted fw-normal">(opcional)</small></label>
+          <div class="destinatario-search-wrapper" *ngIf="!form.idTicket">
+            <input autocomplete="off" class="form-control" placeholder="Buscar ticket por número o asunto..."
+                   [(ngModel)]="busquedaTicket" name="busquedaTicket"
+                   (input)="buscarTickets()" (focus)="buscarTickets()">
+            <div class="sugerencias-dropdown" *ngIf="sugerenciasTicket.length > 0">
+              <button type="button" *ngFor="let t of sugerenciasTicket" class="sugerencia-item"
+                      (mousedown)="seleccionarTicket(t); $event.preventDefault()">
+                <span><code>{{ t.numeroTicket }}</code> {{ t.asunto }}</span>
+                <small>{{ t.estado }}</small>
+              </button>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2 mt-1" *ngIf="form.idTicket">
+            <span class="destinatario-pill pill-usuario">
+              <code>{{ form.ticketNumero }}</code>
+              <button type="button" class="pill-remove" (click)="quitarTicket()">&times;</button>
+            </span>
+          </div>
+          <div class="form-text">Si el cambio atiende a un ticket existente, búsquelo y selecciónelo</div>
         </div>
       </div>
     </div>
 
-    <div class="card-modern p-4 mt-3">
-      <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
-        <i class="pi pi-tag" style="color:var(--secondary);"></i> Clasificación
-      </h6>
+    <!-- 2. Clasificación -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-tag" style="color:var(--secondary);"></i>
+        <div>
+          <strong>Clasificación</strong>
+          <small>Tipo, impacto, riesgo y sistema afectado</small>
+        </div>
+      </div>
       <div class="row g-3">
         <div class="col-md-4">
           <label class="form-label">Tipo <span class="text-danger">*</span></label>
@@ -78,10 +118,15 @@
       </div>
     </div>
 
-    <div class="card-modern p-4 mt-3">
-      <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
-        <i class="pi pi-file" style="color:var(--info);"></i> Planificación
-      </h6>
+    <!-- 3. Planificación -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-file" style="color:var(--info);"></i>
+        <div>
+          <strong>Planificación</strong>
+          <small>Plan de implementación, retorno y archivo adjunto</small>
+        </div>
+      </div>
       <div class="row g-3">
         <div class="col-12">
           <label class="form-label">Plan de Implementación</label>
@@ -93,12 +138,35 @@
           <textarea autocomplete="off" [(ngModel)]="form.planRetorno" name="planRetorno"
                     class="form-control" rows="3" placeholder="Pasos para revertir el cambio si es necesario"></textarea>
         </div>
+        <div class="col-12">
+          <label class="form-label">Archivo de Planificación <small class="text-muted fw-normal">(opcional)</small></label>
+          <div class="upload-zone" (click)="fileInput.click()"
+               (dragover)="$event.preventDefault()"
+               (drop)="$event.preventDefault(); onPlanArchivo($event.dataTransfer!)">
+            <input autocomplete="off" #fileInput type="file" hidden (change)="onPlanArchivo($event)"
+                   accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.zip">
+            <div class="text-center py-3" *ngIf="!planArchivo">
+              <i class="pi pi-upload" style="font-size:1.8rem;color:var(--text-muted);"></i>
+              <p class="text-muted small mt-2 mb-0">Adjuntar documento de planificación</p>
+              <small class="text-muted">PDF, Word, Excel, imágenes o ZIP</small>
+            </div>
+            <div class="d-flex align-items-center gap-2 px-3 py-2" *ngIf="planArchivo">
+              <i class="pi pi-file" style="font-size:1.2rem;color:var(--primary);"></i>
+              <span class="fw-medium small flex-grow-1 text-truncate">{{ planArchivo.name }}</span>
+              <span class="text-muted small">({{ (planArchivo.size / 1024 / 1024).toFixed(1) }} MB)</span>
+              <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1" (click)="planArchivo = null; $event.stopPropagation()">
+                <i class="pi pi-times" style="font-size:0.7rem;"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-text">Puede adjuntar un documento con el detalle de la planificación del cambio</div>
+        </div>
       </div>
     </div>
 
-    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
       <a routerLink="/cambios" class="btn btn-outline-secondary">Cancelar</a>
-      <button type="submit" class="btn btn-primary" [disabled]="cargando || formRef.invalid">
+      <button type="submit" class="btn btn-primary px-4" [disabled]="cargando || formRef.invalid">
         <i class="pi pi-save" style="font-size:0.8rem;"></i>
         {{ cargando ? 'Guardando...' : 'Registrar Solicitud' }}
       </button>

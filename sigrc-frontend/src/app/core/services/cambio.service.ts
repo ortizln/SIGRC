@@ -27,4 +27,14 @@ export class CambioService {
       params: { idAprobador }
     });
   }
+
+  subirPlanArchivo(id: number, file: File): Observable<void> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<void>(`${this.apiUrl}/${id}/plan-archivo`, formData);
+  }
+
+  descargarPlanArchivo(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${id}/plan-archivo`, { responseType: 'blob' });
+  }
 }

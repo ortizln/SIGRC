@@ -10,6 +10,7 @@ export interface Cambio {
   estado: string;
   planImplementacion: string;
   planRetorno: string;
+  planArchivo: string;
   fechaAprobacion: string;
   fechaInicio: string;
   fechaImplementacion: string;
