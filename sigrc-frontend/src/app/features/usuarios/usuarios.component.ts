@@ -36,23 +36,34 @@ export class UsuariosComponent implements OnInit {
   editando = false;
   editandoId: number | null = null;
   cargando = false;
-  guardandoPermisos = false;
   form: any = {};
   modulos = MODULOS;
   permisosModulo: { [modulo: string]: { lectura: boolean; escritura: boolean } } = {};
+  esAdmin = false;
+
+  // Para perfil no-admin
+  currentUser: Usuario | null = null;
 
   constructor(
     private usuarioService: UsuarioService,
     private rolService: RolService,
     private catalogoService: CatalogoService,
     public auth: AuthService
-  ) {}
+  ) {
+    this.esAdmin = this.auth.hasRole('ADMIN');
+  }
 
   ngOnInit() {
-    this.cargar();
-    if (this.auth.hasRole('ADMIN')) {
+    const user = this.auth.getUsuario();
+    if (this.esAdmin) {
+      this.cargar();
       this.rolService.listar().subscribe(r => this.roles = r);
       this.catalogoService.getAreas().subscribe(r => this.areas = r);
+    } else if (user?.idUsuario) {
+      this.usuarioService.obtener(user.idUsuario).subscribe(u => {
+        this.currentUser = u;
+        this.abrirMiPerfil();
+      });
     }
   }
 
@@ -96,13 +107,34 @@ export class UsuariosComponent implements OnInit {
       telefono: u.telefono
     };
     this.initPermisos();
-    this.usuarioService.obtenerPermisos(u.idUsuario).subscribe(permisos => {
-      permisos.forEach((p: any) => {
-        if (this.permisosModulo[p.modulo]) {
-          this.permisosModulo[p.modulo][p.tipoAcceso === 'ESCRITURA' ? 'escritura' : 'lectura'] = true;
-        }
+    if (this.esAdmin) {
+      this.usuarioService.obtenerPermisos(u.idUsuario).subscribe(permisos => {
+        permisos.forEach((p: any) => {
+          if (this.permisosModulo[p.modulo]) {
+            if (p.tipoAcceso === 'ESCRITURA') {
+              this.permisosModulo[p.modulo].lectura = true;
+              this.permisosModulo[p.modulo].escritura = true;
+            } else {
+              this.permisosModulo[p.modulo].lectura = true;
+            }
+          }
+        });
       });
-    });
+    }
+    this.formVisible = true;
+  }
+
+  abrirMiPerfil() {
+    if (!this.currentUser) return;
+    this.editando = true;
+    this.editandoId = this.currentUser.idUsuario;
+    this.form = {
+      nombres: this.currentUser.nombres,
+      apellidos: this.currentUser.apellidos,
+      email: this.currentUser.email,
+      password: '',
+      telefono: this.currentUser.telefono
+    };
     this.formVisible = true;
   }
 
@@ -115,27 +147,55 @@ export class UsuariosComponent implements OnInit {
 
   guardar() {
     this.cargando = true;
-    const request = this.editando
-      ? this.usuarioService.actualizar(this.editandoId!, this.form)
-      : this.usuarioService.crear(this.form);
+    const body: any = {};
+
+    if (this.esAdmin) {
+      body.username = this.form.username;
+      body.email = this.form.email;
+      body.nombres = this.form.nombres;
+      body.apellidos = this.form.apellidos;
+      body.password = this.form.password || null;
+      body.rolCodigo = this.form.rolCodigo;
+      body.idArea = this.form.idArea || null;
+      body.cargo = this.form.cargo;
+      body.telefono = this.form.telefono;
+    } else {
+      body.nombres = this.form.nombres;
+      body.apellidos = this.form.apellidos;
+      body.email = this.form.email;
+      body.password = this.form.password || null;
+      body.telefono = this.form.telefono;
+    }
+
+    const request = this.editando && this.editandoId
+      ? this.usuarioService.actualizar(this.editandoId!, body)
+      : this.usuarioService.crear(body);
+
     request.subscribe({
       next: (user) => {
-        const permisos = this.permisosArray.filter(p => p.lectura || p.escritura).map(p => ({
-          modulo: p.modulo,
-          tipoAcceso: p.escritura ? 'ESCRITURA' : 'LECTURA'
-        }));
-        if (this.editandoId) {
+        if (this.esAdmin && this.editandoId) {
+          const permisos = this.permisosArray.filter(p => p.lectura || p.escritura).map(p => ({
+            modulo: p.modulo,
+            tipoAcceso: p.escritura ? 'ESCRITURA' : 'LECTURA'
+          }));
           this.usuarioService.guardarPermisos(this.editandoId, permisos).subscribe(() => {
             this.cargando = false;
             this.formVisible = false;
             this.cargar();
           });
+        } else if (!this.esAdmin) {
+          this.cargando = false;
+          this.formVisible = false;
+          this.usuarioService.obtener(this.editandoId!).subscribe(u => this.currentUser = u);
+          const userStorage = this.auth.getUsuario();
+          userStorage.email = user.email;
+          userStorage.nombres = user.nombres;
+          userStorage.apellidos = user.apellidos;
+          localStorage.setItem('sigrc_user', JSON.stringify(userStorage));
         } else {
-          this.usuarioService.guardarPermisos(user.idUsuario, permisos).subscribe(() => {
-            this.cargando = false;
-            this.formVisible = false;
-            this.cargar();
-          });
+          this.cargando = false;
+          this.formVisible = false;
+          this.cargar();
         }
       },
       error: () => { this.cargando = false; }

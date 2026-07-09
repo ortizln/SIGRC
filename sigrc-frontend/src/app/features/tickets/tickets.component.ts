@@ -17,6 +17,7 @@ export class TicketsComponent implements OnInit {
   filtros: any = { texto: '', estado: '', tipo: '', prioridad: '', pagina: 0, tamanio: 20 };
   pagina: any = { pagina: 0, totalPaginas: 0, totalElementos: 0, primera: true, ultima: false };
   tamanios = [10, 20, 50];
+  filtrosExpandidos = false;
 
   constructor(private svc: TicketService) {}
 
@@ -64,6 +65,26 @@ export class TicketsComponent implements OnInit {
     if (fin < total - 2) paginas.push(-1);
     paginas.push(total - 1);
     return paginas;
+  }
+
+  limpiarFiltros() {
+    this.filtros.estado = '';
+    this.filtros.tipo = '';
+    this.filtros.prioridad = '';
+    this.filtros.texto = '';
+    this.buscar();
+  }
+
+  filtrosActivos(): boolean {
+    return !!(this.filtros.estado || this.filtros.tipo || this.filtros.prioridad);
+  }
+
+  filtrosContador(): number {
+    let count = 0;
+    if (this.filtros.estado) count++;
+    if (this.filtros.tipo) count++;
+    if (this.filtros.prioridad) count++;
+    return count;
   }
 
   private cargar() {

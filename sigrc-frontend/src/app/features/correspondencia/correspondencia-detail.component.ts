@@ -6,12 +6,13 @@ import { CorrespondenciaService } from '@core/services/correspondencia.service';
 import { AuthService } from '@core/services/auth.service';
 import { UsuarioService } from '@core/services/usuario.service';
 import { ESTADOS_CORRESPONDENCIA } from '@shared/models/correspondencia.model';
+import { SafeUrlPipe } from '@shared/pipes/safe-url.pipe';
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-correspondencia-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, SafeUrlPipe],
   templateUrl: './correspondencia-detail.component.html',
   styleUrl: './correspondencia-detail.component.css'
 })
@@ -78,8 +79,36 @@ export class CorrespondenciaDetailComponent implements OnInit {
     return adj.tipoMime?.startsWith('image/');
   }
 
+  esPdf(adj: any): boolean {
+    return adj.tipoMime === 'application/pdf';
+  }
+
   descargarAdjunto(adj: any) {
     this.svc.descargar(this.doc.idCorrespondencia, adj.idAdjunto, adj.nombreOriginal);
+  }
+
+  previewAdjunto: any = null;
+  previewUrl: string | null = null;
+
+  abrirPreview(adj: any) {
+    this.previewAdjunto = adj;
+    this.svc.obtenerBlob(this.doc.idCorrespondencia, adj.idAdjunto).subscribe(blob => {
+      this.previewUrl = window.URL.createObjectURL(blob);
+    });
+  }
+
+  cerrarPreview() {
+    if (this.previewUrl) window.URL.revokeObjectURL(this.previewUrl);
+    this.previewUrl = null;
+    this.previewAdjunto = null;
+  }
+
+  descargarDesdePreview() {
+    if (!this.previewAdjunto || !this.previewUrl) return;
+    const a = document.createElement('a');
+    a.href = this.previewUrl;
+    a.download = this.previewAdjunto.nombreOriginal;
+    a.click();
   }
 
   tamanoFormateado(bytes: number): string {

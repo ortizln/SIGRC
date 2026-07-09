@@ -1,5 +1,6 @@
 package com.epmapa.sigrc.domain.service;
 
+import com.epmapa.sigrc.domain.dto.UsuarioActualizarRequest;
 import com.epmapa.sigrc.domain.dto.UsuarioCrearRequest;
 import com.epmapa.sigrc.domain.dto.UsuarioDTO;
 import com.epmapa.sigrc.domain.dto.UsuarioPermisoDTO;
@@ -85,21 +86,47 @@ public class UsuarioService {
     }
 
     @Transactional
-    public UsuarioDTO actualizar(Integer id, UsuarioCrearRequest request) {
+    public UsuarioDTO actualizar(Integer id, UsuarioActualizarRequest request, Integer idUsuarioLogueado) {
         var usuario = usuarioRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado: " + id));
+        var usuarioLogueado = usuarioRepository.findById(idUsuarioLogueado)
+            .orElseThrow(() -> new EntityNotFoundException("Usuario logueado no encontrado"));
 
+        boolean isAdmin = "ADMIN".equals(usuarioLogueado.getRol().getCodigo());
+
+        // Non-admin solo puede editar su propio perfil
+        if (!isAdmin && !id.equals(idUsuarioLogueado)) {
+            throw new SecurityException("No tiene permisos para modificar este usuario");
+        }
+
+        // Campos permitidos para cualquier usuario autenticado (editando su propio perfil)
         if (request.nombres() != null) usuario.setNombres(request.nombres());
         if (request.apellidos() != null) usuario.setApellidos(request.apellidos());
         if (request.email() != null) usuario.setEmail(request.email());
-        if (request.cargo() != null) usuario.setCargo(request.cargo());
         if (request.telefono() != null) usuario.setTelefono(request.telefono());
         if (request.password() != null && !request.password().isBlank())
             usuario.setPasswordHash(passwordEncoder.encode(request.password()));
-        if (request.rolCodigo() != null) {
-            var rol = rolRepository.findByCodigo(request.rolCodigo())
-                .orElseThrow(() -> new EntityNotFoundException("Rol no encontrado: " + request.rolCodigo()));
-            usuario.setRol(rol);
+
+        // Solo ADMIN puede cambiar rol, área, cargo
+        if (isAdmin) {
+            if (request.cargo() != null) usuario.setCargo(request.cargo());
+            if (request.rolCodigo() != null) {
+                var rol = rolRepository.findByCodigo(request.rolCodigo())
+                    .orElseThrow(() -> new EntityNotFoundException("Rol no encontrado: " + request.rolCodigo()));
+                usuario.setRol(rol);
+            }
+        }
+
+        // Guardar permisos si se enviaron (solo ADMIN)
+        if (isAdmin && request.permisos() != null) {
+            usuarioPermisoRepository.deleteByUsuarioIdUsuario(id);
+            for (var p : request.permisos()) {
+                usuarioPermisoRepository.save(UsuarioPermiso.builder()
+                    .usuario(usuario)
+                    .modulo(p.modulo())
+                    .tipoAcceso(p.tipoAcceso())
+                    .build());
+            }
         }
 
         return authService.toUsuarioDTO(usuarioRepository.save(usuario));

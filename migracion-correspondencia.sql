@@ -31,7 +31,7 @@ COMMENT ON COLUMN correspondencia_destinatario.tipo IS 'USUARIO o AREA';
 -- 5. Tabla de responsables múltiples (ManyToMany)
 CREATE TABLE IF NOT EXISTS sigrc.correspondencia_responsable (
   id_correspondencia INTEGER NOT NULL REFERENCES sigrc.correspondencia(id_correspondencia),
-  id_usuario         INTEGER NOT NULL REFERENCES public.usuario(id_usuario),
+  id_usuario         INTEGER NOT NULL REFERENCES sigrc.usuarios(id_usuario),
   PRIMARY KEY (id_correspondencia, id_usuario)
 );
 

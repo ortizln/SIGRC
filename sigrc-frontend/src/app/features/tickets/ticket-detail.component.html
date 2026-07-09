@@ -87,17 +87,18 @@
           <hr>
           <h6 class="fw-bold mb-2">Adjuntos ({{ adjuntos.length }})</h6>
           <div class="d-flex flex-wrap gap-2">
-            <a *ngFor="let a of adjuntos"
-               href="javascript:;" (click)="descargarAdjunto(a)"
-               target="_blank"
-               class="adjunto-link d-flex align-items-center gap-2 px-3 py-2 rounded text-decoration-none">
+            <div *ngFor="let a of adjuntos"
+               class="adjunto-item d-flex align-items-center gap-2 px-3 py-2 rounded">
               <span *ngIf="esImagen(a)">🖼️</span>
               <span *ngIf="!esImagen(a)">📎</span>
-              <div class="d-flex flex-column">
-                <span class="small fw-medium">{{ a.nombreOriginal }}</span>
+              <div class="d-flex flex-column min-width-0">
+                <a href="javascript:;" (click)="abrirPreview(a)" class="small fw-medium text-decoration-none">{{ a.nombreOriginal }}</a>
                 <small class="text-muted">{{ tamanoFormateado(a.tamanoBytes) }}</small>
               </div>
-            </a>
+              <button class="btn btn-sm btn-soft-primary btn-xs ms-auto" (click)="descargarAdjunto(a)" title="Descargar">
+                <i class="pi pi-download" style="font-size:0.65rem;"></i>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -141,6 +142,32 @@
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="preview-overlay" *ngIf="previewAdjunto" (click)="cerrarPreview()">
+  <div class="preview-modal" (click)="$event.stopPropagation()">
+    <div class="preview-header">
+      <span class="fw-medium small text-truncate">{{ previewAdjunto.nombreOriginal }}</span>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-primary" (click)="descargarDesdePreview()" title="Descargar">
+          <i class="pi pi-download" style="font-size:0.8rem;"></i> Descargar
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" (click)="cerrarPreview()" title="Cerrar">
+          <i class="pi pi-times" style="font-size:0.8rem;"></i>
+        </button>
+      </div>
+    </div>
+    <div class="preview-body">
+      <img *ngIf="esImagen(previewAdjunto)" [src]="previewUrl" alt="Vista previa" class="preview-image">
+      <iframe *ngIf="esPdf(previewAdjunto)" [src]="previewUrl | safeUrl" class="preview-pdf"></iframe>
+      <div *ngIf="!esImagen(previewAdjunto) && !esPdf(previewAdjunto)" class="preview-no-disponible">
+        <i class="pi pi-file" style="font-size:3rem;color:var(--text-muted);"></i>
+        <p class="text-muted mt-2 mb-0">Vista previa no disponible para este tipo de archivo</p>
+        <small class="text-muted">{{ previewAdjunto.tipoMime }}</small>
       </div>
     </div>
   </div>

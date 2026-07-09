@@ -8,11 +8,12 @@ import { AdjuntoService } from '@core/services/adjunto.service';
 import { AuthService } from '@core/services/auth.service';
 import { Ticket } from '@shared/models/ticket.model';
 import { Adjunto } from '@shared/models/adjunto.model';
+import { SafeUrlPipe } from '@shared/pipes/safe-url.pipe';
 
 @Component({
   selector: 'app-ticket-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, SafeUrlPipe],
   templateUrl: './ticket-detail.component.html',
   styleUrl: './ticket-detail.component.css'
 })
@@ -93,8 +94,36 @@ export class TicketDetailComponent implements OnInit {
     return adj.tipoMime.startsWith('image/');
   }
 
+  esPdf(adj: Adjunto): boolean {
+    return adj.tipoMime === 'application/pdf';
+  }
+
   descargarAdjunto(adj: Adjunto) {
     this.adjuntoSvc.descargar(this.ticket!.idTicket, adj.idAdjunto, adj.nombreArchivo);
+  }
+
+  previewAdjunto: any = null;
+  previewUrl: string | null = null;
+
+  abrirPreview(adj: Adjunto) {
+    this.previewAdjunto = adj;
+    this.adjuntoSvc.obtenerBlob(this.ticket!.idTicket, adj.idAdjunto).subscribe(blob => {
+      this.previewUrl = window.URL.createObjectURL(blob);
+    });
+  }
+
+  cerrarPreview() {
+    if (this.previewUrl) window.URL.revokeObjectURL(this.previewUrl);
+    this.previewUrl = null;
+    this.previewAdjunto = null;
+  }
+
+  descargarDesdePreview() {
+    if (!this.previewAdjunto || !this.previewUrl) return;
+    const a = document.createElement('a');
+    a.href = this.previewUrl;
+    a.download = this.previewAdjunto.nombreArchivo;
+    a.click();
   }
 
   tamanoFormateado(bytes: number): string {

@@ -33,6 +33,10 @@ export class AdjuntoService {
       });
   }
 
+  obtenerBlob(idTicket: number, idAdjunto: number): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${idTicket}/adjuntos/${idAdjunto}/descargar`, { responseType: 'blob' });
+  }
+
   eliminar(idTicket: number, idAdjunto: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${idTicket}/adjuntos/${idAdjunto}`);
   }

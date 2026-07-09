@@ -89,9 +89,12 @@
           <div *ngFor="let adj of adjuntos" class="adjunto-item d-flex align-items-center gap-3">
             <i class="pi pi-file" style="font-size:1.2rem;color:var(--text-muted);"></i>
             <div class="flex-grow-1 min-width-0">
-              <a href="javascript:;" (click)="descargarAdjunto(adj)" class="text-decoration-none fw-medium small">{{ adj.nombreOriginal }}</a>
+              <a href="javascript:;" (click)="abrirPreview(adj)" class="text-decoration-none fw-medium small">{{ adj.nombreOriginal }}</a>
               <small class="text-muted d-block">{{ tamanoFormateado(adj.tamanoBytes) }} — {{ adj.tipo }}</small>
             </div>
+            <button class="btn btn-sm btn-soft-primary btn-xs" (click)="descargarAdjunto(adj)" title="Descargar">
+              <i class="pi pi-download" style="font-size:0.7rem;"></i>
+            </button>
             <button *ngIf="auth.hasRole('ADMIN') || auth.hasRole('JEFE_TI')" class="btn btn-sm btn-outline-danger btn-xs" (click)="eliminarAdjunto(adj)" title="Eliminar">
               <i class="pi pi-trash" style="font-size:0.7rem;"></i>
             </button>
@@ -221,6 +224,32 @@
           </div>
         </div>
         <div *ngIf="historial.length === 0" class="text-muted small text-center py-3">Sin historial</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="preview-overlay" *ngIf="previewAdjunto" (click)="cerrarPreview()">
+  <div class="preview-modal" (click)="$event.stopPropagation()">
+    <div class="preview-header">
+      <span class="fw-medium small text-truncate">{{ previewAdjunto.nombreOriginal }}</span>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-primary" (click)="descargarDesdePreview()" title="Descargar">
+          <i class="pi pi-download" style="font-size:0.8rem;"></i> Descargar
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" (click)="cerrarPreview()" title="Cerrar">
+          <i class="pi pi-times" style="font-size:0.8rem;"></i>
+        </button>
+      </div>
+    </div>
+    <div class="preview-body">
+      <img *ngIf="esImagen(previewAdjunto)" [src]="previewUrl" alt="Vista previa" class="preview-image">
+      <iframe *ngIf="esPdf(previewAdjunto)" [src]="previewUrl | safeUrl" class="preview-pdf"></iframe>
+      <div *ngIf="!esImagen(previewAdjunto) && !esPdf(previewAdjunto)" class="preview-no-disponible">
+        <i class="pi pi-file" style="font-size:3rem;color:var(--text-muted);"></i>
+        <p class="text-muted mt-2 mb-0">Vista previa no disponible para este tipo de archivo</p>
+        <small class="text-muted">{{ previewAdjunto.tipoMime }}</small>
       </div>
     </div>
   </div>

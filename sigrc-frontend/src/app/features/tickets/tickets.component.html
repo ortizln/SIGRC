@@ -5,19 +5,30 @@
       <p>Incidentes, requerimientos, mejoras, cambios y consultas</p>
     </div>
     <a routerLink="/tickets/nuevo" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
-      <span>+</span> Nuevo Ticket
+      <i class="pi pi-plus" style="font-size:0.8rem;"></i> Nuevo Ticket
     </a>
   </div>
 
-  <!-- Filtros -->
+  <!-- Barra de búsqueda rápida + toggle filtros -->
   <div class="card-modern p-3 mb-3 animate-fade-in">
-    <div class="row g-2">
-      <div class="col-md-3">
-        <label class="form-label mb-1" style="font-size:0.72rem;">Buscar</label>
-        <input autocomplete="off" [(ngModel)]="filtros.texto" placeholder="Buscar por asunto o número..." class="form-control form-control-sm" (input)="buscar()">
+    <div class="d-flex align-items-center gap-2">
+      <div class="flex-grow-1 position-relative">
+        <i class="pi pi-search position-absolute" style="left:10px;top:50%;transform:translateY(-50%);font-size:0.8rem;color:var(--text-muted);"></i>
+        <input autocomplete="off" [(ngModel)]="filtros.texto" placeholder="Buscar por asunto o número..." class="form-control form-control-sm" style="padding-left:1.8rem;" (input)="buscar()">
       </div>
+      <button class="btn btn-sm d-inline-flex align-items-center gap-1" [class.btn-primary]="filtrosExpandidos" [class.btn-outline-secondary]="!filtrosExpandidos" (click)="filtrosExpandidos = !filtrosExpandidos">
+        <i class="pi pi-filter" style="font-size:0.75rem;"></i> Filtros
+        <span class="badge bg-light text-dark ms-1" style="font-size:0.6rem;" *ngIf="filtrosActivos()">{{ filtrosContador() }}</span>
+      </button>
+      <button class="btn btn-sm btn-outline-secondary" (click)="limpiarFiltros()" title="Limpiar filtros">
+        <i class="pi pi-times" style="font-size:0.75rem;"></i>
+      </button>
+    </div>
+
+    <!-- Panel expandible de filtros -->
+    <div class="row g-2 mt-3 animate-fade-in" *ngIf="filtrosExpandidos">
       <div class="col-md-3">
-        <label class="form-label mb-1" style="font-size:0.72rem;">Estado</label>
+        <label class="form-label mb-1" style="font-size:0.7rem;">Estado</label>
         <select autocomplete="off" [(ngModel)]="filtros.estado" class="form-select form-select-sm" (change)="buscar()">
           <option value="">Todos los estados</option>
           <option value="NUEVO">Nuevo</option>
@@ -32,7 +43,7 @@
         </select>
       </div>
       <div class="col-md-3">
-        <label class="form-label mb-1" style="font-size:0.72rem;">Tipo</label>
+        <label class="form-label mb-1" style="font-size:0.7rem;">Tipo</label>
         <select autocomplete="off" [(ngModel)]="filtros.tipo" class="form-select form-select-sm" (change)="buscar()">
           <option value="">Todos los tipos</option>
           <option value="INCIDENTE">Incidente</option>
@@ -44,7 +55,7 @@
         </select>
       </div>
       <div class="col-md-3">
-        <label class="form-label mb-1" style="font-size:0.72rem;">Prioridad</label>
+        <label class="form-label mb-1" style="font-size:0.7rem;">Prioridad</label>
         <select autocomplete="off" [(ngModel)]="filtros.prioridad" class="form-select form-select-sm" (change)="buscar()">
           <option value="">Todas las prioridades</option>
           <option value="CRITICA">Crítica</option>
@@ -52,6 +63,11 @@
           <option value="MEDIA">Media</option>
           <option value="BAJA">Baja</option>
         </select>
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <button class="btn btn-outline-secondary btn-sm w-100" (click)="limpiarFiltros()">
+          <i class="pi pi-filter-slash" style="font-size:0.7rem;"></i> Limpiar
+        </button>
       </div>
     </div>
   </div>

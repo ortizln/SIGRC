@@ -28,6 +28,7 @@ export class CorrespondenciaListComponent implements OnInit {
   estados = ESTADOS_CORRESPONDENCIA;
   prioridades = PRIORIDADES;
   sentidos = SENTIDOS;
+  filtrosExpandidos = false;
   columnas = [
     { key: 'sentido', label: 'Tipo' },
     { key: 'numero_interno', label: 'N° Interno' },
@@ -118,6 +119,33 @@ export class CorrespondenciaListComponent implements OnInit {
     if (fin < total - 2) paginas.push(-1);
     paginas.push(total - 1);
     return paginas;
+  }
+
+  limpiarFiltros() {
+    this.filtros.estado = '';
+    this.filtros.prioridad = '';
+    this.filtros.sentido = '';
+    this.filtros.idTipoDocumento = '';
+    this.filtros.fechaDesde = '';
+    this.filtros.fechaHasta = '';
+    this.filtros.texto = '';
+    this.buscar();
+  }
+
+  filtrosActivos(): boolean {
+    return !!(this.filtros.estado || this.filtros.prioridad || this.filtros.sentido
+      || this.filtros.idTipoDocumento || this.filtros.fechaDesde || this.filtros.fechaHasta);
+  }
+
+  filtrosContador(): number {
+    let count = 0;
+    if (this.filtros.estado) count++;
+    if (this.filtros.prioridad) count++;
+    if (this.filtros.sentido) count++;
+    if (this.filtros.idTipoDocumento) count++;
+    if (this.filtros.fechaDesde) count++;
+    if (this.filtros.fechaHasta) count++;
+    return count;
   }
 
   private cargar() {

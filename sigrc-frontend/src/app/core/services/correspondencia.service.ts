@@ -68,6 +68,10 @@ export class CorrespondenciaService {
       });
   }
 
+  obtenerBlob(id: number, idAdjunto: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${id}/adjuntos/${idAdjunto}/descargar`, { responseType: 'blob' });
+  }
+
   eliminarAdjunto(id: number, idAdjunto: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}/adjuntos/${idAdjunto}`);
   }

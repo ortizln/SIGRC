@@ -1,14 +1,17 @@
 package com.epmapa.sigrc.web.controller;
 
+import com.epmapa.sigrc.domain.dto.UsuarioActualizarRequest;
 import com.epmapa.sigrc.domain.dto.UsuarioCrearRequest;
 import com.epmapa.sigrc.domain.dto.UsuarioDTO;
 import com.epmapa.sigrc.domain.dto.UsuarioPermisoDTO;
 import com.epmapa.sigrc.domain.service.UsuarioService;
+import com.epmapa.sigrc.security.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -44,11 +47,13 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Actualizar usuario")
     public ResponseEntity<UsuarioDTO> actualizar(@PathVariable Integer id,
-                                                   @RequestBody UsuarioCrearRequest request) {
-        return ResponseEntity.ok(usuarioService.actualizar(id, request));
+                                                   @Valid @RequestBody UsuarioActualizarRequest request,
+                                                   Authentication auth) {
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
+        return ResponseEntity.ok(usuarioService.actualizar(id, request, idUsuario));
     }
 
     @DeleteMapping("/{id}")
