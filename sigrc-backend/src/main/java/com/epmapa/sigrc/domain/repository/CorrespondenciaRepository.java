@@ -15,7 +15,7 @@ public interface CorrespondenciaRepository extends JpaRepository<Correspondencia
 
     Optional<Correspondencia> findByNumeroInterno(String numeroInterno);
 
-    @Query(value = "SELECT c.id_correspondencia, c.activo, CAST(c.asunto AS TEXT) as asunto, c.cargo, CAST(c.codigo_documento AS TEXT) as codigo_documento, c.creado_en, c.creado_por, c.departamento_remitente, c.estado, c.fecha_documento, c.fecha_limite_respuesta, c.fecha_recepcion, c.genera_ticket, c.hora_recepcion, c.institucion, CAST(c.numero_interno AS TEXT) as numero_interno, c.observaciones, c.persona_entrega, c.prioridad, c.requiere_respuesta, c.resumen_ejecutivo, c.sentido, c.id_responsable, c.id_tipo_documento FROM sigrc.correspondencia c WHERE c.activo = true AND " +
+    @Query(value = "SELECT c.id_correspondencia, c.activo, CAST(c.asunto AS TEXT) as asunto, c.cargo, CAST(c.codigo_documento AS TEXT) as codigo_documento, c.creado_en, c.creado_por, c.departamento_remitente, c.estado, c.fecha_documento, c.fecha_limite_respuesta, c.fecha_recepcion, c.genera_ticket, c.hora_recepcion, c.institucion, CAST(c.numero_interno AS TEXT) as numero_interno, c.observaciones, c.persona_entrega, c.prioridad, c.requiere_respuesta, c.resumen_ejecutivo, c.sentido, c.id_tipo_documento FROM sigrc.correspondencia c WHERE c.activo = true AND " +
            "(:texto IS NULL OR LOWER(CAST(c.asunto AS TEXT)) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(CAST(c.numero_interno AS TEXT)) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(CAST(c.codigo_documento AS TEXT)) LIKE LOWER(CONCAT('%',:texto,'%'))) AND " +
            "(:estado IS NULL OR c.estado = :estado) AND " +
            "(:prioridad IS NULL OR c.prioridad = :prioridad) AND " +
