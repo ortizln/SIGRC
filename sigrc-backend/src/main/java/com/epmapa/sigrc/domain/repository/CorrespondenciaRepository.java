@@ -20,7 +20,7 @@ public interface CorrespondenciaRepository extends JpaRepository<Correspondencia
            "(:estado IS NULL OR c.estado = :estado) AND " +
            "(:prioridad IS NULL OR c.prioridad = :prioridad) AND " +
            "(:idTipoDocumento IS NULL OR c.id_tipo_documento = :idTipoDocumento) AND " +
-            "((:idResponsable IS NULL AND :idUsuario IS NULL) OR c.id_responsable = :idResponsable OR c.creado_por = :idUsuario) AND " +
+            "((:idResponsable IS NULL AND :idUsuario IS NULL) OR EXISTS (SELECT 1 FROM sigrc.correspondencia_responsable cr WHERE cr.id_correspondencia = c.id_correspondencia AND cr.id_usuario = :idResponsable) OR c.creado_por = :idUsuario) AND " +
             "(:sentido IS NULL OR c.sentido = :sentido) AND " +
              "(CAST(:fechaDesde AS date) IS NULL OR c.fecha_recepcion >= CAST(:fechaDesde AS date)) AND " +
              "(CAST(:fechaHasta AS date) IS NULL OR c.fecha_recepcion <= CAST(:fechaHasta AS date))",
@@ -29,7 +29,7 @@ public interface CorrespondenciaRepository extends JpaRepository<Correspondencia
             "(:estado IS NULL OR c.estado = :estado) AND " +
             "(:prioridad IS NULL OR c.prioridad = :prioridad) AND " +
             "(:idTipoDocumento IS NULL OR c.id_tipo_documento = :idTipoDocumento) AND " +
-            "((:idResponsable IS NULL AND :idUsuario IS NULL) OR c.id_responsable = :idResponsable OR c.creado_por = :idUsuario) AND " +
+            "((:idResponsable IS NULL AND :idUsuario IS NULL) OR EXISTS (SELECT 1 FROM sigrc.correspondencia_responsable cr WHERE cr.id_correspondencia = c.id_correspondencia AND cr.id_usuario = :idResponsable) OR c.creado_por = :idUsuario) AND " +
             "(:sentido IS NULL OR c.sentido = :sentido) AND " +
              "(CAST(:fechaDesde AS date) IS NULL OR c.fecha_recepcion >= CAST(:fechaDesde AS date)) AND " +
              "(CAST(:fechaHasta AS date) IS NULL OR c.fecha_recepcion <= CAST(:fechaHasta AS date))",

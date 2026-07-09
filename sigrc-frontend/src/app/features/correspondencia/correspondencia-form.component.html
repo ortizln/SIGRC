@@ -197,6 +197,29 @@
         <i class="pi pi-cog" style="color:var(--text-secondary);"></i> Control y Seguimiento
       </h6>
       <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Responsable(s)</label>
+          <div class="destinatario-search-wrapper">
+            <input autocomplete="off" class="form-control" placeholder="Buscar usuario responsable..."
+                   [(ngModel)]="busquedaResponsable" name="busquedaResp"
+                   (input)="filtrarResponsables()" (focus)="filtrarResponsables()"
+                   (keydown.enter)="agregarPrimerResponsable()" (blur)="cerrarSugerenciasResponsable()">
+            <div class="sugerencias-dropdown" *ngIf="sugerenciasResponsable.length > 0">
+              <button type="button" *ngFor="let u of sugerenciasResponsable" class="sugerencia-item"
+                      (mousedown)="agregarResponsable(u); $event.preventDefault()">
+                <span>{{ u.nombres }} {{ u.apellidos }}</span>
+                <small>Usuario</small>
+              </button>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-2" *ngIf="form.idsResponsables.length > 0">
+            <span *ngFor="let r of getResponsablesSeleccionados()" class="destinatario-pill pill-usuario">
+              {{ r.nombres }} {{ r.apellidos }}
+              <button type="button" class="pill-remove" (click)="removerResponsable(r.idUsuario)">&times;</button>
+            </span>
+          </div>
+          <div class="form-text">Busque y agregue los usuarios responsables del documento</div>
+        </div>
         <div class="col-md-4">
           <div class="form-check">
             <input autocomplete="off" type="checkbox" id="requiereRespuesta" [(ngModel)]="form.requiereRespuesta" name="requiereRespuesta" class="form-check-input">

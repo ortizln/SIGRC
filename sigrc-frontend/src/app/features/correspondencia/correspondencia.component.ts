@@ -53,6 +53,7 @@ export class CorrespondenciaListComponent implements OnInit {
     this.filtros.fechaDesde = new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString().split('T')[0];
     const user = this.auth.getUsuario();
     if (user && user.rolCodigo !== 'ADMIN') {
+      this.filtros.idResponsable = user.idUsuario;
       this.filtros.idUsuario = user.idUsuario;
     }
     this.buscar();

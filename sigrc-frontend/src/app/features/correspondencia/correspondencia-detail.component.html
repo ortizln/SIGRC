@@ -47,7 +47,7 @@
           </div>
           <div class="col-md-6"><label class="text-muted small d-block">Cargo / Institución</label><strong>{{ doc.cargo }}{{ doc.cargo && doc.institucion ? ' — ' : '' }}{{ doc.institucion }}</strong></div>
           <div class="col-md-6"><label class="text-muted small d-block">Departamento Remitente</label><strong>{{ doc.departamentoRemitente || '—' }}</strong></div>
-          <div class="col-md-6"><label class="text-muted small d-block">Responsable</label><strong>{{ doc.responsableNombre || 'Sin asignar' }}</strong></div>
+          <div class="col-md-6"><label class="text-muted small d-block">Responsable(s)</label><strong>{{ responsablesNombres }}</strong></div>
           <div class="col-md-6" *ngIf="doc.requiereRespuesta && doc.fechaLimiteRespuesta">
             <label class="text-muted small d-block">{{ doc.sentido === 'SALIDA' ? 'Fecha Esperada de Respuesta' : 'Fecha Límite de Respuesta' }}</label>
             <strong>{{ doc.fechaLimiteRespuesta | date:'dd/MM/yyyy' }}</strong>
@@ -145,8 +145,8 @@
           </div>
         </div>
 
-        <div class="mb-3" *ngIf="!doc.responsableNombre && (auth.hasRole('ADMIN') || auth.hasRole('JEFE_TI'))">
-          <label class="form-label small">Asignar Responsable</label>
+        <div class="mb-3" *ngIf="auth.hasRole('ADMIN') || auth.hasRole('JEFE_TI')">
+          <label class="form-label small">Agregar Responsable</label>
           <div class="d-flex gap-2">
             <select autocomplete="off" #respSelect class="form-select form-select-sm">
               <option value="">Seleccione...</option>
@@ -156,6 +156,7 @@
               <i class="pi pi-check" style="font-size:0.7rem;"></i>
             </button>
           </div>
+          <div class="form-text small">El responsable se agregará a la lista existente</div>
         </div>
 
         <div class="mb-3" *ngIf="doc.requiereRespuesta && doc.estado !== 'RESPONDIDO' && doc.estado !== 'ARCHIVADO'">

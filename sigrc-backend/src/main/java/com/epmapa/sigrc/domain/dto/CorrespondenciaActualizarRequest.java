@@ -15,7 +15,7 @@ public record CorrespondenciaActualizarRequest(
     String cargo,
     String institucion,
     String departamentoRemitente,
-    Integer idResponsable,
+    List<Integer> idsResponsables,
     String prioridad,
     String sentido,
     Boolean requiereRespuesta,

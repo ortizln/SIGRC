@@ -14,8 +14,8 @@ export interface Correspondencia {
   cargo: string;
   institucion: string;
   departamentoRemitente: string;
-  idResponsable: number;
-  responsableNombre: string;
+  idsResponsables: number[];
+  responsablesNombre: string[];
   prioridad: string;
   estado: string;
   sentido: string;
@@ -49,7 +49,7 @@ export interface CorrespondenciaCrearRequest {
   cargo?: string;
   institucion?: string;
   departamentoRemitente?: string;
-  idResponsable?: number;
+  idsResponsables?: number[];
   prioridad: string;
   sentido?: string;
   requiereRespuesta?: boolean;

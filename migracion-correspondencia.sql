@@ -27,3 +27,25 @@ CREATE TABLE IF NOT EXISTS correspondencia_destinatario (
 );
 
 COMMENT ON COLUMN correspondencia_destinatario.tipo IS 'USUARIO o AREA';
+
+-- 5. Tabla de responsables múltiples (ManyToMany)
+CREATE TABLE IF NOT EXISTS sigrc.correspondencia_responsable (
+  id_correspondencia INTEGER NOT NULL REFERENCES sigrc.correspondencia(id_correspondencia),
+  id_usuario         INTEGER NOT NULL REFERENCES public.usuario(id_usuario),
+  PRIMARY KEY (id_correspondencia, id_usuario)
+);
+
+-- Migrar responsables existentes desde columna id_responsable (solo si la columna existe)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns
+             WHERE table_schema = 'sigrc' AND table_name = 'correspondencia' AND column_name = 'id_responsable') THEN
+    INSERT INTO sigrc.correspondencia_responsable (id_correspondencia, id_usuario)
+    SELECT id_correspondencia, id_responsable
+    FROM sigrc.correspondencia
+    WHERE id_responsable IS NOT NULL
+    ON CONFLICT DO NOTHING;
+
+    ALTER TABLE sigrc.correspondencia DROP COLUMN id_responsable;
+  END IF;
+END $$;

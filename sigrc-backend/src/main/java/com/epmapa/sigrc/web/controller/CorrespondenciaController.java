@@ -93,7 +93,7 @@ public class CorrespondenciaController {
 
     @PatchMapping("/{id}/asignar")
     @PreAuthorize("hasAnyRole('ADMIN','JEFE_TI','SUPERVISOR')")
-    @Operation(summary = "Asignar responsable al documento")
+    @Operation(summary = "Asignar responsable(s) al documento")
     public ResponseEntity<CorrespondenciaDTO> asignar(@PathVariable Integer id,
                                                        @RequestParam Integer idResponsable,
                                                        Authentication auth) {

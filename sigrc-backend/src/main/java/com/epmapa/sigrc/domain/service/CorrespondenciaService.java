@@ -83,9 +83,12 @@ public class CorrespondenciaService {
 
         String sentido = request.sentido() != null ? request.sentido() : "INGRESO";
 
-        Usuario responsable = request.idResponsable() != null
-                ? usuarioRepository.getReferenceById(request.idResponsable())
-                : ("SALIDA".equals(sentido) ? creadoPor : null);
+        List<Usuario> responsables = new ArrayList<>();
+        if (request.idsResponsables() != null && !request.idsResponsables().isEmpty()) {
+            responsables = usuarioRepository.findAllById(request.idsResponsables());
+        } else if ("SALIDA".equals(sentido)) {
+            responsables.add(creadoPor);
+        }
 
         String numeroInterno = generarNumeroInterno();
 
@@ -111,7 +114,7 @@ public class CorrespondenciaService {
                 .cargo(request.cargo())
                 .institucion(request.institucion())
                 .departamentoRemitente(request.departamentoRemitente())
-                .responsable(responsable)
+                .responsables(responsables)
                 .prioridad(request.prioridad() != null ? request.prioridad() : "MEDIA")
                 .estado("RECIBIDO")
                 .sentido(sentido)
@@ -139,8 +142,8 @@ public class CorrespondenciaService {
         }
 
         var dto = toDTO(entity);
-        if (request.idResponsable() != null) {
-            notificacionService.notificarAsignacion(request.idResponsable(), "CORRESPONDENCIA",
+        for (Usuario resp : responsables) {
+            notificacionService.notificarAsignacion(resp.getIdUsuario(), "CORRESPONDENCIA",
                 "Correspondencia Asignada",
                 "Documento " + entity.getNumeroInterno() + " - " + entity.getAsunto(),
                 entity.getIdCorrespondencia());
@@ -192,8 +195,12 @@ public class CorrespondenciaService {
         if (request.cargo() != null) entity.setCargo(request.cargo());
         if (request.institucion() != null) entity.setInstitucion(request.institucion());
         if (request.departamentoRemitente() != null) entity.setDepartamentoRemitente(request.departamentoRemitente());
-        if (request.idResponsable() != null)
-            entity.setResponsable(usuarioRepository.getReferenceById(request.idResponsable()));
+        if (request.idsResponsables() != null) {
+            entity.getResponsables().clear();
+            if (!request.idsResponsables().isEmpty()) {
+                entity.getResponsables().addAll(usuarioRepository.findAllById(request.idsResponsables()));
+            }
+        }
         if (request.prioridad() != null) entity.setPrioridad(request.prioridad());
         if (request.requiereRespuesta() != null) entity.setRequiereRespuesta(request.requiereRespuesta());
         if (request.fechaLimiteRespuesta() != null) entity.setFechaLimiteRespuesta(request.fechaLimiteRespuesta());
@@ -244,7 +251,9 @@ public class CorrespondenciaService {
                 .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
         Usuario responsable = usuarioRepository.findById(idResponsable)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
-        entity.setResponsable(responsable);
+        if (!entity.getResponsables().contains(responsable)) {
+            entity.getResponsables().add(responsable);
+        }
         if ("RECIBIDO".equals(entity.getEstado())) {
             entity.setEstado("ASIGNADO");
         }
@@ -621,8 +630,8 @@ public class CorrespondenciaService {
                 entity.getCargo(),
                 entity.getInstitucion(),
                 entity.getDepartamentoRemitente(),
-                entity.getResponsable() != null ? entity.getResponsable().getIdUsuario() : null,
-                entity.getResponsable() != null ? entity.getResponsable().getNombres() : null,
+                entity.getResponsables().stream().map(Usuario::getIdUsuario).collect(Collectors.toList()),
+                entity.getResponsables().stream().map(Usuario::getNombres).collect(Collectors.toList()),
                 entity.getPrioridad(),
                 entity.getEstado(),
                 entity.getSentido(),

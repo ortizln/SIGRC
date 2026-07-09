@@ -21,7 +21,7 @@ export class CorrespondenciaFormComponent implements OnInit {
     asunto: '', resumenEjecutivo: '', codigoDocumento: '',
     idTipoDocumento: null, fechaDocumento: '', fechaRecepcion: '',
     horaRecepcion: '', personaEntrega: '', cargo: '', institucion: '',
-    departamentoRemitente: '', idResponsable: null, prioridad: 'MEDIA',
+    departamentoRemitente: '', idsResponsables: [], prioridad: 'MEDIA',
     sentido: 'INGRESO',
     requiereRespuesta: false, fechaLimiteRespuesta: '',
     generaTicket: false, observaciones: '', areasEtiquetadas: [],
@@ -31,6 +31,7 @@ export class CorrespondenciaFormComponent implements OnInit {
   tiposDocumento: any[] = [];
   areas: any[] = [];
   usuarios: any[] = [];
+  responsablesDisponibles: any[] = [];
   destinatariosDisponibles: any[] = [];
   archivos: File[] = [];
   cargando = false;
@@ -72,6 +73,47 @@ export class CorrespondenciaFormComponent implements OnInit {
       ...this.usuarios.map(u => ({ id: `u${u.idUsuario}`, label: `${u.nombres} ${u.apellidos}`, tipo: 'Usuario' })),
       ...this.areas.map(a => ({ id: `a${a.idArea}`, label: a.nombre, tipo: 'Área' }))
     ];
+    this.responsablesDisponibles = this.usuarios;
+  }
+
+  busquedaResponsable = '';
+  sugerenciasResponsable: any[] = [];
+
+  filtrarResponsables() {
+    const texto = this.busquedaResponsable?.toLowerCase().trim() || '';
+    this.sugerenciasResponsable = this.responsablesDisponibles.filter(
+      u => !this.form.idsResponsables.includes(u.idUsuario)
+        && (!texto || `${u.nombres} ${u.apellidos}`.toLowerCase().includes(texto))
+    ).slice(0, 10);
+  }
+
+  agregarPrimerResponsable() {
+    if (this.sugerenciasResponsable.length > 0) {
+      this.agregarResponsable(this.sugerenciasResponsable[0]);
+    }
+  }
+
+  cerrarSugerenciasResponsable() {
+    setTimeout(() => this.sugerenciasResponsable = [], 200);
+  }
+
+  agregarResponsable(u: any) {
+    if (!this.form.idsResponsables.includes(u.idUsuario)) {
+      this.form.idsResponsables.push(u.idUsuario);
+    }
+    this.busquedaResponsable = '';
+    this.sugerenciasResponsable = [];
+  }
+
+  removerResponsable(id: number) {
+    const idx = this.form.idsResponsables.indexOf(id);
+    if (idx >= 0) this.form.idsResponsables.splice(idx, 1);
+  }
+
+  getResponsablesSeleccionados(): any[] {
+    return this.form.idsResponsables.map((id: number) =>
+      this.responsablesDisponibles.find((u: any) => u.idUsuario === id)
+    ).filter(Boolean);
   }
 
   onSentidoChange() {
@@ -213,7 +255,7 @@ export class CorrespondenciaFormComponent implements OnInit {
       cargo: this.form.cargo || null,
       institucion: this.form.institucion || null,
       departamentoRemitente: this.form.departamentoRemitente || null,
-      idResponsable: this.form.idResponsable || null,
+      idsResponsables: this.form.idsResponsables,
       prioridad: this.form.prioridad,
       sentido: this.form.sentido,
       requiereRespuesta: this.form.requiereRespuesta,

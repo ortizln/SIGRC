@@ -119,7 +119,6 @@ export class CorrespondenciaDetailComponent implements OnInit {
     this.formRespuesta.idCorrespondencia = this.doc.idCorrespondencia;
     this.svc.registrarRespuesta(this.doc.idCorrespondencia, this.formRespuesta).subscribe(r => {
       this.respuestas.push(r);
-      this.doc.responsableNombre = r.responsableNombre;
       this.showRespuestaForm = false;
       this.formRespuesta = { fechaRespuesta: new Date().toISOString().split('T')[0], idResponsable: null, observaciones: '' };
       if (this.doc.estado !== 'ARCHIVADO') {
@@ -133,6 +132,10 @@ export class CorrespondenciaDetailComponent implements OnInit {
     this.svc.asignarResponsable(this.doc.idCorrespondencia, idResponsable).subscribe(r => {
       this.doc = r;
     });
+  }
+
+  get responsablesNombres(): string {
+    return this.doc?.responsablesNombre?.join(', ') || 'Sin asignar';
   }
 
   generarTicket() {

@@ -52,9 +52,15 @@ public class Correspondencia {
     @Column(length = 150)
     private String departamentoRemitente;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_responsable")
-    private Usuario responsable;
+    @ManyToMany
+    @JoinTable(
+        name = "correspondencia_responsable",
+        schema = "sigrc",
+        joinColumns = @JoinColumn(name = "id_correspondencia"),
+        inverseJoinColumns = @JoinColumn(name = "id_usuario")
+    )
+    @Builder.Default
+    private List<Usuario> responsables = new ArrayList<>();
 
     @Column(nullable = false, length = 10)
     private String prioridad;
