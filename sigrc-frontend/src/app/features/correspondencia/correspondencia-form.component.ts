@@ -112,11 +112,9 @@ export class CorrespondenciaFormComponent implements OnInit {
     if (idx >= 0) this.form.responsables.splice(idx, 1);
   }
 
-  getResponsablesSeleccionados(): any[] {
-    return this.form.responsables.map((r: any) => {
-      const u = this.responsablesDisponibles.find((x: any) => x.idUsuario === r.idUsuario);
-      return u ? { ...u, sumilla: r.sumilla } : null;
-    }).filter(Boolean);
+  getResponsableNombre(idUsuario: number): string {
+    const u = this.responsablesDisponibles.find((x: any) => x.idUsuario === idUsuario);
+    return u ? `${u.nombres} ${u.apellidos}` : '—';
   }
 
   onSentidoChange() {
