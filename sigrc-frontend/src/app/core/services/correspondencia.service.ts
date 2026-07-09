@@ -36,8 +36,9 @@ export class CorrespondenciaService {
     return this.http.patch<Correspondencia>(`${this.apiUrl}/${id}/estado`, null, { params });
   }
 
-  asignarResponsable(id: number, idResponsable: number): Observable<Correspondencia> {
-    const params = new HttpParams().set('idResponsable', idResponsable);
+  asignarResponsable(id: number, idResponsable: number, sumilla?: string): Observable<Correspondencia> {
+    let params = new HttpParams().set('idResponsable', idResponsable);
+    if (sumilla) params = params.set('sumilla', sumilla);
     return this.http.patch<Correspondencia>(`${this.apiUrl}/${id}/asignar`, null, { params });
   }
 

@@ -107,7 +107,7 @@
             <td>
               <span class="badge-estado" [class]="'badge-' + estadoBadge(d.estado)">{{ estadoLabel(d.estado) }}</span>
             </td>
-            <td class="small">{{ d.responsablesNombre?.join(', ') || '—' }}</td>
+            <td class="small">{{ d.responsables?.map((r:any) => r.nombre)?.join(', ') || '—' }}</td>
             <td class="text-muted small">{{ d.fechaRecepcion | date:'dd/MM/yy' }} {{ d.horaRecepcion }}</td>
             <td>
               <a [routerLink]="['/correspondencia', d.idCorrespondencia]" class="btn btn-soft-primary btn-xs">

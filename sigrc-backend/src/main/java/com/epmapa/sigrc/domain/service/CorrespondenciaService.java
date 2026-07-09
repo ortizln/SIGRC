@@ -83,11 +83,22 @@ public class CorrespondenciaService {
 
         String sentido = request.sentido() != null ? request.sentido() : "INGRESO";
 
-        List<Usuario> responsables = new ArrayList<>();
-        if (request.idsResponsables() != null && !request.idsResponsables().isEmpty()) {
-            responsables = usuarioRepository.findAllById(request.idsResponsables());
+        List<CorrespondenciaResponsable> responsablesAsignados = new ArrayList<>();
+        if (request.responsables() != null && !request.responsables().isEmpty()) {
+            for (var r : request.responsables()) {
+                Usuario u = usuarioRepository.getReferenceById(r.idUsuario());
+                responsablesAsignados.add(CorrespondenciaResponsable.builder()
+                    .correspondencia(null)
+                    .usuario(u)
+                    .sumilla(r.sumilla())
+                    .build());
+            }
         } else if ("SALIDA".equals(sentido)) {
-            responsables.add(creadoPor);
+            responsablesAsignados.add(CorrespondenciaResponsable.builder()
+                .correspondencia(null)
+                .usuario(creadoPor)
+                .sumilla("")
+                .build());
         }
 
         String numeroInterno = generarNumeroInterno();
@@ -114,7 +125,6 @@ public class CorrespondenciaService {
                 .cargo(request.cargo())
                 .institucion(request.institucion())
                 .departamentoRemitente(request.departamentoRemitente())
-                .responsables(responsables)
                 .prioridad(request.prioridad() != null ? request.prioridad() : "MEDIA")
                 .estado("RECIBIDO")
                 .sentido(sentido)
@@ -124,6 +134,13 @@ public class CorrespondenciaService {
                 .observaciones(request.observaciones())
                 .creadoPor(creadoPor)
                 .build();
+
+        if (!responsablesAsignados.isEmpty()) {
+            for (var ra : responsablesAsignados) {
+                ra.setCorrespondencia(entity);
+            }
+            entity.getResponsablesAsignados().addAll(responsablesAsignados);
+        }
 
         entity = repository.save(entity);
 
@@ -142,8 +159,8 @@ public class CorrespondenciaService {
         }
 
         var dto = toDTO(entity);
-        for (Usuario resp : responsables) {
-            notificacionService.notificarAsignacion(resp.getIdUsuario(), "CORRESPONDENCIA",
+        for (var ra : responsablesAsignados) {
+            notificacionService.notificarAsignacion(ra.getUsuario().getIdUsuario(), "CORRESPONDENCIA",
                 "Correspondencia Asignada",
                 "Documento " + entity.getNumeroInterno() + " - " + entity.getAsunto(),
                 entity.getIdCorrespondencia());
@@ -195,10 +212,18 @@ public class CorrespondenciaService {
         if (request.cargo() != null) entity.setCargo(request.cargo());
         if (request.institucion() != null) entity.setInstitucion(request.institucion());
         if (request.departamentoRemitente() != null) entity.setDepartamentoRemitente(request.departamentoRemitente());
-        if (request.idsResponsables() != null) {
-            entity.getResponsables().clear();
-            if (!request.idsResponsables().isEmpty()) {
-                entity.getResponsables().addAll(usuarioRepository.findAllById(request.idsResponsables()));
+        if (request.responsables() != null) {
+            entity.getResponsablesAsignados().clear();
+            if (!request.responsables().isEmpty()) {
+                for (var r : request.responsables()) {
+                    Usuario u = usuarioRepository.getReferenceById(r.idUsuario());
+                    var ra = CorrespondenciaResponsable.builder()
+                        .correspondencia(entity)
+                        .usuario(u)
+                        .sumilla(r.sumilla())
+                        .build();
+                    entity.getResponsablesAsignados().add(ra);
+                }
             }
         }
         if (request.prioridad() != null) entity.setPrioridad(request.prioridad());
@@ -246,13 +271,20 @@ public class CorrespondenciaService {
     }
 
     @Transactional
-    public CorrespondenciaDTO asignarResponsable(Integer id, Integer idResponsable, Integer idUsuario) {
+    public CorrespondenciaDTO asignarResponsable(Integer id, Integer idResponsable, String sumilla, Integer idUsuario) {
         Correspondencia entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
         Usuario responsable = usuarioRepository.findById(idResponsable)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
-        if (!entity.getResponsables().contains(responsable)) {
-            entity.getResponsables().add(responsable);
+        boolean yaAsignado = entity.getResponsablesAsignados().stream()
+                .anyMatch(ra -> ra.getUsuario().getIdUsuario().equals(idResponsable));
+        if (!yaAsignado) {
+            var ra = CorrespondenciaResponsable.builder()
+                .correspondencia(entity)
+                .usuario(responsable)
+                .sumilla(sumilla != null ? sumilla : "")
+                .build();
+            entity.getResponsablesAsignados().add(ra);
         }
         if ("RECIBIDO".equals(entity.getEstado())) {
             entity.setEstado("ASIGNADO");
@@ -260,8 +292,12 @@ public class CorrespondenciaService {
         entity = repository.save(entity);
 
         Usuario usuario = usuarioRepository.getReferenceById(idUsuario);
+        String detalleHistorial = "Asignado a: " + responsable.getNombres();
+        if (sumilla != null && !sumilla.isBlank()) {
+            detalleHistorial += " — Sumilla: " + sumilla;
+        }
         registrarHistorial(entity, null, entity.getEstado(), "ASIGNACION",
-                "Asignado a: " + responsable.getNombres(), usuario);
+                detalleHistorial, usuario);
 
         var dto = toDTO(entity);
         notificacionService.notificarAsignacion(idResponsable, "CORRESPONDENCIA",
@@ -630,8 +666,12 @@ public class CorrespondenciaService {
                 entity.getCargo(),
                 entity.getInstitucion(),
                 entity.getDepartamentoRemitente(),
-                entity.getResponsables().stream().map(Usuario::getIdUsuario).collect(Collectors.toList()),
-                entity.getResponsables().stream().map(Usuario::getNombres).collect(Collectors.toList()),
+                entity.getResponsablesAsignados().stream()
+                    .map(ra -> new ResponsableAsignadoDTO(
+                        ra.getUsuario().getIdUsuario(),
+                        ra.getUsuario().getNombres() + " " + ra.getUsuario().getApellidos(),
+                        ra.getSumilla()))
+                    .collect(Collectors.toList()),
                 entity.getPrioridad(),
                 entity.getEstado(),
                 entity.getSentido(),

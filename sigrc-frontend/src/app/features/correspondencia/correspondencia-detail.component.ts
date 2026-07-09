@@ -156,15 +156,18 @@ export class CorrespondenciaDetailComponent implements OnInit {
     });
   }
 
+  nuevaSumilla = '';
+
   asignarResponsable(idResponsable: number) {
     if (!this.doc || !idResponsable) return;
-    this.svc.asignarResponsable(this.doc.idCorrespondencia, idResponsable).subscribe(r => {
+    this.svc.asignarResponsable(this.doc.idCorrespondencia, idResponsable, this.nuevaSumilla).subscribe(r => {
       this.doc = r;
+      this.nuevaSumilla = '';
     });
   }
 
   get responsablesNombres(): string {
-    return this.doc?.responsablesNombre?.join(', ') || 'Sin asignar';
+    return this.doc?.responsables?.map((r: any) => r.nombre).join(', ') || 'Sin asignar';
   }
 
   generarTicket() {

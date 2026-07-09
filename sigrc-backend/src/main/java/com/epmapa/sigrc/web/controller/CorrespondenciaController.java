@@ -93,12 +93,13 @@ public class CorrespondenciaController {
 
     @PatchMapping("/{id}/asignar")
     @PreAuthorize("hasAnyRole('ADMIN','JEFE_TI','SUPERVISOR')")
-    @Operation(summary = "Asignar responsable(s) al documento")
+    @Operation(summary = "Asignar responsable al documento")
     public ResponseEntity<CorrespondenciaDTO> asignar(@PathVariable Integer id,
                                                        @RequestParam Integer idResponsable,
+                                                       @RequestParam(required = false) String sumilla,
                                                        Authentication auth) {
         Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
-        return ResponseEntity.ok(service.asignarResponsable(id, idResponsable, idUsuario));
+        return ResponseEntity.ok(service.asignarResponsable(id, idResponsable, sumilla, idUsuario));
     }
 
     @PostMapping("/{id}/respuesta")

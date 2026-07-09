@@ -52,15 +52,9 @@ public class Correspondencia {
     @Column(length = 150)
     private String departamentoRemitente;
 
-    @ManyToMany
-    @JoinTable(
-        name = "correspondencia_responsable",
-        schema = "sigrc",
-        joinColumns = @JoinColumn(name = "id_correspondencia"),
-        inverseJoinColumns = @JoinColumn(name = "id_usuario")
-    )
+    @OneToMany(mappedBy = "correspondencia", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<Usuario> responsables = new ArrayList<>();
+    private List<CorrespondenciaResponsable> responsablesAsignados = new ArrayList<>();
 
     @Column(nullable = false, length = 10)
     private String prioridad;

@@ -17,7 +17,7 @@ public record CorrespondenciaCrearRequest(
     String cargo,
     String institucion,
     String departamentoRemitente,
-    List<Integer> idsResponsables,
+    List<ResponsableAsignadoDTO> responsables,
     @NotBlank String prioridad,
     String sentido,
     Boolean requiereRespuesta,

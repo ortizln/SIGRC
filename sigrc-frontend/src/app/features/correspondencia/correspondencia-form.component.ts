@@ -21,7 +21,7 @@ export class CorrespondenciaFormComponent implements OnInit {
     asunto: '', resumenEjecutivo: '', codigoDocumento: '',
     idTipoDocumento: null, fechaDocumento: '', fechaRecepcion: '',
     horaRecepcion: '', personaEntrega: '', cargo: '', institucion: '',
-    departamentoRemitente: '', idsResponsables: [], prioridad: 'MEDIA',
+    departamentoRemitente: '', responsables: [], prioridad: 'MEDIA',
     sentido: 'INGRESO',
     requiereRespuesta: false, fechaLimiteRespuesta: '',
     generaTicket: false, observaciones: '', areasEtiquetadas: [],
@@ -81,8 +81,9 @@ export class CorrespondenciaFormComponent implements OnInit {
 
   filtrarResponsables() {
     const texto = this.busquedaResponsable?.toLowerCase().trim() || '';
+    const idsAsignados = this.form.responsables.map((r: any) => r.idUsuario);
     this.sugerenciasResponsable = this.responsablesDisponibles.filter(
-      u => !this.form.idsResponsables.includes(u.idUsuario)
+      u => !idsAsignados.includes(u.idUsuario)
         && (!texto || `${u.nombres} ${u.apellidos}`.toLowerCase().includes(texto))
     ).slice(0, 10);
   }
@@ -98,22 +99,24 @@ export class CorrespondenciaFormComponent implements OnInit {
   }
 
   agregarResponsable(u: any) {
-    if (!this.form.idsResponsables.includes(u.idUsuario)) {
-      this.form.idsResponsables.push(u.idUsuario);
+    const ids = this.form.responsables.map((r: any) => r.idUsuario);
+    if (!ids.includes(u.idUsuario)) {
+      this.form.responsables.push({ idUsuario: u.idUsuario, sumilla: '' });
     }
     this.busquedaResponsable = '';
     this.sugerenciasResponsable = [];
   }
 
   removerResponsable(id: number) {
-    const idx = this.form.idsResponsables.indexOf(id);
-    if (idx >= 0) this.form.idsResponsables.splice(idx, 1);
+    const idx = this.form.responsables.findIndex((r: any) => r.idUsuario === id);
+    if (idx >= 0) this.form.responsables.splice(idx, 1);
   }
 
   getResponsablesSeleccionados(): any[] {
-    return this.form.idsResponsables.map((id: number) =>
-      this.responsablesDisponibles.find((u: any) => u.idUsuario === id)
-    ).filter(Boolean);
+    return this.form.responsables.map((r: any) => {
+      const u = this.responsablesDisponibles.find((x: any) => x.idUsuario === r.idUsuario);
+      return u ? { ...u, sumilla: r.sumilla } : null;
+    }).filter(Boolean);
   }
 
   onSentidoChange() {
@@ -255,7 +258,7 @@ export class CorrespondenciaFormComponent implements OnInit {
       cargo: this.form.cargo || null,
       institucion: this.form.institucion || null,
       departamentoRemitente: this.form.departamentoRemitente || null,
-      idsResponsables: this.form.idsResponsables,
+      responsables: this.form.responsables,
       prioridad: this.form.prioridad,
       sentido: this.form.sentido,
       requiereRespuesta: this.form.requiereRespuesta,
