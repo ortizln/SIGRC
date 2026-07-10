@@ -75,6 +75,6 @@ public interface CorrespondenciaRepository extends JpaRepository<Correspondencia
     @Query("SELECT ct.ticket.idTicket, ct.ticket.numeroTicket, ct.ticket.asunto, ct.ticket.estado FROM CorrespondenciaTicket ct WHERE ct.correspondencia.idCorrespondencia = :idCorrespondencia")
     List<Object[]> findTicketsByCorrespondenciaId(@Param("idCorrespondencia") Integer idCorrespondencia);
 
-    @Query(value = "SELECT COALESCE(MAX(SPLIT_PART(numero_interno, '-', 3)::INTEGER), 0) FROM sigrc.correspondencia WHERE numero_interno LIKE 'COR-' || TO_CHAR(CURRENT_DATE, 'YYYY') || '-%'", nativeQuery = true)
-    Integer maxCorrelativoAnioActual();
+    @Query(value = "SELECT COALESCE(MAX(SPLIT_PART(numero_interno, '-', 3)::INTEGER), 0) FROM sigrc.correspondencia WHERE numero_interno LIKE ?1 || '-' || TO_CHAR(CURRENT_DATE, 'YYYY') || '-%'", nativeQuery = true)
+    Integer maxCorrelativoPorPrefijo(String prefijo);
 }

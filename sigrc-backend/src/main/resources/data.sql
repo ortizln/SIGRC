@@ -133,20 +133,25 @@ WHERE NOT EXISTS (SELECT 1 FROM areas);
 -- Correspondencia Institucional
 -- ============================================================
 
--- Función: generar número consecutivo de correspondencia
+-- Función: generar número consecutivo de correspondencia por usuario
 CREATE OR REPLACE FUNCTION generar_numero_correspondencia()
 RETURNS TRIGGER AS $$
 DECLARE
     correlativo INTEGER;
     anio_actual VARCHAR(4);
-    prefijo     VARCHAR(10);
+    iniciales   VARCHAR(4);
 BEGIN
     anio_actual := TO_CHAR(CURRENT_DATE, 'YYYY');
+    SELECT UPPER(LEFT(nombres, 1) || LEFT(apellidos, 1)) INTO iniciales
+    FROM usuarios WHERE id_usuario = NEW.creado_por;
+    IF iniciales IS NULL OR iniciales = '' THEN
+        iniciales := 'XX';
+    END IF;
     SELECT COALESCE(MAX(SPLIT_PART(numero_interno, '-', 3)::INTEGER), 0) + 1
     INTO correlativo
     FROM correspondencia
-    WHERE numero_interno LIKE 'COR-' || anio_actual || '-%';
-    NEW.numero_interno := 'COR-' || anio_actual || '-' || LPAD(correlativo::TEXT, 5, '0');
+    WHERE numero_interno LIKE iniciales || '-' || anio_actual || '-%';
+    NEW.numero_interno := iniciales || '-' || anio_actual || '-' || LPAD(correlativo::TEXT, 7, '0');
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

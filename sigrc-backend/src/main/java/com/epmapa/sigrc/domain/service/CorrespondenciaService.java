@@ -101,7 +101,7 @@ public class CorrespondenciaService {
                 .build());
         }
 
-        String numeroInterno = generarNumeroInterno();
+        String numeroInterno = generarNumeroInterno(creadoPor);
 
         if ("INGRESO".equals(sentido) && (request.personaEntrega() == null || request.personaEntrega().isBlank())) {
             throw new IllegalArgumentException("Persona que entrega es obligatoria para documentos de ingreso");
@@ -567,11 +567,20 @@ public class CorrespondenciaService {
 
     // ─── Private helpers ───
 
-    private String generarNumeroInterno() {
-        Integer correlativo = repository.maxCorrelativoAnioActual();
+    private String generarNumeroInterno(Usuario usuario) {
+        String iniciales = obtenerIniciales(usuario);
+        Integer correlativo = repository.maxCorrelativoPorPrefijo(iniciales);
         if (correlativo == null) correlativo = 0;
         String anio = String.valueOf(java.time.Year.now().getValue());
-        return "COR-" + anio + "-" + String.format("%05d", correlativo + 1);
+        return iniciales + "-" + anio + "-" + String.format("%07d", correlativo + 1);
+    }
+
+    private String obtenerIniciales(Usuario usuario) {
+        String nombre = usuario.getNombres() != null ? usuario.getNombres() : "";
+        String apellido = usuario.getApellidos() != null ? usuario.getApellidos() : "";
+        String iniNombre = nombre.isEmpty() ? "" : String.valueOf(nombre.charAt(0)).toUpperCase();
+        String iniApellido = apellido.isEmpty() ? "" : String.valueOf(apellido.charAt(0)).toUpperCase();
+        return iniNombre + iniApellido;
     }
 
     private void guardarAreasEtiquetadas(Correspondencia entity, List<Integer> areaIds) {

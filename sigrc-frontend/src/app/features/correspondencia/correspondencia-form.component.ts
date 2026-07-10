@@ -40,6 +40,7 @@ export class CorrespondenciaFormComponent implements OnInit {
   sentidos = SENTIDOS;
   busquedaReferencia = '';
   documentosReferencia: any[] = [];
+  referenciasSeleccionadas: any[] = [];
   ticketsDisponibles: any[] = [];
   private timerBusqueda: any;
 
@@ -149,10 +150,24 @@ export class CorrespondenciaFormComponent implements OnInit {
     }, 300);
   }
 
-  toggleReferencia(id: number) {
+  toggleReferencia(doc: any) {
+    const id = doc.idCorrespondencia;
+    const idx = this.form.idsReferencias.indexOf(id);
+    if (idx >= 0) {
+      this.form.idsReferencias.splice(idx, 1);
+      const oidx = this.referenciasSeleccionadas.findIndex(r => r.idCorrespondencia === id);
+      if (oidx >= 0) this.referenciasSeleccionadas.splice(oidx, 1);
+    } else {
+      this.form.idsReferencias.push(id);
+      this.referenciasSeleccionadas.push(doc);
+    }
+  }
+
+  removerReferencia(id: number) {
     const idx = this.form.idsReferencias.indexOf(id);
     if (idx >= 0) this.form.idsReferencias.splice(idx, 1);
-    else this.form.idsReferencias.push(id);
+    const oidx = this.referenciasSeleccionadas.findIndex(r => r.idCorrespondencia === id);
+    if (oidx >= 0) this.referenciasSeleccionadas.splice(oidx, 1);
   }
 
   busquedaDestinatario = '';

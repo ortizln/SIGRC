@@ -210,16 +210,22 @@
       </div>
       <div class="border-top pt-3">
         <label class="form-label">Documentos de Referencia</label>
+        <div class="d-flex flex-wrap gap-1 mb-2" *ngIf="referenciasSeleccionadas.length > 0">
+          <span *ngFor="let r of referenciasSeleccionadas" class="referencia-pill">
+            <code>{{ r.codigoDocumento }}</code>
+            <button type="button" class="pill-remove" (click)="removerReferencia(r.idCorrespondencia)">&times;</button>
+          </span>
+        </div>
         <div class="input-group input-group-sm mb-2">
-          <input autocomplete="off" class="form-control" placeholder="Buscar documentos para referenciar..." [(ngModel)]="busquedaReferencia" (input)="buscarReferencias()" name="busquedaRef">
+          <input autocomplete="off" class="form-control" placeholder="Buscar por código de documento..." [(ngModel)]="busquedaReferencia" (input)="buscarReferencias()" name="busquedaRef">
           <button class="btn btn-outline-secondary" type="button" (click)="busquedaReferencia = ''; documentosReferencia = [];">
             <i class="pi pi-times" style="font-size:0.7rem;"></i>
           </button>
         </div>
         <div class="d-flex flex-wrap gap-2" *ngIf="documentosReferencia.length > 0">
-          <label *ngFor="let d of documentosReferencia" class="chip-checkbox" [class.active]="form.idsReferencias.includes(d.idCorrespondencia)">
-            <input autocomplete="off" type="checkbox" [checked]="form.idsReferencias.includes(d.idCorrespondencia)" (change)="toggleReferencia(d.idCorrespondencia)" hidden>
-            <span><code>{{ d.numeroInterno }}</code> {{ d.asunto }}</span>
+          <label *ngFor="let d of documentosReferencia" class="chip-checkbox" [class.active]="form.idsReferencias.includes(d.idCorrespondencia)"
+                 (click)="toggleReferencia(d); $event.preventDefault()">
+            <span><code>{{ d.codigoDocumento }}</code> {{ d.asunto }}</span>
           </label>
         </div>
         <div *ngIf="documentosReferencia.length === 0 && busquedaReferencia" class="text-muted small py-1">Sin resultados para "{{ busquedaReferencia }}"</div>
