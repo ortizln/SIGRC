@@ -472,7 +472,7 @@ public class CorrespondenciaService {
                         + "\nFecha Recepción: " + entity.getFechaRecepcion(),
                 null,
                 null,
-                "CORRESPONDENCIA"
+                "SISTEMA"
         );
         var ticketDTO = ticketService.crear(crearRequest);
 
