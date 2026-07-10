@@ -22,7 +22,9 @@ public class Auditoria {
     private String tipoOperacion;
     private String tablaAfectada;
     private Integer idRegistro;
+    @Column(columnDefinition = "TEXT")
     private String datosAnteriores;
+    @Column(columnDefinition = "TEXT")
     private String datosNuevos;
     @Column(nullable = false, length = 45)
     private String direccionIp;
