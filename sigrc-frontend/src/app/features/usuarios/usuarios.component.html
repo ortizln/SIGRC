@@ -155,7 +155,7 @@
 
       <div class="d-flex justify-content-end gap-2 mt-3">
         <button type="button" class="btn btn-outline-secondary" (click)="cancelar()">Cancelar</button>
-        <button type="button" class="btn btn-primary" [disabled]="cargando" (click)="guardar()">
+        <button type="button" class="btn btn-primary" [disabled]="cargando || usuarioForm.invalid" (click)="guardar()">
           <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
           {{ cargando ? 'Guardando...' : 'Guardar' }}
         </button>
@@ -259,7 +259,7 @@
 
       <div class="d-flex justify-content-end gap-2 mt-3">
         <button type="button" class="btn btn-outline-secondary" (click)="cancelar()">Cancelar</button>
-        <button type="button" class="btn btn-primary" [disabled]="cargando" (click)="guardar()">
+        <button type="button" class="btn btn-primary" [disabled]="cargando || perfilForm.invalid" (click)="guardar()">
           <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
           {{ cargando ? 'Guardando...' : 'Guardar' }}
         </button>

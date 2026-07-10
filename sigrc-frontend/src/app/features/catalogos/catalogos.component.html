@@ -31,29 +31,34 @@
     </div>
 
     <div class="p-3 border-bottom" *ngIf="formVisible">
-      <div class="row g-2">
-        <div class="col-md-4">
-          <input autocomplete="off" [(ngModel)]="form.nombre" class="form-control form-control-sm" placeholder="Nombre">
+      <form autocomplete="off" (ngSubmit)="guardar()" #catalogoForm="ngForm">
+        <div class="row g-2">
+          <div class="col-md-4">
+            <input autocomplete="off" #nomModel="ngModel" [(ngModel)]="form.nombre" name="nombre" required class="form-control form-control-sm" [class.is-invalid]="nomModel.invalid && nomModel.touched" placeholder="Nombre">
+            <div class="validation-feedback" *ngIf="nomModel.invalid && nomModel.touched">El nombre es obligatorio</div>
+          </div>
+          <div class="col-md-4">
+            <input autocomplete="off" #codModel="ngModel" [(ngModel)]="form.codigo" name="codigo" required class="form-control form-control-sm" [class.is-invalid]="codModel.invalid && codModel.touched" placeholder="Código">
+            <div class="validation-feedback" *ngIf="codModel.invalid && codModel.touched">El código es obligatorio</div>
+          </div>
+          <div class="col-md-4" *ngIf="tabActivo === 'subcategorias'">
+            <select autocomplete="off" #catModel="ngModel" [(ngModel)]="form.idCategoria" name="idCategoria" required class="form-select form-select-sm" [class.is-invalid]="catModel.invalid && catModel.touched" (change)="cargarSubcategorias()">
+              <option value="">Seleccione categoría</option>
+              <option *ngFor="let c of categorias" [value]="c.idCategoria">{{ c.nombre }}</option>
+            </select>
+            <div class="validation-feedback" *ngIf="catModel.invalid && catModel.touched">Seleccione una categoría</div>
+          </div>
+          <div class="col-12">
+            <textarea autocomplete="off" [(ngModel)]="form.descripcion" name="descripcion" class="form-control form-control-sm" rows="2" placeholder="Descripción (opcional)"></textarea>
+          </div>
+          <div class="col-12 d-flex gap-1">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="cargando || catalogoForm.invalid">
+              <i class="pi pi-save" style="font-size:0.7rem;"></i> {{ editando ? 'Actualizar' : 'Guardar' }}
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelar()">Cancelar</button>
+          </div>
         </div>
-        <div class="col-md-4">
-          <input autocomplete="off" [(ngModel)]="form.codigo" class="form-control form-control-sm" placeholder="Código">
-        </div>
-        <div class="col-md-4" *ngIf="tabActivo === 'subcategorias'">
-          <select autocomplete="off" [(ngModel)]="form.idCategoria" class="form-select form-select-sm" (change)="cargarSubcategorias()">
-            <option value="">Categoría</option>
-            <option *ngFor="let c of categorias" [value]="c.idCategoria">{{ c.nombre }}</option>
-          </select>
-        </div>
-        <div class="col-12">
-          <textarea autocomplete="off" [(ngModel)]="form.descripcion" class="form-control form-control-sm" rows="2" placeholder="Descripción (opcional)"></textarea>
-        </div>
-        <div class="col-12 d-flex gap-1">
-          <button class="btn btn-primary btn-sm" (click)="guardar()" [disabled]="cargando || !form.nombre">
-            <i class="pi pi-save" style="font-size:0.7rem;"></i> {{ editando ? 'Actualizar' : 'Guardar' }}
-          </button>
-          <button class="btn btn-outline-secondary btn-sm" (click)="cancelar()">Cancelar</button>
-        </div>
-      </div>
+      </form>
     </div>
 
     <div class="table-responsive">
