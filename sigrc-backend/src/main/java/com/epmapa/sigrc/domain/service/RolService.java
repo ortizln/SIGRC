@@ -28,10 +28,12 @@ public class RolService {
         this.rolesPermisoRepository = rolesPermisoRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<RolDTO> listar() {
         return rolRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public RolDTO obtenerPorId(Integer id) {
         return toDTO(rolRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Rol no encontrado: " + id)));

@@ -26,5 +26,8 @@ public record CorrespondenciaCrearRequest(
     String observaciones,
     List<Integer> areasEtiquetadas,
     List<Integer> idsReferencias,
-    List<CorrespondenciaDestinatarioDTO> destinatarios
+    List<CorrespondenciaDestinatarioDTO> destinatarios,
+    Integer ticketIdSistema,
+    Integer ticketIdCategoria,
+    Integer ticketIdSubcategoria
 ) {}

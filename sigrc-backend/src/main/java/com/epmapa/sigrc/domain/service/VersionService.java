@@ -27,15 +27,18 @@ public class VersionService {
         this.usuarioRepository = usuarioRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<VersionDTO> listar() {
         return versionRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public VersionDTO obtenerPorId(Integer id) {
         return toDTO(versionRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Versión no encontrada: " + id)));
     }
 
+    @Transactional(readOnly = true)
     public List<VersionDTO> listarPorSistema(Integer idSistema) {
         return versionRepository.findBySistemaIdSistemaOrderByCreadoEnDesc(idSistema)
             .stream().map(this::toDTO).collect(Collectors.toList());

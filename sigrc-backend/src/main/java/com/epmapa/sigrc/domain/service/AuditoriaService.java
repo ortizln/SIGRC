@@ -53,6 +53,7 @@ public class AuditoriaService {
         }
     }
 
+    @Transactional(readOnly = true)
     public PaginacionDTO<AuditoriaDTO> listar(int pagina, int tamanio, String username,
                                                String tabla, String tipoOperacion,
                                                LocalDateTime desde, LocalDateTime hasta) {

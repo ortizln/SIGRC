@@ -4,6 +4,8 @@ import com.epmapa.sigrc.domain.dto.*;
 import com.epmapa.sigrc.domain.entity.*;
 import com.epmapa.sigrc.domain.repository.*;
 import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 @Service
 public class CorrespondenciaService {
 
+    private static final Logger log = LoggerFactory.getLogger(CorrespondenciaService.class);
     private final CorrespondenciaRepository repository;
     private final CorrespondenciaDocumentoTipoRepository tipoDocRepository;
     private final CorrespondenciaAdjuntoRepository adjuntoRepository;
@@ -155,7 +158,12 @@ public class CorrespondenciaService {
         registrarHistorial(entity, null, "RECIBIDO", accionHistorial, detalleHistorial, creadoPor);
 
         if (entity.getGeneraTicket()) {
-            generarTicketDesdeCorrespondencia(entity, creadoPor);
+            try {
+                generarTicketDesdeCorrespondencia(entity, creadoPor,
+                    request.ticketIdSistema(), request.ticketIdCategoria(), request.ticketIdSubcategoria());
+            } catch (Exception e) {
+                log.warn("No se pudo generar el ticket automático: {}", e.getMessage());
+            }
         }
 
         var dto = toDTO(entity);
@@ -445,10 +453,11 @@ public class CorrespondenciaService {
         Correspondencia entity = repository.findById(idCorrespondencia)
                 .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
         Usuario usuario = usuarioRepository.getReferenceById(idUsuario);
-        return generarTicketDesdeCorrespondencia(entity, usuario);
+        return generarTicketDesdeCorrespondencia(entity, usuario, null, null, null);
     }
 
-    private TicketVinculadoDTO generarTicketDesdeCorrespondencia(Correspondencia entity, Usuario usuario) {
+    private TicketVinculadoDTO generarTicketDesdeCorrespondencia(Correspondencia entity, Usuario usuario,
+                                                                  Integer idSistema, Integer idCategoria, Integer idSubcategoria) {
         Integer idArea = usuario.getArea() != null
                 ? usuario.getArea().getIdArea()
                 : areaCatRepository.findByActivoTrueOrderByNombre()
@@ -461,9 +470,9 @@ public class CorrespondenciaService {
                 entity.getPrioridad(),
                 usuario.getIdUsuario(),
                 idArea,
-                null,
-                null,
-                null,
+                idSistema,
+                idCategoria,
+                idSubcategoria,
                 null,
                 "Documento: " + entity.getNumeroInterno() + " - " + entity.getAsunto(),
                 "Documento generado desde Correspondencia\n\nNúmero Interno: " + entity.getNumeroInterno()

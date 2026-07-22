@@ -5,6 +5,7 @@ import com.epmapa.sigrc.domain.repository.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -315,5 +316,10 @@ public class CatalogoController {
             "subcategorias", subcategorias
         );
         return ResponseEntity.ok(result);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrity(DataIntegrityViolationException e) {
+        return ResponseEntity.badRequest().body(Map.of("error", "El código ingresado ya existe en la base de datos."));
     }
 }

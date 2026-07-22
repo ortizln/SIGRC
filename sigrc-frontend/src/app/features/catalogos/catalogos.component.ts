@@ -73,7 +73,7 @@ export class CatalogosComponent implements OnInit {
     this.editandoId = item.idArea || item.idSistema || item.idCategoria || item.idSubcategoria;
     this.formVisible = true;
     this.menuAbierto = null;
-    if (tipo === 'subcategoria') this.form.idCategoria = item.idCategoria;
+    if (tipo === 'subcategoria') this.form.idCategoria = item.categoria?.idCategoria;
   }
 
   cancelar() {
@@ -88,23 +88,31 @@ export class CatalogosComponent implements OnInit {
     const tab = this.tabActivo;
     const esEdicion = this.editando && this.editandoId;
 
+    let payload = { ...this.form };
+    if (tab === 'subcategorias') {
+      if (payload.idCategoria) {
+        payload.categoria = { idCategoria: payload.idCategoria };
+      }
+      delete payload.idCategoria;
+    }
+
     let obs;
     if (tab === 'areas') {
       obs = esEdicion
-        ? this.svc.actualizarArea(this.editandoId!, this.form)
-        : this.svc.crearArea(this.form);
+        ? this.svc.actualizarArea(this.editandoId!, payload)
+        : this.svc.crearArea(payload);
     } else if (tab === 'sistemas') {
       obs = esEdicion
-        ? this.svc.actualizarSistema(this.editandoId!, this.form)
-        : this.svc.crearSistema(this.form);
+        ? this.svc.actualizarSistema(this.editandoId!, payload)
+        : this.svc.crearSistema(payload);
     } else if (tab === 'categorias') {
       obs = esEdicion
-        ? this.svc.actualizarCategoria(this.editandoId!, this.form)
-        : this.svc.crearCategoria(this.form);
+        ? this.svc.actualizarCategoria(this.editandoId!, payload)
+        : this.svc.crearCategoria(payload);
     } else {
       obs = esEdicion
-        ? this.svc.actualizarSubcategoria(this.editandoId!, this.form)
-        : this.svc.crearSubcategoria(this.form);
+        ? this.svc.actualizarSubcategoria(this.editandoId!, payload)
+        : this.svc.crearSubcategoria(payload);
     }
 
     obs.subscribe({
@@ -116,7 +124,11 @@ export class CatalogosComponent implements OnInit {
         else if (tab === 'categorias') this.cargarCategorias();
         else this.cargarSubcategorias();
       },
-      error: () => this.cargando = false
+      error: (err) => {
+        this.cargando = false;
+        const msg = err.error?.error || 'Error al guardar. Verifique que el código no esté duplicado.';
+        Swal.fire({ icon: 'error', title: 'Error', text: msg });
+      }
     });
   }
 

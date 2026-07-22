@@ -298,6 +298,46 @@
               <label class="form-check-label fw-medium" for="generaTicket">Generar Ticket</label>
             </div>
             <div class="form-text">Crea un ticket automáticamente al guardar</div>
+            <div class="ticket-preview" *ngIf="form.generaTicket">
+              <div class="ticket-preview-header">
+                <i class="pi pi-ticket"></i> Vista previa del Ticket
+              </div>
+              <div class="row g-2 mt-1">
+                <div class="col-6">
+                  <label class="ticket-preview-label">Tipo</label>
+                  <input autocomplete="off" class="form-control form-control-sm" value="REQUERIMIENTO" readonly disabled>
+                </div>
+                <div class="col-6">
+                  <label class="ticket-preview-label">Prioridad</label>
+                  <input autocomplete="off" class="form-control form-control-sm" [value]="form.prioridad" readonly disabled>
+                </div>
+                <div class="col-6">
+                  <label class="ticket-preview-label">Sistema (opcional)</label>
+                  <select autocomplete="off" [(ngModel)]="form.ticketIdSistema" name="ticketIdSistema" class="form-select form-select-sm">
+                    <option [ngValue]="null">Ninguno</option>
+                    <option *ngFor="let s of sistemas" [value]="s.idSistema">{{ s.codigo }} — {{ s.nombre }}</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="ticket-preview-label">Categoría (opcional)</label>
+                  <select autocomplete="off" [(ngModel)]="form.ticketIdCategoria" name="ticketIdCategoria" class="form-select form-select-sm" (change)="onTicketCategoriaChange()">
+                    <option [ngValue]="null">Ninguno</option>
+                    <option *ngFor="let c of categorias" [value]="c.idCategoria">{{ c.codigo }} — {{ c.nombre }}</option>
+                  </select>
+                </div>
+                <div class="col-6" *ngIf="subcategorias.length > 0">
+                  <label class="ticket-preview-label">Subcategoría (opcional)</label>
+                  <select autocomplete="off" [(ngModel)]="form.ticketIdSubcategoria" name="ticketIdSubcategoria" class="form-select form-select-sm">
+                    <option [ngValue]="null">Ninguno</option>
+                    <option *ngFor="let s of subcategorias" [value]="s.idSubcategoria">{{ s.codigo }} — {{ s.nombre }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="ticket-preview-body">
+                <small class="text-muted"><strong>Asunto:</strong> Documento: ({{ form.codigoDocumento || '—' }}) - {{ form.asunto || '—' }}</small>
+                <small class="text-muted"><strong>Descripción:</strong> Documento generado desde Correspondencia</small>
+              </div>
+            </div>
           </ng-container>
         </div>
       </div>

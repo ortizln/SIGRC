@@ -26,10 +26,14 @@ export class CorrespondenciaFormComponent implements OnInit {
     requiereRespuesta: false, fechaLimiteRespuesta: '',
     generaTicket: false, observaciones: '', areasEtiquetadas: [],
     idsReferencias: [], destinatariosSeleccionados: [],
-    idTicketVinculado: null
+    idTicketVinculado: null,
+    ticketIdSistema: null, ticketIdCategoria: null, ticketIdSubcategoria: null
   };
   tiposDocumento: any[] = [];
   areas: any[] = [];
+  sistemas: any[] = [];
+  categorias: any[] = [];
+  subcategorias: any[] = [];
   usuarios: any[] = [];
   responsablesDisponibles: any[] = [];
   destinatariosDisponibles: any[] = [];
@@ -56,6 +60,8 @@ export class CorrespondenciaFormComponent implements OnInit {
   ngOnInit() {
     this.svc.getTiposDocumento().subscribe(r => this.tiposDocumento = r);
     this.catSvc.getAreas().subscribe(r => this.areas = r);
+    this.catSvc.getSistemas().subscribe(r => this.sistemas = r);
+    this.catSvc.getCategorias().subscribe(r => this.categorias = r);
     this.usuarioSvc.listar().subscribe(r => {
       this.usuarios = r;
       this.armarDestinatarios();
@@ -67,6 +73,14 @@ export class CorrespondenciaFormComponent implements OnInit {
     const dentro10Dias = new Date(now);
     dentro10Dias.setDate(dentro10Dias.getDate() + 10);
     this.form.fechaLimiteRespuesta = dentro10Dias.toISOString().split('T')[0];
+  }
+
+  onTicketCategoriaChange() {
+    this.form.ticketIdSubcategoria = null;
+    this.subcategorias = [];
+    if (this.form.ticketIdCategoria) {
+      this.catSvc.getSubcategorias(this.form.ticketIdCategoria).subscribe(r => this.subcategorias = r);
+    }
   }
 
   armarDestinatarios() {
@@ -280,7 +294,10 @@ export class CorrespondenciaFormComponent implements OnInit {
       observaciones: this.form.observaciones || null,
       areasEtiquetadas: this.form.areasEtiquetadas,
       idsReferencias: this.form.idsReferencias,
-      destinatarios: this.form.sentido === 'SALIDA' ? this.buildDestinatarios() : null
+      destinatarios: this.form.sentido === 'SALIDA' ? this.buildDestinatarios() : null,
+      ticketIdSistema: this.form.ticketIdSistema || null,
+      ticketIdCategoria: this.form.ticketIdCategoria || null,
+      ticketIdSubcategoria: this.form.ticketIdSubcategoria || null
     };
 
     this.svc.crear(body).subscribe({

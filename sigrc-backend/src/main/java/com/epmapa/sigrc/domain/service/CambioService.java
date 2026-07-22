@@ -42,10 +42,12 @@ public class CambioService {
         this.notificacionService = notificacionService;
     }
 
+    @Transactional(readOnly = true)
     public List<CambioDTO> listar() {
         return cambioRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public CambioDTO obtenerPorId(Integer id) {
         return toDTO(cambioRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Cambio no encontrado: " + id)));
