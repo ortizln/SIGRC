@@ -23,9 +23,6 @@ export class CatalogosComponent implements OnInit {
   editandoId: number | null = null;
   cargando = false;
 
-  seedMsg = '';
-  seedError = false;
-
   menuAbierto: number | null = null;
 
   constructor(private svc: CatalogoService) {}
@@ -129,34 +126,6 @@ export class CatalogosComponent implements OnInit {
         const msg = err.error?.error || 'Error al guardar. Verifique que el código no esté duplicado.';
         Swal.fire({ icon: 'error', title: 'Error', text: msg });
       }
-    });
-  }
-
-  seedData() {
-    Swal.fire({
-      title: '¿Poblar catálogos?',
-      text: 'Se insertarán datos de ejemplo solo si están vacíos.',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, poblar',
-      cancelButtonText: 'Cancelar'
-    }).then(r => {
-      if (!r.isConfirmed) return;
-      this.cargando = true;
-      this.seedMsg = '';
-      this.seedError = false;
-      this.svc.seed().subscribe({
-        next: (r: any) => {
-          this.seedMsg = `Datos creados: ${r.areas} áreas, ${r.sistemas} sistemas, ${r.categorias} categorías, ${r.subcategorias} subcategorías.`;
-          this.cargando = false;
-          this.cargarAreas(); this.cargarSistemas(); this.cargarCategorias();
-        },
-        error: (e) => {
-          this.seedError = true;
-          this.seedMsg = e.error?.message || 'Error al poblar datos';
-          this.cargando = false;
-        }
-      });
     });
   }
 

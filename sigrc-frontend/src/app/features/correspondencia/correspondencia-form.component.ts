@@ -75,6 +75,11 @@ export class CorrespondenciaFormComponent implements OnInit {
     this.form.fechaLimiteRespuesta = dentro10Dias.toISOString().split('T')[0];
   }
 
+  prioridadBadgeClass(p: string): string {
+    const map: any = { ALTA: 'bg-danger', MEDIA: 'bg-warning text-dark', BAJA: 'bg-success' };
+    return map[p] || 'bg-secondary';
+  }
+
   onTicketCategoriaChange() {
     this.form.ticketIdSubcategoria = null;
     this.subcategorias = [];

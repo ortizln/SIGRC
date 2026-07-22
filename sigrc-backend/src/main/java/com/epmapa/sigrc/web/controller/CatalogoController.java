@@ -8,6 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ public class CatalogoController {
 
     @GetMapping("/areas")
     @Operation(summary = "Listar áreas")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<Area>> areas() {
         return ResponseEntity.ok(areaRepository.findByActivoTrueOrderByNombre());
     }
@@ -42,6 +44,7 @@ public class CatalogoController {
     @PostMapping("/areas")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Crear área")
+    @Transactional
     public ResponseEntity<Area> crearArea(@RequestBody Area area) {
         area.setIdArea(null);
         area.setActivo(true);
@@ -51,6 +54,7 @@ public class CatalogoController {
     @PutMapping("/areas/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Actualizar área")
+    @Transactional
     public ResponseEntity<Area> actualizarArea(@PathVariable Integer id, @RequestBody Area dto) {
         var area = areaRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Área no encontrada: " + id));
@@ -64,6 +68,7 @@ public class CatalogoController {
     @DeleteMapping("/areas/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Desactivar área")
+    @Transactional
     public ResponseEntity<Void> eliminarArea(@PathVariable Integer id) {
         var area = areaRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Área no encontrada: " + id));
@@ -75,6 +80,7 @@ public class CatalogoController {
     @DeleteMapping("/areas/{id}/hard")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Eliminar área permanentemente")
+    @Transactional
     public ResponseEntity<Map<String, Object>> eliminarAreaHard(@PathVariable Integer id) {
         var area = areaRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Área no encontrada: " + id));
@@ -89,6 +95,7 @@ public class CatalogoController {
 
     @GetMapping("/sistemas")
     @Operation(summary = "Listar sistemas")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<Sistema>> sistemas() {
         return ResponseEntity.ok(sistemaRepository.findByActivoTrueOrderByNombre());
     }
@@ -96,15 +103,18 @@ public class CatalogoController {
     @PostMapping("/sistemas")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Crear sistema")
+    @Transactional
     public ResponseEntity<Sistema> crearSistema(@RequestBody Sistema sistema) {
         sistema.setIdSistema(null);
         sistema.setActivo(true);
+        if (sistema.getEstado() == null) sistema.setEstado("ACTIVO");
         return ResponseEntity.ok(sistemaRepository.save(sistema));
     }
 
     @PutMapping("/sistemas/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Actualizar sistema")
+    @Transactional
     public ResponseEntity<Sistema> actualizarSistema(@PathVariable Integer id, @RequestBody Sistema dto) {
         var sistema = sistemaRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Sistema no encontrado: " + id));
@@ -121,6 +131,7 @@ public class CatalogoController {
     @DeleteMapping("/sistemas/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Desactivar sistema")
+    @Transactional
     public ResponseEntity<Void> eliminarSistema(@PathVariable Integer id) {
         var sistema = sistemaRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Sistema no encontrado: " + id));
@@ -132,6 +143,7 @@ public class CatalogoController {
     @DeleteMapping("/sistemas/{id}/hard")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Eliminar sistema permanentemente")
+    @Transactional
     public ResponseEntity<Map<String, Object>> eliminarSistemaHard(@PathVariable Integer id) {
         var sistema = sistemaRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Sistema no encontrado: " + id));
@@ -146,6 +158,7 @@ public class CatalogoController {
 
     @GetMapping("/categorias")
     @Operation(summary = "Listar categorías")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<Categoria>> categorias() {
         return ResponseEntity.ok(categoriaRepository.findByActivoTrueOrderByNombre());
     }
@@ -153,6 +166,7 @@ public class CatalogoController {
     @PostMapping("/categorias")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Crear categoría")
+    @Transactional
     public ResponseEntity<Categoria> crearCategoria(@RequestBody Categoria categoria) {
         categoria.setIdCategoria(null);
         categoria.setActivo(true);
@@ -162,6 +176,7 @@ public class CatalogoController {
     @PutMapping("/categorias/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Actualizar categoría")
+    @Transactional
     public ResponseEntity<Categoria> actualizarCategoria(@PathVariable Integer id, @RequestBody Categoria dto) {
         var cat = categoriaRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada: " + id));
@@ -175,6 +190,7 @@ public class CatalogoController {
     @DeleteMapping("/categorias/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Desactivar categoría")
+    @Transactional
     public ResponseEntity<Void> eliminarCategoria(@PathVariable Integer id) {
         var cat = categoriaRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada: " + id));
@@ -186,6 +202,7 @@ public class CatalogoController {
     @DeleteMapping("/categorias/{id}/hard")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Eliminar categoría permanentemente")
+    @Transactional
     public ResponseEntity<Map<String, Object>> eliminarCategoriaHard(@PathVariable Integer id) {
         var cat = categoriaRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada: " + id));
@@ -200,6 +217,7 @@ public class CatalogoController {
 
     @GetMapping("/subcategorias/{idCategoria}")
     @Operation(summary = "Listar subcategorías por categoría")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<Subcategoria>> subcategorias(@PathVariable Integer idCategoria) {
         return ResponseEntity.ok(subcategoriaRepository.findByCategoriaIdCategoriaAndActivoTrue(idCategoria));
     }
@@ -207,6 +225,7 @@ public class CatalogoController {
     @PostMapping("/subcategorias")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Crear subcategoría")
+    @Transactional
     public ResponseEntity<Subcategoria> crearSubcategoria(@RequestBody Subcategoria sc) {
         sc.setIdSubcategoria(null);
         sc.setActivo(true);
@@ -216,6 +235,7 @@ public class CatalogoController {
     @PutMapping("/subcategorias/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Actualizar subcategoría")
+    @Transactional
     public ResponseEntity<Subcategoria> actualizarSubcategoria(@PathVariable Integer id, @RequestBody Subcategoria dto) {
         var sc = subcategoriaRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Subcategoría no encontrada: " + id));
@@ -230,6 +250,7 @@ public class CatalogoController {
     @DeleteMapping("/subcategorias/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Desactivar subcategoría")
+    @Transactional
     public ResponseEntity<Void> eliminarSubcategoria(@PathVariable Integer id) {
         var sc = subcategoriaRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Subcategoría no encontrada: " + id));
@@ -241,6 +262,7 @@ public class CatalogoController {
     @DeleteMapping("/subcategorias/{id}/hard")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Eliminar subcategoría permanentemente")
+    @Transactional
     public ResponseEntity<Map<String, Object>> eliminarSubcategoriaHard(@PathVariable Integer id) {
         var sc = subcategoriaRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Subcategoría no encontrada: " + id));
@@ -256,6 +278,7 @@ public class CatalogoController {
     @PostMapping("/seed")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Poblar datos iniciales de catálogos")
+    @Transactional
     public ResponseEntity<Map<String, Integer>> seed() {
         int areas = 0, sistemas = 0, categorias = 0, subcategorias = 0;
 

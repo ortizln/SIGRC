@@ -59,6 +59,16 @@
         <span *ngIf="!collapsed">Reportes</span>
       </a>
 
+      <div class="nav-section-title" *ngIf="!collapsed">Configuración</div>
+      <a routerLink="/app-movil" routerLinkActive="active" class="nav-item" *ngIf="canModulo('APP_MOVIL', 'LECTURA')">
+        <i class="pi pi-mobile sidebar-icon"></i>
+        <span *ngIf="!collapsed">App Móvil</span>
+      </a>
+      <a routerLink="/carrusel" routerLinkActive="active" class="nav-item" *ngIf="canModulo('CARRUSEL', 'LECTURA')">
+        <i class="pi pi-images sidebar-icon"></i>
+        <span *ngIf="!collapsed">Carrusel</span>
+      </a>
+
       <div class="nav-section-title" *ngIf="!collapsed">Consultas</div>
       <a routerLink="/conocimiento" routerLinkActive="active" class="nav-item" *ngIf="canModulo('CONOCIMIENTO', 'LECTURA')">
         <i class="pi pi-book sidebar-icon"></i>

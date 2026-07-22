@@ -35,6 +35,7 @@ public class TicketAdjuntoService {
         this.adjuntoRepository = adjuntoRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<TicketAdjunto> listarPorTicket(Integer idTicket) {
         return adjuntoRepository.findByTicketIdTicket(idTicket);
     }
@@ -87,6 +88,7 @@ public class TicketAdjuntoService {
         }
     }
 
+    @Transactional(readOnly = true)
     public TicketAdjunto obtenerInfo(Integer idAdjunto) {
         return adjuntoRepository.findById(idAdjunto)
                 .orElseThrow(() -> new EntityNotFoundException("Archivo no encontrado: " + idAdjunto));

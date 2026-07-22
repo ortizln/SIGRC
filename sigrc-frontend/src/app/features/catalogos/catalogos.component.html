@@ -11,21 +11,10 @@
     <button class="btn btn-sm" [class.btn-primary]="tabActivo === 'subcategorias'" [class.btn-outline-secondary]="tabActivo !== 'subcategorias'" (click)="onTab('subcategorias')">Subcategorías</button>
   </div>
 
-  <div class="alert alert-success py-2 px-3 mb-2 d-flex justify-content-between align-items-center" *ngIf="seedMsg && !seedError">
-    <small>{{ seedMsg }}</small>
-    <button class="btn btn-sm btn-outline-success" (click)="seedMsg = ''">×</button>
-  </div>
-  <div class="alert alert-danger py-2 px-3 mb-2" *ngIf="seedMsg && seedError">
-    <small>{{ seedMsg }}</small>
-  </div>
-
   <div class="card-modern p-0">
     <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
       <h6 class="fw-bold mb-0 text-capitalize">{{ tabActivo }}</h6>
       <div class="d-flex gap-2">
-        <button class="btn btn-outline-secondary btn-sm" (click)="seedData()" [disabled]="cargando">
-          <i class="pi pi-refresh" style="font-size:0.7rem;"></i> Poblar datos
-        </button>
         <button class="btn btn-primary btn-sm" (click)="nuevo()">+ Nuevo</button>
       </div>
     </div>

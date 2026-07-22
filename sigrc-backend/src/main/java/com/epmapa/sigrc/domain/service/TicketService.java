@@ -203,6 +203,7 @@ public class TicketService {
         historialRepository.save(historial);
     }
 
+    @Transactional(readOnly = true)
     public List<TicketComentario> obtenerComentarios(Integer idTicket) {
         return comentarioRepository.findByTicket_IdTicketOrderByCreadoEnDesc(idTicket);
     }

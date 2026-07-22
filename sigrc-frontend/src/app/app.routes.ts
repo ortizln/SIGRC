@@ -29,6 +29,8 @@ export const routes: Routes = [
       { path: 'roles', loadComponent: () => import('./features/roles/roles.component').then(c => c.RolesComponent) },
       { path: 'catalogos', loadComponent: () => import('./features/catalogos/catalogos.component').then(c => c.CatalogosComponent) },
       { path: 'reportes', loadComponent: () => import('./features/reportes/reportes.component').then(c => c.ReportesComponent) },
+      { path: 'app-movil', loadComponent: () => import('./features/app-movil/app-movil.component').then(c => c.AppMovilComponent) },
+      { path: 'carrusel', loadComponent: () => import('./features/carrusel/carrusel.component').then(c => c.CarruselComponent) },
     ]
   },
   { path: '**', redirectTo: 'dashboard' }

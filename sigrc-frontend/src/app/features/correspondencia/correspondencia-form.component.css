@@ -237,32 +237,51 @@
   padding: 0 0.2rem;
 }
 
-.ticket-preview {
-  margin-top: 0.75rem;
-  padding: 0.75rem;
-  background: #faf5ff;
+.ticket-preview-card {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
   border: 1px solid #e9d5ff;
-  border-radius: 0.5rem;
+  border-radius: 0.6rem;
+  padding: 1rem 1.25rem;
 }
-.ticket-preview-header {
-  font-size: 0.8rem;
+.ticket-preview-badge {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.ticket-preview-badge .badge {
+  font-size: 0.72rem;
   font-weight: 600;
-  color: #7c3aed;
-  margin-bottom: 0.5rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
 }
-.ticket-preview-header i {
-  margin-right: 0.35rem;
+.ticket-preview-subject {
+  font-size: 0.85rem;
+  color: #4c1d95;
+  margin-bottom: 0.3rem;
+}
+.ticket-preview-desc {
+  font-size: 0.78rem;
+  color: #6d28d9;
+}
+.ticket-preview-card hr {
+  border-color: #d8b4fe;
+  opacity: 0.5;
 }
 .ticket-preview-label {
   display: block;
   font-size: 0.65rem;
-  font-weight: 500;
-  color: #6b7280;
+  font-weight: 600;
+  color: #7c3aed;
   margin-bottom: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
-.ticket-preview-body {
-  margin-top: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+.ticket-preview-card .form-select-sm {
+  font-size: 0.78rem;
+  border-color: #d8b4fe;
+  background-color: #fefefe;
+}
+.ticket-preview-card .form-select-sm:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168,85,247,0.15);
 }

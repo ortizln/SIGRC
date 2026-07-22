@@ -1,0 +1,72 @@
+<div class="container-fluid px-0" style="max-width:900px;">
+  <div class="page-header">
+    <h2>App Móvil (APK)</h2>
+    <p>Administración de versiones de la aplicación móvil institucional</p>
+  </div>
+
+  <div class="card-modern p-4 mb-3">
+    <h6 class="fw-bold mb-3">Subir Nueva Versión</h6>
+    <div class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">Versión <span class="text-danger">*</span></label>
+        <input autocomplete="off" class="form-control form-control-sm" placeholder="ej: 1.0.0" [(ngModel)]="formVersion">
+      </div>
+      <div class="col-md-5">
+        <label class="form-label">Archivo APK <span class="text-danger">*</span></label>
+        <input autocomplete="off" type="file" accept=".apk,.aab" class="form-control form-control-sm" (change)="onArchivoSeleccionado($event)">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Descripción (opcional)</label>
+        <input autocomplete="off" class="form-control form-control-sm" placeholder="Novedades de esta versión" [(ngModel)]="formDescripcion">
+      </div>
+      <div class="col-12 d-flex gap-2">
+        <button class="btn btn-primary btn-sm" (click)="subir()" [disabled]="subiendo || !formVersion || !formArchivo">
+          <span *ngIf="subiendo" class="spinner-border spinner-border-sm me-1"></span>
+          Subir APK
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-modern p-0">
+    <div class="p-3 border-bottom">
+      <h6 class="fw-bold mb-0">Versiones Registradas</h6>
+    </div>
+    <div class="table-responsive">
+      <table class="table-modern">
+        <thead>
+          <tr>
+            <th>Versión</th>
+            <th>Nombre Archivo</th>
+            <th>Tamaño</th>
+            <th>Descripción</th>
+            <th>Subido</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let v of versiones" class="animate-fade-in">
+            <td><code class="fw-bold">{{ v.version }}</code></td>
+            <td class="text-muted small">{{ v.nombreArchivo }}</td>
+            <td>{{ formatearBytes(v.tamanioBytes) }}</td>
+            <td class="text-muted small">{{ v.descripcion || '—' }}</td>
+            <td class="small">{{ v.creadoEn | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <div class="quick-actions">
+                <button class="btn btn-soft-primary btn-xs" (click)="descargar(v)" title="Descargar APK">⬇</button>
+                <button class="btn btn-soft-primary btn-xs text-danger" (click)="eliminar(v)" title="Desactivar">✕</button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="versiones.length === 0">
+            <td colspan="6" class="empty-state">
+              <div class="empty-icon">📱</div>
+              <h5>No hay versiones subidas</h5>
+              <p>Suba la primera versión del APK usando el formulario superior</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
