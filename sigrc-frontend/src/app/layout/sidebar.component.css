@@ -311,13 +311,13 @@
   padding: 1rem 0;
 }
 
-/* ─── Desktop ─── */
-@media (min-width: 1024px) {
+/* ─── Desktop & Tablet: always visible ─── */
+@media (min-width: 768px) {
   .sidebar { transform: translateX(0); }
 }
 
-/* ─── Tablet & Mobile ─── */
-@media (max-width: 1023px) {
+/* ─── Mobile: overlay ─── */
+@media (max-width: 767px) {
   .sidebar {
     transform: translateX(-100%);
     width: 260px;

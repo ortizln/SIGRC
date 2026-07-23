@@ -2,7 +2,7 @@
 <app-sidebar
   [collapsed]="sidebarCollapsed"
   [mobileOpen]="sidebarMobileOpen"
-  (click)="onSidebarNavClick()">
+  (closeMobile)="closeMobile()">
 </app-sidebar>
 <main class="main-content" [class.sidebar-collapsed]="sidebarCollapsed">
   <router-outlet></router-outlet>

@@ -50,7 +50,8 @@
         <div class="col-md-3">
           <label class="form-label">Tipo Documento <span class="text-danger">*</span></label>
           <select autocomplete="off" #tipoModel="ngModel" [(ngModel)]="form.idTipoDocumento" name="idTipoDocumento" required class="form-select"
-                  [class.is-invalid]="tipoModel.invalid && tipoModel.touched">
+                  [class.is-invalid]="tipoModel.invalid && tipoModel.touched"
+                  (change)="onTipoDocumentoChange()">
             <option [ngValue]="null">Seleccione...</option>
             <option *ngFor="let t of tiposDocumento" [value]="t.idTipoDocumento">{{ t.nombre }}</option>
           </select>
@@ -213,6 +214,10 @@
         <div class="d-flex flex-wrap gap-1 mb-2" *ngIf="referenciasSeleccionadas.length > 0">
           <span *ngFor="let r of referenciasSeleccionadas" class="referencia-pill">
             <code>{{ r.codigoDocumento }}</code>
+            <button type="button" class="btn btn-sm btn-outline-success ms-1 px-1" style="line-height:1;font-size:0.6rem;border:0;"
+                    (click)="abrirPreviewReferencia(r)">
+              <i class="pi pi-eye"></i>
+            </button>
             <button type="button" class="pill-remove" (click)="removerReferencia(r.idCorrespondencia)">&times;</button>
           </span>
         </div>
@@ -283,13 +288,44 @@
           <label class="form-label">Fecha Límite</label>
           <input autocomplete="off" [(ngModel)]="form.fechaLimiteRespuesta" name="fechaLimiteRespuesta" type="date" class="form-control">
         </div>
-        <div class="col-md-4" *ngIf="form.sentido === 'SALIDA'">
+        <div class="col-md-5" *ngIf="form.sentido === 'SALIDA' && !esMemoSalidaTics()">
           <label class="form-label">Vincular Ticket</label>
-          <select [(ngModel)]="form.idTicketVinculado" name="idTicketVinculado" class="form-select">
-            <option [ngValue]="null">Ninguno</option>
-            <option *ngFor="let t of ticketsDisponibles" [value]="t.idTicket">{{ t.numeroTicket }} — {{ t.asunto }}</option>
+          <ng-container *ngIf="!ticketVinculadoPreview">
+            <div class="ticket-search-wrapper">
+              <input autocomplete="off" class="form-control" placeholder="Buscar por número o asunto..."
+                     [(ngModel)]="busquedaTicket" name="busquedaTicket"
+                     (input)="filtrarTickets()" (focus)="filtrarTickets()"
+                     (keydown.enter)="sugerenciasTicket.length > 0 && seleccionarTicket(sugerenciasTicket[0])"
+                     (blur)="cerrarSugerenciasTicket()">
+              <div class="sugerencias-dropdown" *ngIf="sugerenciasTicket.length > 0">
+                <button type="button" *ngFor="let t of sugerenciasTicket" class="sugerencia-item"
+                        (mousedown)="seleccionarTicket(t); $event.preventDefault()">
+                  <span><strong>{{ t.numeroTicket }}</strong> — {{ t.asunto }}</span>
+                  <small>{{ t.tipo }} · {{ t.estado }}</small>
+                </button>
+              </div>
+            </div>
+            <div class="form-text">Ticket al que responde este documento</div>
+          </ng-container>
+          <div *ngIf="ticketVinculadoPreview" class="d-flex align-items-center gap-2 mt-1">
+            <span class="ticket-vinculado-pill">
+              <strong>{{ ticketVinculadoPreview.numeroTicket }}</strong>
+              <span class="text-truncate" style="max-width:160px;">{{ ticketVinculadoPreview.asunto }}</span>
+              <button type="button" class="btn btn-sm btn-outline-primary ms-1 px-2" style="line-height:1;font-size:0.65rem;"
+                      (click)="abrirPreviewTicket(ticketVinculadoPreview)">
+                <i class="pi pi-eye"></i>
+              </button>
+              <button type="button" class="pill-remove" (click)="removerTicketVinculado()">&times;</button>
+            </span>
+          </div>
+        </div>
+        <div class="col-md-4" *ngIf="form.sentido === 'SALIDA' && esMemoSalidaTics()">
+          <label class="form-label">Cerrar Ticket Pendiente</label>
+          <select [(ngModel)]="form.idTicketCerrar" name="idTicketCerrar" class="form-select">
+            <option [ngValue]="null">Seleccione ticket a cerrar</option>
+            <option *ngFor="let t of ticketsPendientes" [value]="t.idTicket">{{ t.numeroTicket }} — {{ t.asunto }}</option>
           </select>
-          <div class="form-text">Ticket al que responde este documento</div>
+          <div class="form-text">Se cerrará automáticamente al guardar el documento</div>
         </div>
         <div class="col-md-4" *ngIf="form.sentido !== 'SALIDA'">
           <div class="form-check">
@@ -395,4 +431,123 @@
       </button>
     </div>
   </form>
+</div>
+
+<!-- Modal Preview Documento -->
+<div class="modal-overlay" *ngIf="mostrarModalReferencia" (click)="cerrarPreviewReferencia()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h5><i class="pi pi-file me-2"></i>Detalle del Documento</h5>
+      <button type="button" class="btn-close-modal" (click)="cerrarPreviewReferencia()">&times;</button>
+    </div>
+    <div class="modal-body" *ngIf="referenciaPreviewData">
+      <div class="d-flex gap-2 mb-3">
+        <span class="badge bg-primary">{{ referenciaPreviewData.tipoDocumentoNombre || referenciaPreviewData.sentido }}</span>
+        <span class="badge" [ngClass]="prioridadBadgeClass(referenciaPreviewData.prioridad)">{{ referenciaPreviewData.prioridad }}</span>
+        <span class="badge bg-secondary">{{ referenciaPreviewData.estado }}</span>
+      </div>
+      <div class="ticket-detail-row">
+        <span class="ticket-detail-label">Código</span>
+        <span class="ticket-detail-value">{{ referenciaPreviewData.codigoDocumento }}</span>
+      </div>
+      <div class="ticket-detail-row">
+        <span class="ticket-detail-label">N° Interno</span>
+        <span class="ticket-detail-value">{{ referenciaPreviewData.numeroInterno }}</span>
+      </div>
+      <div class="ticket-detail-row">
+        <span class="ticket-detail-label">Tipo</span>
+        <span class="ticket-detail-value">{{ referenciaPreviewData.tipoDocumentoNombre }}</span>
+      </div>
+      <div class="ticket-detail-row">
+        <span class="ticket-detail-label">Asunto</span>
+        <span class="ticket-detail-value">{{ referenciaPreviewData.asunto }}</span>
+      </div>
+      <div class="ticket-detail-row" *ngIf="referenciaPreviewData.resumenEjecutivo">
+        <span class="ticket-detail-label">Resumen</span>
+        <span class="ticket-detail-value">{{ referenciaPreviewData.resumenEjecutivo }}</span>
+      </div>
+      <div class="ticket-detail-row">
+        <span class="ticket-detail-label">Sentido</span>
+        <span class="ticket-detail-value">{{ referenciaPreviewData.sentido === 'SALIDA' ? 'Salida' : 'Ingreso' }}</span>
+      </div>
+      <div class="ticket-detail-row" *ngIf="referenciaPreviewData.personaEntrega">
+        <span class="ticket-detail-label">Persona</span>
+        <span class="ticket-detail-value">{{ referenciaPreviewData.personaEntrega }}</span>
+      </div>
+      <div class="ticket-detail-row">
+        <span class="ticket-detail-label">Fecha Recep.</span>
+        <span class="ticket-detail-value">{{ referenciaPreviewData.fechaRecepcion }} {{ referenciaPreviewData.horaRecepcion }}</span>
+      </div>
+      <div class="ticket-detail-row" *ngIf="referenciaPreviewData.creadoPorNombre">
+        <span class="ticket-detail-label">Creado por</span>
+        <span class="ticket-detail-value">{{ referenciaPreviewData.creadoPorNombre }}</span>
+      </div>
+      <div class="ticket-detail-row" *ngIf="referenciaPreviewData.observaciones">
+        <span class="ticket-detail-label">Observaciones</span>
+        <span class="ticket-detail-value">{{ referenciaPreviewData.observaciones }}</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cerrarPreviewReferencia()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Preview Ticket -->
+<div class="modal-overlay" *ngIf="mostrarModalTicket" (click)="cerrarPreviewTicket()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h5><i class="pi pi-ticket me-2"></i>Detalle del Ticket</h5>
+      <button type="button" class="btn-close-modal" (click)="cerrarPreviewTicket()">&times;</button>
+    </div>
+    <div class="modal-body" *ngIf="ticketPreviewData">
+      <div class="d-flex gap-2 mb-3">
+        <span class="badge" [ngClass]="tipoTicketBadgeClass(ticketPreviewData.tipo)">{{ ticketPreviewData.tipo }}</span>
+        <span class="badge" [ngClass]="estadoBadgeClass(ticketPreviewData.estado)">{{ ticketPreviewData.estadoDisplay || ticketPreviewData.estado }}</span>
+        <span class="badge" [ngClass]="prioridadBadgeClass(ticketPreviewData.prioridad)">{{ ticketPreviewData.prioridad }}</span>
+      </div>
+      <div class="ticket-detail-row">
+        <span class="ticket-detail-label">N° Ticket</span>
+        <span class="ticket-detail-value">{{ ticketPreviewData.numeroTicket }}</span>
+      </div>
+      <div class="ticket-detail-row">
+        <span class="ticket-detail-label">Asunto</span>
+        <span class="ticket-detail-value">{{ ticketPreviewData.asunto }}</span>
+      </div>
+      <div class="ticket-detail-row" *ngIf="ticketPreviewData.descripcion">
+        <span class="ticket-detail-label">Descripción</span>
+        <span class="ticket-detail-value">{{ ticketPreviewData.descripcion }}</span>
+      </div>
+      <div class="ticket-detail-row">
+        <span class="ticket-detail-label">Solicitante</span>
+        <span class="ticket-detail-value">{{ ticketPreviewData.solicitanteNombre }}</span>
+      </div>
+      <div class="ticket-detail-row" *ngIf="ticketPreviewData.responsableNombre">
+        <span class="ticket-detail-label">Responsable</span>
+        <span class="ticket-detail-value">{{ ticketPreviewData.responsableNombre }}</span>
+      </div>
+      <div class="ticket-detail-row" *ngIf="ticketPreviewData.sistemaNombre">
+        <span class="ticket-detail-label">Sistema</span>
+        <span class="ticket-detail-value">{{ ticketPreviewData.sistemaNombre }}</span>
+      </div>
+      <div class="ticket-detail-row" *ngIf="ticketPreviewData.categoriaNombre">
+        <span class="ticket-detail-label">Categoría</span>
+        <span class="ticket-detail-value">
+          {{ ticketPreviewData.categoriaNombre }}
+          <span *ngIf="ticketPreviewData.subcategoriaNombre"> / {{ ticketPreviewData.subcategoriaNombre }}</span>
+        </span>
+      </div>
+      <div class="ticket-detail-row">
+        <span class="ticket-detail-label">Creado</span>
+        <span class="ticket-detail-value">{{ ticketPreviewData.creadoEn | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <div class="ticket-detail-row" *ngIf="ticketPreviewData.areaNombre">
+        <span class="ticket-detail-label">Área</span>
+        <span class="ticket-detail-value">{{ ticketPreviewData.areaNombre }}</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cerrarPreviewTicket()">Cerrar</button>
+    </div>
+  </div>
 </div>

@@ -27,6 +27,7 @@ export class CorrespondenciaFormComponent implements OnInit {
     generaTicket: false, observaciones: '', areasEtiquetadas: [],
     idsReferencias: [], destinatariosSeleccionados: [],
     idTicketVinculado: null,
+    idTicketCerrar: null,
     ticketIdSistema: null, ticketIdCategoria: null, ticketIdSubcategoria: null
   };
   tiposDocumento: any[] = [];
@@ -46,7 +47,19 @@ export class CorrespondenciaFormComponent implements OnInit {
   documentosReferencia: any[] = [];
   referenciasSeleccionadas: any[] = [];
   ticketsDisponibles: any[] = [];
+  ticketsPendientes: any[] = [];
+  usuarioActual = this.auth.getUsuario();
+
+  busquedaTicket = '';
+  sugerenciasTicket: any[] = [];
+  ticketVinculadoPreview: any = null;
+  mostrarModalTicket = false;
+  ticketPreviewData: any = null;
+  mostrarModalReferencia = false;
+  referenciaPreviewData: any = null;
+
   private timerBusqueda: any;
+  private timerTicketBusqueda: any;
 
   constructor(
     private svc: CorrespondenciaService,
@@ -73,6 +86,12 @@ export class CorrespondenciaFormComponent implements OnInit {
     const dentro10Dias = new Date(now);
     dentro10Dias.setDate(dentro10Dias.getDate() + 10);
     this.form.fechaLimiteRespuesta = dentro10Dias.toISOString().split('T')[0];
+  }
+
+  onTipoDocumentoChange() {
+    if (!this.esMemoSalidaTics()) {
+      this.form.idTicketCerrar = null;
+    }
   }
 
   prioridadBadgeClass(p: string): string {
@@ -137,21 +156,117 @@ export class CorrespondenciaFormComponent implements OnInit {
     return u ? `${u.nombres} ${u.apellidos}` : '—';
   }
 
+  esMemoSalidaTics(): boolean {
+    if (this.form.sentido !== 'SALIDA') return false;
+    const tipo = this.tiposDocumento.find(t => t.idTipoDocumento === this.form.idTipoDocumento);
+    if (!tipo || tipo.codigo !== 'MEMORANDO') return false;
+    const area = (this.usuarioActual?.areaNombre || '').toLowerCase();
+    return area.includes('tic') || area === 'sistemas';
+  }
+
   onSentidoChange() {
     if (this.form.sentido === 'SALIDA') {
       this.form.idTicketVinculado = null;
+      this.form.idTicketCerrar = null;
+      this.ticketVinculadoPreview = null;
+      this.busquedaTicket = '';
       this.cargarTickets();
+      this.cargarTicketsPendientes();
     } else {
       this.form.idsReferencias = [];
       this.form.destinatariosSeleccionados = [];
       this.form.personaEntrega = '';
       this.form.idTicketVinculado = null;
+      this.form.idTicketCerrar = null;
+      this.ticketVinculadoPreview = null;
+      this.busquedaTicket = '';
     }
   }
 
+  cargarTicketsPendientes() {
+    this.ticketSvc.listar({ pagina: 0, tamanio: 200, sortBy: 'creado_en', sortDir: 'desc' })
+      .subscribe(r => {
+        this.ticketsPendientes = r.contenido.filter(
+          (t: any) => t.estado !== 'CERRADO' && t.estado !== 'RECHAZADO'
+        );
+      });
+  }
+
   cargarTickets() {
-    this.ticketSvc.listar({ pagina: 0, tamanio: 100, sortBy: 'creado_en', sortDir: 'desc' })
+    this.ticketSvc.listar({ pagina: 0, tamanio: 200, sortBy: 'creado_en', sortDir: 'desc' })
       .subscribe(r => this.ticketsDisponibles = r.contenido);
+  }
+
+  filtrarTickets() {
+    if (this.timerTicketBusqueda) clearTimeout(this.timerTicketBusqueda);
+    this.timerTicketBusqueda = setTimeout(() => {
+      const texto = this.busquedaTicket?.toLowerCase().trim() || '';
+      if (!texto) {
+        this.sugerenciasTicket = this.ticketsDisponibles.slice(0, 10);
+      } else {
+        this.sugerenciasTicket = this.ticketsDisponibles.filter(t =>
+          t.numeroTicket?.toLowerCase().includes(texto) ||
+          t.asunto?.toLowerCase().includes(texto) ||
+          t.numeroTicket?.toLowerCase().includes(texto.replace(/[^a-z0-9]/g, ''))
+        ).slice(0, 10);
+      }
+    }, 200);
+  }
+
+  cerrarSugerenciasTicket() {
+    setTimeout(() => this.sugerenciasTicket = [], 200);
+  }
+
+  seleccionarTicket(t: any) {
+    this.form.idTicketVinculado = t.idTicket;
+    this.ticketVinculadoPreview = t;
+    this.busquedaTicket = '';
+    this.sugerenciasTicket = [];
+  }
+
+  removerTicketVinculado() {
+    this.form.idTicketVinculado = null;
+    this.ticketVinculadoPreview = null;
+  }
+
+  abrirPreviewTicket(t: any) {
+    this.ticketPreviewData = t;
+    this.mostrarModalTicket = true;
+  }
+
+  cerrarPreviewTicket() {
+    this.mostrarModalTicket = false;
+    this.ticketPreviewData = null;
+  }
+
+  abrirPreviewReferencia(r: any) {
+    this.referenciaPreviewData = r;
+    this.mostrarModalReferencia = true;
+  }
+
+  cerrarPreviewReferencia() {
+    this.mostrarModalReferencia = false;
+    this.referenciaPreviewData = null;
+  }
+
+  estadoBadgeClass(estado: string): string {
+    const map: any = {
+      NUEVO: 'bg-secondary',
+      ASIGNADO: 'bg-info',
+      EN_ANALISIS: 'bg-warning text-dark',
+      EN_DESARROLLO: 'bg-primary',
+      EN_PRUEBAS: 'bg-info',
+      PENDIENTE_USUARIO: 'bg-warning text-dark',
+      RESUELTO: 'bg-success',
+      CERRADO: 'bg-dark',
+      RECHAZADO: 'bg-danger'
+    };
+    return map[estado] || 'bg-secondary';
+  }
+
+  tipoTicketBadgeClass(tipo: string): string {
+    const map: any = { INCIDENCIA: 'bg-danger', REQUERIMIENTO: 'bg-primary', CAMBIO: 'bg-warning text-dark' };
+    return map[tipo] || 'bg-secondary';
   }
 
   buscarReferencias() {
@@ -315,6 +430,10 @@ export class CorrespondenciaFormComponent implements OnInit {
 
         if (this.form.sentido === 'SALIDA' && this.form.idTicketVinculado) {
           this.svc.vincularTicket(id, this.form.idTicketVinculado).subscribe();
+        }
+        if (this.form.sentido === 'SALIDA' && this.form.idTicketCerrar) {
+          this.ticketSvc.cambiarEstado(this.form.idTicketCerrar, 'CERRADO', this.usuarioActual.idUsuario)
+            .subscribe();
         }
 
         this.router.navigate(['/correspondencia', id]);

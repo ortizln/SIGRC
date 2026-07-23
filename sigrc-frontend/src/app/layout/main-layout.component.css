@@ -42,7 +42,8 @@
   color: #64748b;
 }
 
-@media (min-width: 768px) and (max-width: 1023px) {
+/* Collapsed sidebar on desktop & tablet */
+@media (min-width: 768px) {
   .main-content.sidebar-collapsed {
     margin-left: 64px;
   }
@@ -52,12 +53,25 @@
   }
 }
 
-@media (max-width: 1023px) {
+/* Mobile: sidebar is overlay, content is full width */
+@media (max-width: 767px) {
   .main-content {
     margin-left: 0;
+    padding: 1rem;
   }
 
   .app-footer {
     margin-left: 0;
+    padding: 0 1rem;
+    font-size: 0.65rem;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .footer-logo {
+    display: none;
   }
 }

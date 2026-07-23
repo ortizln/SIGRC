@@ -1,5 +1,5 @@
 <aside class="sidebar" [class.collapsed]="collapsed" [class.mobile-open]="mobileOpen">
-  <div class="sidebar-overlay" (click)="mobileOpen = false"></div>
+  <div class="sidebar-overlay" (click)="closeMobile.emit()"></div>
 
   <div class="sidebar-inner">
     <div class="sidebar-brand">

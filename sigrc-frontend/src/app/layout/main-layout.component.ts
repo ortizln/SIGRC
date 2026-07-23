@@ -1,5 +1,7 @@
-import { Component, HostListener } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil, filter } from 'rxjs/operators';
 import { SidebarComponent } from './sidebar.component';
 import { HeaderComponent } from './header.component';
 
@@ -10,41 +12,39 @@ import { HeaderComponent } from './header.component';
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css'
 })
-export class MainLayoutComponent {
+export class MainLayoutComponent implements OnInit, OnDestroy {
   sidebarCollapsed = false;
   sidebarMobileOpen = false;
+  private destroy$ = new Subject<void>();
 
-  constructor() {
-    this.checkScreenSize();
+  constructor(private router: Router) {}
+
+  ngOnInit() {
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      if (window.innerWidth < 768) {
+        this.sidebarMobileOpen = false;
+      }
+    });
   }
 
-  @HostListener('window:resize')
-  checkScreenSize() {
-    const width = window.innerWidth;
-    if (width >= 1024) {
-      this.sidebarCollapsed = false;
-      this.sidebarMobileOpen = false;
-    } else if (width >= 768) {
-      this.sidebarCollapsed = true;
-      this.sidebarMobileOpen = false;
-    } else {
-      this.sidebarCollapsed = false;
-      this.sidebarMobileOpen = false;
-    }
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   toggleSidebar() {
     const width = window.innerWidth;
-    if (width >= 768 && width < 1024) {
-      this.sidebarCollapsed = !this.sidebarCollapsed;
-    } else {
+    if (width < 768) {
       this.sidebarMobileOpen = !this.sidebarMobileOpen;
+    } else {
+      this.sidebarCollapsed = !this.sidebarCollapsed;
     }
   }
 
-  onSidebarNavClick() {
-    if (window.innerWidth < 1024) {
-      this.sidebarMobileOpen = false;
-    }
+  closeMobile() {
+    this.sidebarMobileOpen = false;
   }
 }

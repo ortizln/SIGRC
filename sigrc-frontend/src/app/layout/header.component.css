@@ -15,7 +15,7 @@
 }
 
 .hamburger-btn {
-  display: none;
+  display: flex;
   background: none;
   border: none;
   color: var(--text-secondary);
@@ -93,13 +93,8 @@
   .user-name { display: inline; }
 }
 
-@media (min-width: 1024px) {
-  .hamburger-btn { display: none; }
-}
-
 @media (max-width: 1023px) {
   .app-header {
     left: 0;
   }
-  .hamburger-btn { display: flex; }
 }

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { NotificationService } from '@core/services/notification.service';
@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
 export class SidebarComponent {
   @Input() collapsed = false;
   @Input() mobileOpen = false;
+  @Output() closeMobile = new EventEmitter<void>();
 
   usuario: any;
   notifAbierto = false;
