@@ -13,9 +13,12 @@
     <button class="btn btn-sm btn-outline-danger ms-auto flex-shrink-0" (click)="cargar()">Reintentar</button>
   </div>
 
-  <!-- KPI Cards -->
+  <!-- ===== SECCIÓN 1: KPIs TICKETS ===== -->
+  <div class="section-header">
+    <i class="pi pi-ticket"></i> Tickets
+  </div>
   <div class="kpi-grid">
-    <div class="kpi-card">
+    <div class="kpi-card clickable" (click)="openModal('ticket','abiertos')">
       <div class="kpi-icon" style="background:rgba(74,124,89,0.12);color:var(--primary);">
         <i class="pi pi-inbox"></i>
       </div>
@@ -24,7 +27,7 @@
         <div class="kpi-label">Tickets Abiertos</div>
       </div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card clickable" (click)="openModal('ticket','cerrados')">
       <div class="kpi-icon" style="background:rgba(34,197,94,0.12);color:var(--success);">
         <i class="pi pi-check-circle"></i>
       </div>
@@ -33,7 +36,7 @@
         <div class="kpi-label">Tickets Cerrados</div>
       </div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card clickable" (click)="openModal('ticket','vencidos')">
       <div class="kpi-icon" style="background:rgba(239,68,68,0.12);color:var(--danger);">
         <i class="pi pi-exclamation-circle"></i>
       </div>
@@ -41,11 +44,9 @@
         <div class="kpi-value">{{ data?.ticketsVencidos || 0 }}</div>
         <div class="kpi-label">Tickets Vencidos</div>
       </div>
-      <div class="kpi-badge" *ngIf="(data?.ticketsVencidos || 0) > 0">
-        Requiere atención
-      </div>
+      <div class="kpi-badge" *ngIf="(data?.ticketsVencidos || 0) > 0">Requiere atención</div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card clickable" (click)="openModal('ticket','sin-asignar')">
       <div class="kpi-icon" style="background:rgba(245,158,11,0.12);color:var(--warning);">
         <i class="pi pi-users"></i>
       </div>
@@ -77,9 +78,166 @@
     </div>
   </div>
 
-  <!-- Charts -->
+  <!-- ===== SECCIÓN 2: KPIs CORRESPONDENCIA ===== -->
+  <div class="section-header">
+    <i class="pi pi-inbox"></i> Correspondencia
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:rgba(74,124,89,0.12);color:var(--primary);">
+        <i class="pi pi-file"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ data?.totalDocumentos || 0 }}</div>
+        <div class="kpi-label">Total Documentos</div>
+      </div>
+    </div>
+    <div class="kpi-card clickable" (click)="openModal('documento','pendientes')">
+      <div class="kpi-icon" style="background:rgba(245,158,11,0.12);color:var(--warning);">
+        <i class="pi pi-clock"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ data?.pendientesRespuesta || 0 }}</div>
+        <div class="kpi-label">Pdtes. Respuesta</div>
+      </div>
+      <div class="kpi-badge" *ngIf="(data?.pendientesRespuesta || 0) > 0" style="background:rgba(245,158,11,0.1);color:var(--warning);">Atención</div>
+    </div>
+    <div class="kpi-card clickable" (click)="openModal('documento','vencidos')">
+      <div class="kpi-icon" style="background:rgba(239,68,68,0.12);color:var(--danger);">
+        <i class="pi pi-alert"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ data?.documentosVencidos || 0 }}</div>
+        <div class="kpi-label">Vencidos</div>
+      </div>
+      <div class="kpi-badge" *ngIf="(data?.documentosVencidos || 0) > 0">Requiere atención</div>
+    </div>
+    <div class="kpi-card clickable" (click)="openModal('documento','con-ticket')">
+      <div class="kpi-icon" style="background:rgba(59,130,246,0.12);color:var(--info);">
+        <i class="pi pi-link"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ data?.documentosQueGeneraronTicket || 0 }}</div>
+        <div class="kpi-label">Generaron Ticket</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:rgba(91,164,164,0.12);color:var(--secondary);">
+        <i class="pi pi-hourglass"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ (data?.tiempoPromedioRespuestaHoras || 0).toFixed(1) }}h</div>
+        <div class="kpi-label">Tpo. Prom. Respuesta</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECCIÓN 3: MEMOS PENDIENTES / VERSIÓN ACTUAL / ÚLTIMO CAMBIO ===== -->
   <div class="row g-3 mb-4">
-    <div class="col-md-6">
+    <div class="col-lg-6">
+      <div class="card-modern p-4 h-100">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-inbox" style="color:var(--warning);"></i> Memos Pendientes de Respuesta
+          <span class="badge bg-warning text-dark ms-auto">{{ data?.memosPendientes?.length || 0 }}</span>
+        </h6>
+        <div *ngIf="data?.memosPendientes?.length; else sinMemos">
+          <div class="memo-list">
+            <div class="memo-item clickable" *ngFor="let m of data?.memosPendientes" [class]="'memo-' + (m.prioridad || '').toLowerCase()" (click)="irAMemo(m)">
+              <div class="memo-left">
+                <span class="memo-priority" [class]="'badge-' + (m.prioridad || '').toLowerCase()">{{ m.prioridad }}</span>
+                <div class="memo-info">
+                  <strong class="memo-asunto">{{ m.asunto }}</strong>
+                  <div class="memo-meta">
+                    <span>{{ m.numeroInterno }}</span>
+                    <span *ngIf="m.departamentoRemitente"> &middot; {{ m.departamentoRemitente }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="memo-right">
+                <small class="text-muted">Límite:</small>
+                <span class="memo-fecha" [class.text-danger]="m.prioridad === 'CRITICA' || m.prioridad === 'ALTA'">{{ m.fechaLimite }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ng-template #sinMemos>
+          <div class="empty-state py-4">
+            <div class="empty-icon"><i class="pi pi-check-circle" style="font-size:2rem;color:var(--success);"></i></div>
+            <h5 class="text-success">Sin memos pendientes</h5>
+            <p>Todos los documentos tienen respuesta registrada</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="card-modern p-4 h-100 d-flex flex-column">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-box" style="color:var(--info);"></i> Versión del Sistema
+        </h6>
+        <div class="version-display text-center my-auto">
+          <div class="version-number">{{ data?.versionActual || '—' }}</div>
+          <div class="version-sistema text-muted">{{ data?.sistemaReciente || 'SIGRC' }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="card-modern p-4 h-100 d-flex flex-column">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-sync" style="color:var(--secondary);"></i> Último Cambio
+        </h6>
+        <div class="my-auto" *ngIf="data?.ultimoCambioDescripcion; else sinCambio">
+          <div class="cambio-titulo fw-semibold small mb-1">{{ data?.ultimoCambioDescripcion }}</div>
+          <div class="cambio-fecha text-muted" style="font-size:0.75rem;">
+            <i class="pi pi-calendar me-1"></i>{{ data?.fechaUltimoCambio }}
+          </div>
+        </div>
+        <ng-template #sinCambio>
+          <div class="text-center text-muted my-auto">
+            <i class="pi pi-minus-circle" style="font-size:1.5rem;opacity:0.5;"></i>
+            <p class="mt-1 small mb-0">Sin cambios registrados</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECCIÓN 4: KPIs CAMBIOS ===== -->
+  <div class="section-header">
+    <i class="pi pi-sync"></i> Cambios
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:rgba(59,130,246,0.12);color:var(--info);">
+        <i class="pi pi-hourglass"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ data?.cambiosSolicitados || 0 }}</div>
+        <div class="kpi-label">Solicitados</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:rgba(34,197,94,0.12);color:var(--success);">
+        <i class="pi pi-check"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ data?.cambiosAprobados || 0 }}</div>
+        <div class="kpi-label">Aprobados</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:rgba(74,124,89,0.12);color:var(--primary);">
+        <i class="pi pi-check-circle"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ data?.cambiosCompletados || 0 }}</div>
+        <div class="kpi-label">Completados</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECCIÓN 5: CHARTS ===== -->
+  <div class="row g-3 mb-4">
+    <div class="col-lg-4 col-md-6">
       <div class="card-modern p-4">
         <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
           <i class="pi pi-chart-pie" style="color:var(--primary);"></i> Tickets por Estado
@@ -87,7 +245,7 @@
         <div class="d-flex flex-column gap-2">
           <div *ngFor="let item of data?.ticketsPorEstado || []">
             <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="badge-estado" [class]="'badge-' + (item['estado'] + '').toLowerCase().replace('_','-')">{{ item['estado'] }}</span>
+              <span class="badge-estado" [class]="badgeClass(item['estado'])">{{ item['estado'] }}</span>
               <strong class="small">{{ item['cantidad'] }}</strong>
             </div>
             <div class="progress" style="height:6px;">
@@ -97,7 +255,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-lg-4 col-md-6">
       <div class="card-modern p-4">
         <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
           <i class="pi pi-chart-bar" style="color:var(--warning);"></i> Tickets por Prioridad
@@ -115,37 +273,179 @@
         </div>
       </div>
     </div>
+    <div class="col-lg-4 col-md-6">
+      <div class="card-modern p-4">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-inbox" style="color:var(--secondary);"></i> Documentos por Estado
+        </h6>
+        <div class="d-flex flex-column gap-2">
+          <div *ngFor="let item of data?.documentosPorEstado || []">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-semibold small">{{ item['estado'] }}</span>
+              <strong class="small">{{ item['cantidad'] }}</strong>
+            </div>
+            <div class="progress" style="height:6px;">
+              <div class="progress-bar bg-secondary" role="progressbar" [style.width.%]="barPercent(item['cantidad'])"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6 col-md-6">
+      <div class="card-modern p-4">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-sync" style="color:var(--info);"></i> Cambios por Estado
+        </h6>
+        <div class="d-flex flex-column gap-2">
+          <div *ngFor="let item of data?.cambiosPorEstado || []">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-semibold small">{{ item['estado'] }}</span>
+              <strong class="small">{{ item['cantidad'] }}</strong>
+            </div>
+            <div class="progress" style="height:6px;">
+              <div class="progress-bar bg-info" role="progressbar" [style.width.%]="barPercent(item['cantidad'])"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6 col-md-6">
+      <div class="card-modern p-4">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-chart-bar" style="color:var(--danger);"></i> Cambios por Impacto
+        </h6>
+        <div class="d-flex flex-column gap-2">
+          <div *ngFor="let item of data?.cambiosPorImpacto || []">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-semibold small" [class]="item['impacto'] === 'MUY_ALTO' || item['impacto'] === 'ALTO' ? 'text-danger' : item['impacto'] === 'MEDIO' ? 'text-warning' : 'text-success'">{{ item['impacto'] }}</span>
+              <strong class="small">{{ item['cantidad'] }}</strong>
+            </div>
+            <div class="progress" style="height:6px;">
+              <div class="progress-bar" role="progressbar" [style.width.%]="barPercent(item['cantidad'])" [class]="item['impacto'] === 'MUY_ALTO' || item['impacto'] === 'ALTO' ? 'bg-danger' : item['impacto'] === 'MEDIO' ? 'bg-warning' : 'bg-success'"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Tickets por Área -->
-  <div class="card-modern p-4">
-    <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
-      <i class="pi pi-building" style="color:var(--secondary);"></i> Tickets por Área
-    </h6>
-    <div class="table-responsive">
-      <table class="table-modern">
-        <thead>
-          <tr>
-            <th>Área</th>
-            <th class="text-end">Cantidad</th>
-            <th class="text-end">Porcentaje</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of data?.ticketsPorArea || []">
-            <td class="fw-medium">{{ item['area'] }}</td>
-            <td class="text-end">{{ item['cantidad'] }}</td>
-            <td class="text-end">
-              <div class="d-flex align-items-center gap-2 justify-content-end">
-                <div class="progress flex-grow-1" style="height:6px;max-width:120px;">
-                  <div class="progress-bar bg-info" role="progressbar" [style.width.%]="areaPercent(item['cantidad'])"></div>
-                </div>
-                <small class="text-muted">{{ areaPercent(item['cantidad']) }}%</small>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <!-- ===== SECCIÓN 6: TABLAS ===== -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card-modern p-4">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-building" style="color:var(--secondary);"></i> Tickets por Área
+        </h6>
+        <div class="table-responsive">
+          <table class="table-modern">
+            <thead>
+              <tr>
+                <th>Área</th>
+                <th class="text-end">Cantidad</th>
+                <th class="text-end">Porcentaje</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of data?.ticketsPorArea || []">
+                <td class="fw-medium">{{ item['area'] }}</td>
+                <td class="text-end">{{ item['cantidad'] }}</td>
+                <td class="text-end">
+                  <div class="d-flex align-items-center gap-2 justify-content-end">
+                    <div class="progress flex-grow-1" style="height:6px;max-width:120px;">
+                      <div class="progress-bar bg-info" role="progressbar" [style.width.%]="areaPercent(item['cantidad'])"></div>
+                    </div>
+                    <small class="text-muted">{{ areaPercent(item['cantidad']) }}%</small>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card-modern p-4">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-chart-line" style="color:var(--primary);"></i> Tendencias Mensuales
+        </h6>
+        <div class="d-flex flex-column gap-2">
+          <div *ngFor="let item of data?.tendenciasMensuales || []">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <small class="text-muted">{{ item['mes'] }}</small>
+              <strong class="small">{{ item['cantidad'] }}</strong>
+            </div>
+            <div class="progress" style="height:6px;">
+              <div class="progress-bar" role="progressbar" [style.width.%]="barPercent(item['cantidad'])" style="background:var(--primary);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal-overlay" *ngIf="modalVisible" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h5 class="modal-title">{{ modalTitle }}</h5>
+      <button class="modal-close" (click)="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="text-center py-4" *ngIf="modalLoading">
+        <i class="pi pi-spin pi-spinner" style="font-size:1.5rem;color:var(--primary);"></i>
+        <p class="mt-2 small text-muted">Cargando...</p>
+      </div>
+      <div class="table-responsive" *ngIf="!modalLoading && modalItems.length > 0">
+        <table class="table-modern">
+          <thead>
+            <tr>
+              <ng-container *ngIf="modalTipo === 'ticket'">
+                <th>N° Ticket</th>
+                <th>Asunto</th>
+                <th>Estado</th>
+                <th>Prioridad</th>
+                <th>Tipo</th>
+              </ng-container>
+              <ng-container *ngIf="modalTipo === 'documento'">
+                <th>N° Interno</th>
+                <th>Asunto</th>
+                <th>Estado</th>
+                <th>Prioridad</th>
+                <th>Remitente</th>
+              </ng-container>
+              <th class="text-end">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of modalItems; trackBy: trackById">
+              <ng-container *ngIf="modalTipo === 'ticket'">
+                <td class="fw-medium">{{ item.numeroTicket }}</td>
+                <td><span class="truncate-text">{{ item.asunto }}</span></td>
+                <td><span class="badge-estado" [class]="badgeClass(item.estado)">{{ item.estado }}</span></td>
+                <td><span [class.text-danger]="item.prioridad === 'CRITICA'" [class.text-warning]="item.prioridad === 'ALTA'" class="fw-semibold small">{{ item.prioridad }}</span></td>
+                <td class="small text-muted">{{ item.tipo }}</td>
+              </ng-container>
+              <ng-container *ngIf="modalTipo === 'documento'">
+                <td class="fw-medium">{{ item.numeroInterno }}</td>
+                <td><span class="truncate-text">{{ item.asunto }}</span></td>
+                <td><span class="fw-semibold small">{{ item.estado }}</span></td>
+                <td><span [class.text-danger]="item.prioridad === 'CRITICA'" [class.text-warning]="item.prioridad === 'ALTA'" class="fw-semibold small">{{ item.prioridad }}</span></td>
+                <td class="small text-muted">{{ item.departamentoRemitente }}</td>
+              </ng-container>
+              <td class="text-end">
+                <button class="btn btn-sm btn-soft-primary" (click)="irADetalle(item)">
+                  <i class="pi pi-external-link"></i> Ver
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="text-center py-4" *ngIf="!modalLoading && modalItems.length === 0">
+        <i class="pi pi-inbox" style="font-size:2rem;opacity:0.3;"></i>
+        <p class="mt-2 text-muted small">No hay registros en esta categoría</p>
+      </div>
     </div>
   </div>
 </div>

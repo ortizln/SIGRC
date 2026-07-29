@@ -83,4 +83,12 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
 
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.activo = true AND t.estado IN (:estados)")
     long contarCerrados(@Param("estados") List<String> estados);
+
+    @Query("SELECT t FROM Ticket t WHERE t.activo = true AND t.estado NOT IN ('CERRADO','RECHAZADO') ORDER BY t.creadoEn DESC")
+    List<Ticket> findAbiertos();
+
+    @Query("SELECT t FROM Ticket t WHERE t.activo = true AND t.estado IN ('CERRADO','RECHAZADO') ORDER BY t.creadoEn DESC")
+    List<Ticket> findCerrados();
+
+    List<Ticket> findByEstadoOrderByCreadoEnDesc(String estado);
 }

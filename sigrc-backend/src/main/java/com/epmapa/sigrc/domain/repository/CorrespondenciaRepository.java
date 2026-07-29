@@ -77,4 +77,12 @@ public interface CorrespondenciaRepository extends JpaRepository<Correspondencia
 
     @Query(value = "SELECT COALESCE(MAX(SPLIT_PART(numero_interno, '-', 3)::INTEGER), 0) FROM sigrc.correspondencia WHERE numero_interno LIKE ?1 || '-' || TO_CHAR(CURRENT_DATE, 'YYYY') || '-%'", nativeQuery = true)
     Integer maxCorrelativoPorPrefijo(String prefijo);
+
+    @Query("SELECT c FROM Correspondencia c WHERE c.activo = true AND c.sentido = 'INGRESO' AND c.requiereRespuesta = true AND c.estado NOT IN ('RESPONDIDO', 'ARCHIVADO') ORDER BY CASE c.prioridad WHEN 'CRITICA' THEN 0 WHEN 'ALTA' THEN 1 WHEN 'MEDIA' THEN 2 ELSE 3 END, c.fechaLimiteRespuesta ASC")
+    List<Correspondencia> findMemosPendientes();
+
+    @Query("SELECT c FROM Correspondencia c WHERE c.activo = true AND c.generaTicket = true ORDER BY c.creadoEn DESC")
+    List<Correspondencia> findQueGeneraronTicket();
+
+    List<Correspondencia> findByEstadoOrderByCreadoEnDesc(String estado);
 }
