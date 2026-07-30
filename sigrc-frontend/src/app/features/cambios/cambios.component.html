@@ -4,7 +4,7 @@
       <h2>Gestión de Cambios</h2>
       <p>Solicitudes de cambio, aprobaciones e implementaciones</p>
     </div>
-    <a routerLink="/cambios/nuevo" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+    <a routerLink="/cambios/nuevo" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1" *ngIf="puedeCrear">
       <span>+</span> Nueva Solicitud
     </a>
   </div>

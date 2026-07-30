@@ -4,7 +4,7 @@
       <h2>Roles y Permisos del Sistema</h2>
       <p>Definición de roles y asignación de permisos de acceso</p>
     </div>
-    <button class="btn btn-primary btn-sm" (click)="abrirRolForm()">
+    <button class="btn btn-primary btn-sm" (click)="abrirRolForm()" *ngIf="esAdmin">
       <span>+</span> Nuevo Rol
     </button>
   </div>
@@ -19,7 +19,7 @@
             <th>Nombre</th>
             <th>Descripción</th>
             <th>Estado</th>
-            <th>Acciones</th>
+            <th *ngIf="esAdmin">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -32,7 +32,7 @@
                 {{ r.activo ? 'Activo' : 'Inactivo' }}
               </span>
             </td>
-            <td>
+            <td *ngIf="esAdmin">
               <div class="quick-actions">
                 <button class="btn btn-soft-primary btn-xs" (click)="editarRol(r)" title="Editar rol">✎</button>
                 <button class="btn btn-soft-primary btn-xs" (click)="gestionarPermisos(r)" title="Gestionar permisos del rol">🔑</button>
@@ -41,10 +41,10 @@
             </td>
           </tr>
           <tr *ngIf="roles.length === 0">
-            <td colspan="5" class="empty-state">
+            <td [attr.colspan]="esAdmin ? 5 : 4" class="empty-state">
               <div class="empty-icon">🔐</div>
               <h5>No hay roles registrados</h5>
-              <p>Presione "+ Nuevo Rol" para crear el primer rol</p>
+              <p *ngIf="esAdmin">Presione "+ Nuevo Rol" para crear el primer rol</p>
             </td>
           </tr>
         </tbody>

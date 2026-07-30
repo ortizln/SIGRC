@@ -113,10 +113,10 @@
         <hr>
         <div class="d-flex align-items-center gap-2">
           <input autocomplete="off" type="file" #fileInput hidden multiple (change)="onArchivosSeleccionados($event)" accept=".pdf,.doc,.docx,.jpg,.png">
-          <button class="btn btn-outline-primary btn-sm" (click)="fileInput.click()">
+          <button class="btn btn-outline-primary btn-sm" (click)="fileInput.click()" *ngIf="auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">
             <i class="pi pi-upload" style="font-size:0.7rem;"></i> Subir Archivos
           </button>
-          <button *ngIf="archivos.length > 0" class="btn btn-primary btn-sm" (click)="subirAdjuntos()">
+          <button *ngIf="archivos.length > 0 && auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')" class="btn btn-primary btn-sm" (click)="subirAdjuntos()">
             Subir ({{ archivos.length }})
           </button>
         </div>
@@ -144,7 +144,7 @@
           <i class="pi pi-cog" style="color:var(--warning);"></i> Acciones
         </h6>
 
-        <div class="mb-3" *ngIf="doc.estado !== 'ARCHIVADO'">
+        <div class="mb-3" *ngIf="doc.estado !== 'ARCHIVADO' && auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">
           <label class="form-label small">Cambiar Estado</label>
           <div class="d-flex gap-2">
             <select autocomplete="off" [(ngModel)]="nuevoEstado" class="form-select form-select-sm">
@@ -174,7 +174,7 @@
           <div class="form-text small">El responsable se agregará a la lista existente</div>
         </div>
 
-        <div class="mb-3" *ngIf="doc.requiereRespuesta && doc.estado !== 'RESPONDIDO' && doc.estado !== 'ARCHIVADO'">
+        <div class="mb-3" *ngIf="doc.requiereRespuesta && doc.estado !== 'RESPONDIDO' && doc.estado !== 'ARCHIVADO' && auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">
           <button class="btn btn-outline-primary btn-sm w-100" (click)="showRespuestaForm = !showRespuestaForm">
             <i class="pi pi-reply" style="font-size:0.7rem;"></i> {{ showRespuestaForm ? 'Cancelar' : 'Registrar Respuesta' }}
           </button>

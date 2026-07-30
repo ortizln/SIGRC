@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '@core/services/auth.service';
 import { RolService } from '@core/services/rol.service';
 import { PermisoService } from '@core/services/permiso.service';
 import { Rol } from '@shared/models/rol.model';
@@ -30,7 +31,9 @@ export class RolesComponent implements OnInit {
   cargandoPermiso = false;
   permisoForm: any = {};
 
-  constructor(private rolService: RolService, private permisoService: PermisoService) {}
+  constructor(private rolService: RolService, private permisoService: PermisoService, private auth: AuthService) {}
+
+  get esAdmin(): boolean { return this.auth.hasRole('ADMIN'); }
 
   ngOnInit() {
     this.cargarRoles();

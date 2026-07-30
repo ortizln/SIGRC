@@ -4,7 +4,7 @@
     <p>Administración de versiones de la aplicación móvil institucional</p>
   </div>
 
-  <div class="card-modern p-4 mb-3">
+  <div class="card-modern p-4 mb-3" *ngIf="puedeCrear">
     <h6 class="fw-bold mb-3">Subir Nueva Versión</h6>
     <div class="row g-3 align-items-end">
       <div class="col-md-3">
@@ -41,7 +41,7 @@
             <th>Tamaño</th>
             <th>Descripción</th>
             <th>Subido</th>
-            <th>Acciones</th>
+            <th *ngIf="puedeCrear">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -51,7 +51,7 @@
             <td>{{ formatearBytes(v.tamanioBytes) }}</td>
             <td class="text-muted small">{{ v.descripcion || '—' }}</td>
             <td class="small">{{ v.creadoEn | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td>
+            <td *ngIf="puedeCrear">
               <div class="quick-actions">
                 <button class="btn btn-soft-primary btn-xs" (click)="descargar(v)" title="Descargar APK">⬇</button>
                 <button class="btn btn-soft-primary btn-xs text-danger" (click)="eliminar(v)" title="Desactivar">✕</button>
@@ -59,10 +59,10 @@
             </td>
           </tr>
           <tr *ngIf="versiones.length === 0">
-            <td colspan="6" class="empty-state">
+            <td [attr.colspan]="puedeCrear ? 6 : 5" class="empty-state">
               <div class="empty-icon">📱</div>
               <h5>No hay versiones subidas</h5>
-              <p>Suba la primera versión del APK usando el formulario superior</p>
+              <p *ngIf="puedeCrear">Suba la primera versión del APK usando el formulario superior</p>
             </td>
           </tr>
         </tbody>

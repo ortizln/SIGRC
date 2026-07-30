@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '@core/services/auth.service';
 import { TicketService } from '@core/services/ticket.service';
 import { Ticket } from '@shared/models/ticket.model';
 import { FormsModule } from '@angular/forms';
@@ -19,7 +20,9 @@ export class TicketsComponent implements OnInit {
   tamanios = [10, 20, 50];
   filtrosExpandidos = false;
 
-  constructor(private svc: TicketService) {}
+  constructor(private svc: TicketService, private auth: AuthService) {}
+
+  get puedeCrear(): boolean { return this.auth.canModulo('TICKETS', 'ESCRITURA'); }
 
   ngOnInit() { this.buscar(); }
 

@@ -4,7 +4,7 @@
       <h2>Gestión de Tickets</h2>
       <p>Incidentes, requerimientos, mejoras, cambios y consultas</p>
     </div>
-    <a routerLink="/tickets/nuevo" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+    <a routerLink="/tickets/nuevo" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1" *ngIf="puedeCrear">
       <i class="pi pi-plus" style="font-size:0.8rem;"></i> Nuevo Ticket
     </a>
   </div>
@@ -115,7 +115,7 @@
             <td colspan="10" class="empty-state">
               <div class="empty-icon">🎫</div>
               <h5>No se encontraron tickets</h5>
-              <p>Intente ajustar los filtros o <a routerLink="/tickets/nuevo">cree un nuevo ticket</a></p>
+              <p>Intente ajustar los filtros o <a routerLink="/tickets/nuevo" *ngIf="puedeCrear">cree un nuevo ticket</a></p>
             </td>
           </tr>
         </tbody>

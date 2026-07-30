@@ -15,7 +15,7 @@
     <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
       <h6 class="fw-bold mb-0 text-capitalize">{{ tabActivo }}</h6>
       <div class="d-flex gap-2">
-        <button class="btn btn-primary btn-sm" (click)="nuevo()">+ Nuevo</button>
+        <button class="btn btn-primary btn-sm" (click)="nuevo()" *ngIf="isAdmin">+ Nuevo</button>
       </div>
     </div>
 
@@ -58,7 +58,7 @@
             <th>Nombre</th>
             <th>Descripción</th>
             <th *ngIf="tabActivo === 'subcategorias'">Categoría</th>
-            <th style="width:60px;">Acciones</th>
+            <th style="width:60px;" *ngIf="isAdmin">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -68,7 +68,7 @@
                 <td><code class="small">{{ a.codigo || '—' }}</code></td>
                 <td class="fw-medium">{{ a.nombre }}</td>
                 <td class="small text-muted">{{ a.descripcion || '—' }}</td>
-                <td>
+                <td *ngIf="isAdmin">
                   <div class="dropdown-actions">
                     <button class="btn-dots" (click)="toggleMenu(a.idArea)">•••</button>
                     <div class="dropdown-menu-custom" *ngIf="menuAbierto === a.idArea">
@@ -79,14 +79,14 @@
                   </div>
                 </td>
               </tr>
-              <tr *ngIf="areas.length === 0"><td colspan="4" class="empty-state"><h5>Sin áreas</h5></td></tr>
+              <tr *ngIf="areas.length === 0"><td [attr.colspan]="isAdmin ? 4 : 3" class="empty-state"><h5>Sin áreas</h5></td></tr>
             </ng-container>
             <ng-container *ngSwitchCase="'sistemas'">
               <tr *ngFor="let s of sistemas">
                 <td><code class="small">{{ s.codigo || '—' }}</code></td>
                 <td class="fw-medium">{{ s.nombre }}</td>
                 <td class="small text-muted">{{ s.descripcion || '—' }}</td>
-                <td>
+                <td *ngIf="isAdmin">
                   <div class="dropdown-actions">
                     <button class="btn-dots" (click)="toggleMenu(s.idSistema)">•••</button>
                     <div class="dropdown-menu-custom" *ngIf="menuAbierto === s.idSistema">
@@ -97,14 +97,14 @@
                   </div>
                 </td>
               </tr>
-              <tr *ngIf="sistemas.length === 0"><td colspan="4" class="empty-state"><h5>Sin sistemas</h5></td></tr>
+              <tr *ngIf="sistemas.length === 0"><td [attr.colspan]="isAdmin ? 4 : 3" class="empty-state"><h5>Sin sistemas</h5></td></tr>
             </ng-container>
             <ng-container *ngSwitchCase="'categorias'">
               <tr *ngFor="let c of categorias">
                 <td><code class="small">{{ c.codigo || '—' }}</code></td>
                 <td class="fw-medium">{{ c.nombre }}</td>
                 <td class="small text-muted">{{ c.descripcion || '—' }}</td>
-                <td>
+                <td *ngIf="isAdmin">
                   <div class="dropdown-actions">
                     <button class="btn-dots" (click)="toggleMenu(c.idCategoria)">•••</button>
                     <div class="dropdown-menu-custom" *ngIf="menuAbierto === c.idCategoria">
@@ -115,7 +115,7 @@
                   </div>
                 </td>
               </tr>
-              <tr *ngIf="categorias.length === 0"><td colspan="4" class="empty-state"><h5>Sin categorías</h5></td></tr>
+              <tr *ngIf="categorias.length === 0"><td [attr.colspan]="isAdmin ? 4 : 3" class="empty-state"><h5>Sin categorías</h5></td></tr>
             </ng-container>
             <ng-container *ngSwitchCase="'subcategorias'">
               <tr *ngFor="let s of subcategorias">
@@ -123,7 +123,7 @@
                 <td class="fw-medium">{{ s.nombre }}</td>
                 <td class="small text-muted">{{ s.descripcion || '—' }}</td>
                 <td class="small">{{ s.categoria?.nombre || '—' }}</td>
-                <td>
+                <td *ngIf="isAdmin">
                   <div class="dropdown-actions">
                     <button class="btn-dots" (click)="toggleMenu(s.idSubcategoria)">•••</button>
                     <div class="dropdown-menu-custom" *ngIf="menuAbierto === s.idSubcategoria">
@@ -134,7 +134,7 @@
                   </div>
                 </td>
               </tr>
-              <tr *ngIf="subcategorias.length === 0"><td colspan="5" class="empty-state"><h5>Sin subcategorías</h5></td></tr>
+              <tr *ngIf="subcategorias.length === 0"><td [attr.colspan]="isAdmin ? 5 : 4" class="empty-state"><h5>Sin subcategorías</h5></td></tr>
             </ng-container>
           </ng-container>
         </tbody>

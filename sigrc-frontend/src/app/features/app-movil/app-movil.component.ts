@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '@core/services/auth.service';
 import { AppMovilService } from '@core/services/app-movil.service';
 import Swal from 'sweetalert2';
 
@@ -20,7 +21,9 @@ export class AppMovilComponent implements OnInit {
   formDescripcion = '';
   formArchivo: File | null = null;
 
-  constructor(private svc: AppMovilService) {}
+  constructor(private svc: AppMovilService, private auth: AuthService) {}
+
+  get puedeCrear(): boolean { return this.auth.canModulo('APP_MOVIL', 'ESCRITURA'); }
 
   ngOnInit() { this.cargar(); }
 

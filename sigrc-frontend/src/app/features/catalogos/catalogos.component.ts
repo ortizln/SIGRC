@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '@core/services/auth.service';
 import { CatalogoService } from '@core/services/catalogo.service';
 import Swal from 'sweetalert2';
 
@@ -25,7 +26,9 @@ export class CatalogosComponent implements OnInit {
 
   menuAbierto: number | null = null;
 
-  constructor(private svc: CatalogoService) {}
+  constructor(private svc: CatalogoService, private auth: AuthService) {}
+
+  get isAdmin(): boolean { return this.auth.hasRole('ADMIN'); }
 
   ngOnInit() {
     this.cargarAreas();
