@@ -11,9 +11,9 @@
 .PARAMETER Upload
     Si se especifica, sube el APK al backend
 .PARAMETER ApiUrl
-    URL del backend para subir el APK (ej: http://192.168.100.215/sigrc/api/app-movil)
+    URL del backend para subir el APK (ej: http://192.168.1.43/sigrc/api/app-movil)
 .EXAMPLE
-    .\build-apk.ps1 -Version 1.0.0 -Upload -ApiUrl "http://192.168.100.215/sigrc/api/app-movil"
+    .\build-apk.ps1 -Version 1.0.0 -Upload -ApiUrl "http://192.168.1.43/sigrc/api/app-movil"
 #>
 
 param(
@@ -27,7 +27,7 @@ param(
     [switch]$Upload,
 
     [Parameter(Mandatory = $false)]
-    [string]$ApiUrl = "http://192.168.100.215/sigrc/api/app-movil"
+    [string]$ApiUrl = "http://192.168.1.43/sigrc/api/app-movil"
 )
 
 $ErrorActionPreference = "Stop"
