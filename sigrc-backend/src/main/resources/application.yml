@@ -57,7 +57,7 @@ app:
     path: ${UPLOAD_PATH:/data/sigrc/uploads}
     max-size: 52428800
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:4200,http://localhost:4201,http://localhost:8080,http://localhost:*}
+    allowed-origins: ${CORS_ORIGINS:http://localhost:4200,http://localhost:4201,http://localhost:8080,http://localhost:*,https://alan-tek.com}
   auditoria:
     enabled: true
 
