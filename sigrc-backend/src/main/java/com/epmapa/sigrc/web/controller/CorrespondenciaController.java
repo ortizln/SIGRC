@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -140,6 +141,10 @@ public class CorrespondenciaController {
                                                       @PathVariable Integer idAdjunto) throws IOException {
         Path path = service.getAdjuntoPath(idAdjunto);
         Resource resource = new UrlResource(path.toUri());
+        if (!resource.exists() || !resource.isReadable()) {
+            throw new ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND, "Archivo no encontrado en disco");
+        }
         var adjunto = service.obtenerAdjunto(idAdjunto);
 
         return ResponseEntity.ok()
