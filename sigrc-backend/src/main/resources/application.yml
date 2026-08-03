@@ -64,7 +64,8 @@ app:
 logging:
   level:
     com.epmapa.sigrc: INFO
-    org.springframework.security: WARN
+    REQUEST_LOG: INFO
+    org.springframework.security: DEBUG
     org.hibernate.SQL: WARN
 management:
   endpoints:
