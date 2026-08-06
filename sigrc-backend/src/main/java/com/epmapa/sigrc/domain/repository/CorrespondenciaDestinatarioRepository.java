@@ -4,8 +4,10 @@ import com.epmapa.sigrc.domain.entity.CorrespondenciaDestinatario;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CorrespondenciaDestinatarioRepository extends JpaRepository<CorrespondenciaDestinatario, Integer> {
     List<CorrespondenciaDestinatario> findByCorrespondenciaIdCorrespondencia(Integer idCorrespondencia);
     void deleteByCorrespondenciaIdCorrespondencia(Integer idCorrespondencia);
+    Optional<CorrespondenciaDestinatario> findByCorrespondenciaIdCorrespondenciaAndTipoAndIdDestinatario(Integer idCorrespondencia, String tipo, Integer idDestinatario);
 }

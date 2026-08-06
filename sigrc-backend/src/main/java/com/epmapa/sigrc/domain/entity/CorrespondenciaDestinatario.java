@@ -2,6 +2,7 @@ package com.epmapa.sigrc.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "correspondencia_destinatario", schema = "sigrc")
@@ -22,4 +23,9 @@ public class CorrespondenciaDestinatario {
 
     @Column(nullable = false, length = 300)
     private String nombre;
+
+    @Builder.Default
+    private Boolean recibido = false;
+
+    private LocalDateTime fechaRecibido;
 }

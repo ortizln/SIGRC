@@ -46,6 +46,10 @@ export class CorrespondenciaService {
     return this.http.post<CorrespondenciaRespuesta>(`${this.apiUrl}/${id}/respuesta`, data);
   }
 
+  marcarRecibido(id: number): Observable<Correspondencia> {
+    return this.http.post<Correspondencia>(`${this.apiUrl}/${id}/recibir`, null);
+  }
+
   listarAdjuntos(id: number): Observable<CorrespondenciaAdjunto[]> {
     return this.http.get<CorrespondenciaAdjunto[]>(`${this.apiUrl}/${id}/adjuntos`);
   }

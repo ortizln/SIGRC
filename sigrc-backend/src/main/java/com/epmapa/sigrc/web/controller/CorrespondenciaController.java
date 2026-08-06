@@ -103,6 +103,15 @@ public class CorrespondenciaController {
         return ResponseEntity.ok(service.asignarResponsable(id, idResponsable, sumilla, idUsuario));
     }
 
+    @PostMapping("/{id}/recibir")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Marcar como recibido por el destinatario")
+    public ResponseEntity<CorrespondenciaDTO> marcarRecibido(@PathVariable Integer id,
+                                                              Authentication auth) {
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
+        return ResponseEntity.ok(service.marcarRecibido(id, idUsuario));
+    }
+
     @PostMapping("/{id}/respuesta")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Registrar respuesta al documento")

@@ -65,6 +65,8 @@ export interface CorrespondenciaDestinatario {
   tipo: string;
   idDestinatario: number;
   nombre: string;
+  recibido?: boolean;
+  fechaRecibido?: string;
 }
 
 export interface ResponsableAsignado {

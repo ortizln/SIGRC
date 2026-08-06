@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -150,6 +151,7 @@ public class CorrespondenciaService {
         guardarAreasEtiquetadas(entity, request.areasEtiquetadas());
         guardarReferencias(entity, request.idsReferencias());
         guardarDestinatarios(entity, request.destinatarios());
+        marcarRespuestasDesdeReferencias(entity, creadoPor);
 
         String accionHistorial = "INGRESO".equals(sentido) ? "CREACION" : "EMISION";
         String detalleHistorial = "INGRESO".equals(sentido)
@@ -173,6 +175,7 @@ public class CorrespondenciaService {
                 "Documento " + entity.getNumeroInterno() + " - " + entity.getAsunto(),
                 entity.getIdCorrespondencia());
         }
+        notificarDestinatarios(entity);
         return dto;
     }
 
@@ -255,9 +258,13 @@ public class CorrespondenciaService {
         if (request.destinatarios() != null) {
             destinatarioRepository.deleteByCorrespondenciaIdCorrespondencia(entity.getIdCorrespondencia());
             guardarDestinatarios(entity, request.destinatarios());
+            notificarDestinatarios(entity);
         }
 
         Usuario usuario = usuarioRepository.getReferenceById(idUsuario);
+        if (request.idsReferencias() != null) {
+            marcarRespuestasDesdeReferencias(entity, usuario);
+        }
         registrarHistorial(entity, entity.getEstado(), entity.getEstado(), "ACTUALIZACION",
                 "Documento actualizado", usuario);
 
@@ -348,6 +355,45 @@ public class CorrespondenciaService {
                 usuario);
 
         return toRespuestaDTO(respuesta);
+    }
+
+    @Transactional
+    public CorrespondenciaDTO marcarRecibido(Integer id, Integer idUsuario) {
+        Correspondencia entity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
+
+        boolean marcado = false;
+        List<CorrespondenciaDestinatario> destinatarios =
+                destinatarioRepository.findByCorrespondenciaIdCorrespondencia(id);
+        for (var d : destinatarios) {
+            if ("USUARIO".equals(d.getTipo()) && d.getIdDestinatario().equals(idUsuario)
+                    && !Boolean.TRUE.equals(d.getRecibido())) {
+                d.setRecibido(true);
+                d.setFechaRecibido(LocalDateTime.now());
+                destinatarioRepository.save(d);
+                marcado = true;
+            }
+        }
+
+        if (marcado) {
+            Usuario usuario = usuarioRepository.getReferenceById(idUsuario);
+            registrarHistorial(entity, entity.getEstado(), entity.getEstado(), "RECIBIDO",
+                "El destinatario " + usuario.getNombres() + " " + usuario.getApellidos()
+                    + " marcó el documento como recibido", usuario);
+        }
+
+        return toDTO(entity);
+    }
+
+    private void notificarDestinatarios(Correspondencia entity) {
+        for (var d : destinatarioRepository.findByCorrespondenciaIdCorrespondencia(entity.getIdCorrespondencia())) {
+            if ("USUARIO".equals(d.getTipo())) {
+                notificacionService.notificarAsignacion(d.getIdDestinatario(), "CORRESPONDENCIA",
+                    "Nuevo Documento Asignado",
+                    "Documento " + entity.getNumeroInterno() + " - " + entity.getAsunto(),
+                    entity.getIdCorrespondencia());
+            }
+        }
     }
 
     @Transactional
@@ -613,6 +659,36 @@ public class CorrespondenciaService {
         }
     }
 
+    private void marcarRespuestasDesdeReferencias(Correspondencia entity, Usuario usuario) {
+        if (entity.getReferencias() == null || entity.getReferencias().isEmpty()) return;
+        for (Correspondencia ref : entity.getReferencias()) {
+            String numeroRespuesta = entity.getCodigoDocumento() != null
+                    ? entity.getCodigoDocumento() : entity.getNumeroInterno();
+            boolean yaExiste = respuestaRepository
+                    .findByCorrespondenciaIdCorrespondenciaOrderByCreadoEnAsc(ref.getIdCorrespondencia())
+                    .stream().anyMatch(r -> numeroRespuesta != null && numeroRespuesta.equals(r.getNumeroDocumento()));
+            if (yaExiste) continue;
+
+            CorrespondenciaRespuesta respuesta = CorrespondenciaRespuesta.builder()
+                    .correspondencia(ref)
+                    .fechaRespuesta(LocalDate.now())
+                    .numeroDocumento(numeroRespuesta)
+                    .tipoDocumento(entity.getTipoDocumento())
+                    .responsable(usuario)
+                    .observaciones("Respondido mediante documento emitido " + entity.getNumeroInterno())
+                    .build();
+            respuestaRepository.save(respuesta);
+
+            String estadoAnterior = ref.getEstado();
+            if (!"ARCHIVADO".equals(estadoAnterior)) {
+                ref.setEstado("RESPONDIDO");
+                repository.save(ref);
+            }
+            registrarHistorial(ref, estadoAnterior, "RESPONDIDO", "RESPUESTA",
+                    "Respuesta registrada mediante documento " + entity.getNumeroInterno(), usuario);
+        }
+    }
+
     private void guardarDestinatarios(Correspondencia entity, List<CorrespondenciaDestinatarioDTO> destinatarios) {
         if (destinatarios == null) return;
         for (CorrespondenciaDestinatarioDTO dto : destinatarios) {
@@ -621,6 +697,7 @@ public class CorrespondenciaService {
                     .tipo(dto.tipo())
                     .idDestinatario(dto.idDestinatario())
                     .nombre(dto.nombre())
+                    .recibido(false)
                     .build();
             destinatarioRepository.save(d);
         }
@@ -717,7 +794,9 @@ public class CorrespondenciaService {
                 d.getIdCorrespondenciaDestinatario(),
                 d.getTipo(),
                 d.getIdDestinatario(),
-                d.getNombre()
+                d.getNombre(),
+                d.getRecibido(),
+                d.getFechaRecibido()
         );
     }
 

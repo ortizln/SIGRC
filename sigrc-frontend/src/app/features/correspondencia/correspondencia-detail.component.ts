@@ -170,6 +170,21 @@ export class CorrespondenciaDetailComponent implements OnInit {
     return this.doc?.responsables?.map((r: any) => r.nombre).join(', ') || 'Sin asignar';
   }
 
+  get esDestinatarioPendiente(): boolean {
+    const u = this.auth.getUsuario();
+    if (!u || !this.doc?.destinatarios) return false;
+    return this.doc.destinatarios.some((d: any) =>
+      d.tipo === 'USUARIO' && d.idDestinatario === u.idUsuario && !d.recibido);
+  }
+
+  marcarRecibido() {
+    if (!this.doc) return;
+    this.svc.marcarRecibido(this.doc.idCorrespondencia).subscribe(r => {
+      this.doc = r;
+      Swal.fire('Recibido', 'Has marcado el documento como recibido.', 'success');
+    });
+  }
+
   generarTicket() {
     if (!this.doc) return;
     this.svc.generarTicket(this.doc.idCorrespondencia).subscribe(r => {
