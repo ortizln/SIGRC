@@ -37,3 +37,57 @@
   background: #fef3c7;
   color: #b45309;
 }
+
+.grupo-toggle {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  margin-left: -6px;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.grupo-toggle:hover {
+  color: var(--primary-hover, #1d4ed8);
+}
+
+.fila-relacionada {
+  background: var(--secondary-bg);
+}
+
+.fila-relacionada > td:first-child {
+  position: relative;
+}
+
+.fila-relacionada > td:first-child::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--primary);
+  opacity: 0.35;
+}
+
+.fila-relacionada .badge-sentido {
+  margin-left: 10px;
+}
+
+.fila-caducada {
+  background: #fef2f2;
+}
+
+.fila-caducada:hover {
+  background: #fee2e2;
+}
+
+.fila-proxima {
+  background: #fff7ed;
+}
+
+.fila-proxima:hover {
+  background: #ffedd5;
+}

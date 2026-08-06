@@ -28,4 +28,7 @@ public class CorrespondenciaDestinatario {
     private Boolean recibido = false;
 
     private LocalDateTime fechaRecibido;
+
+    @Column(columnDefinition = "TEXT")
+    private String sumilla;
 }

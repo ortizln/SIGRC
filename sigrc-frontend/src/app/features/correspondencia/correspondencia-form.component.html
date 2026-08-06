@@ -10,7 +10,7 @@
       </a>
     </div>
     <!-- Stepper -->
-    <div class="d-flex gap-1 mt-3" style="font-size:0.72rem;">
+    <div class="d-flex flex-wrap gap-1 mt-3" style="font-size:0.72rem;">
       <div class="step-pill active" style="background:var(--primary);color:#fff;"><i class="pi pi-file me-1" style="font-size:0.6rem;"></i> Datos</div>
       <div class="step-pill" *ngIf="form.sentido === 'SALIDA'" style="background:var(--secondary-bg);color:var(--secondary);">
         <i class="pi pi-users me-1" style="font-size:0.6rem;"></i> Destinatarios
@@ -276,6 +276,8 @@
           </div>
           <div class="form-text">Usuarios responsables del seguimiento del documento. Agregue una sumilla con las acciones a realizar.</div>
         </div>
+      </div>
+      <div class="row g-3 align-items-end mt-1">
         <div class="col-md-4">
           <div class="form-check">
             <input autocomplete="off" type="checkbox" id="requiereRespuesta" [(ngModel)]="form.requiereRespuesta" name="requiereRespuesta" class="form-check-input">
@@ -284,55 +286,59 @@
             </label>
           </div>
         </div>
-        <div class="col-md-4" *ngIf="form.requiereRespuesta">
-          <label class="form-label">Fecha Límite</label>
-          <input autocomplete="off" [(ngModel)]="form.fechaLimiteRespuesta" name="fechaLimiteRespuesta" type="date" class="form-control">
+        <div class="col-md-4">
+          <label class="form-label" [for]="'fechaLimiteRespuesta'">Fecha Límite</label>
+          <input autocomplete="off" id="fechaLimiteRespuesta" [(ngModel)]="form.fechaLimiteRespuesta" name="fechaLimiteRespuesta" type="date"
+                 class="form-control" [disabled]="!form.requiereRespuesta">
+          <div class="form-text" *ngIf="!form.requiereRespuesta">Se usará al activar la opción anterior</div>
         </div>
-        <div class="col-md-5" *ngIf="form.sentido === 'SALIDA' && !esMemoSalidaTics()">
-          <label class="form-label">Vincular Ticket</label>
-          <ng-container *ngIf="!ticketVinculadoPreview">
-            <div class="ticket-search-wrapper">
-              <input autocomplete="off" class="form-control" placeholder="Buscar por número o asunto..."
-                     [(ngModel)]="busquedaTicket" name="busquedaTicket"
-                     (input)="filtrarTickets()" (focus)="filtrarTickets()"
-                     (keydown.enter)="sugerenciasTicket.length > 0 && seleccionarTicket(sugerenciasTicket[0])"
-                     (blur)="cerrarSugerenciasTicket()">
-              <div class="sugerencias-dropdown" *ngIf="sugerenciasTicket.length > 0">
-                <button type="button" *ngFor="let t of sugerenciasTicket" class="sugerencia-item"
-                        (mousedown)="seleccionarTicket(t); $event.preventDefault()">
-                  <span><strong>{{ t.numeroTicket }}</strong> — {{ t.asunto }}</span>
-                  <small>{{ t.tipo }} · {{ t.estado }}</small>
-                </button>
+        <div class="col-md-4">
+          <ng-container *ngIf="form.sentido === 'SALIDA' && !esMemoSalidaTics()">
+            <ng-container *ngIf="!ticketVinculadoPreview">
+              <label class="form-label">Vincular Ticket</label>
+              <div class="ticket-search-wrapper">
+                <input autocomplete="off" class="form-control" placeholder="Buscar por número o asunto..."
+                       [(ngModel)]="busquedaTicket" name="busquedaTicket"
+                       (input)="filtrarTickets()" (focus)="filtrarTickets()"
+                       (keydown.enter)="sugerenciasTicket.length > 0 && seleccionarTicket(sugerenciasTicket[0])"
+                       (blur)="cerrarSugerenciasTicket()">
+                <div class="sugerencias-dropdown" *ngIf="sugerenciasTicket.length > 0">
+                  <button type="button" *ngFor="let t of sugerenciasTicket" class="sugerencia-item"
+                          (mousedown)="seleccionarTicket(t); $event.preventDefault()">
+                    <span><strong>{{ t.numeroTicket }}</strong> — {{ t.asunto }}</span>
+                    <small>{{ t.tipo }} · {{ t.estado }}</small>
+                  </button>
+                </div>
               </div>
+              <div class="form-text">Ticket al que responde este documento</div>
+            </ng-container>
+            <div *ngIf="ticketVinculadoPreview" class="d-flex align-items-center gap-2 mt-2">
+              <span class="ticket-vinculado-pill">
+                <strong>{{ ticketVinculadoPreview.numeroTicket }}</strong>
+                <span class="text-truncate" style="max-width:160px;">{{ ticketVinculadoPreview.asunto }}</span>
+                <button type="button" class="btn btn-sm btn-outline-primary ms-1 px-2" style="line-height:1;font-size:0.65rem;"
+                        (click)="abrirPreviewTicket(ticketVinculadoPreview)">
+                  <i class="pi pi-eye"></i>
+                </button>
+                <button type="button" class="pill-remove" (click)="removerTicketVinculado()">&times;</button>
+              </span>
             </div>
-            <div class="form-text">Ticket al que responde este documento</div>
           </ng-container>
-          <div *ngIf="ticketVinculadoPreview" class="d-flex align-items-center gap-2 mt-1">
-            <span class="ticket-vinculado-pill">
-              <strong>{{ ticketVinculadoPreview.numeroTicket }}</strong>
-              <span class="text-truncate" style="max-width:160px;">{{ ticketVinculadoPreview.asunto }}</span>
-              <button type="button" class="btn btn-sm btn-outline-primary ms-1 px-2" style="line-height:1;font-size:0.65rem;"
-                      (click)="abrirPreviewTicket(ticketVinculadoPreview)">
-                <i class="pi pi-eye"></i>
-              </button>
-              <button type="button" class="pill-remove" (click)="removerTicketVinculado()">&times;</button>
-            </span>
-          </div>
-        </div>
-        <div class="col-md-4" *ngIf="form.sentido === 'SALIDA' && esMemoSalidaTics()">
-          <label class="form-label">Cerrar Ticket Pendiente</label>
-          <select [(ngModel)]="form.idTicketCerrar" name="idTicketCerrar" class="form-select">
-            <option [ngValue]="null">Seleccione ticket a cerrar</option>
-            <option *ngFor="let t of ticketsPendientes" [value]="t.idTicket">{{ t.numeroTicket }} — {{ t.asunto }}</option>
-          </select>
-          <div class="form-text">Se cerrará automáticamente al guardar el documento</div>
-        </div>
-        <div class="col-md-4" *ngIf="form.sentido !== 'SALIDA'">
-          <div class="form-check">
-            <input autocomplete="off" type="checkbox" id="generaTicket" [(ngModel)]="form.generaTicket" name="generaTicket" class="form-check-input">
-            <label class="form-check-label fw-medium" for="generaTicket">Generar Ticket</label>
-          </div>
-          <div class="form-text">Crea un ticket automáticamente al guardar</div>
+          <ng-container *ngIf="form.sentido === 'SALIDA' && esMemoSalidaTics()">
+            <label class="form-label">Cerrar Ticket Pendiente</label>
+            <select [(ngModel)]="form.idTicketCerrar" name="idTicketCerrar" class="form-select">
+              <option [ngValue]="null">Seleccione ticket a cerrar</option>
+              <option *ngFor="let t of ticketsPendientes" [value]="t.idTicket">{{ t.numeroTicket }} — {{ t.asunto }}</option>
+            </select>
+            <div class="form-text">Se cerrará automáticamente al guardar el documento</div>
+          </ng-container>
+          <ng-container *ngIf="form.sentido !== 'SALIDA'">
+            <div class="form-check">
+              <input autocomplete="off" type="checkbox" id="generaTicket" [(ngModel)]="form.generaTicket" name="generaTicket" class="form-check-input">
+              <label class="form-check-label fw-medium" for="generaTicket">Generar Ticket</label>
+            </div>
+            <div class="form-text">Crea un ticket automáticamente al guardar</div>
+          </ng-container>
         </div>
       </div>
     </div>

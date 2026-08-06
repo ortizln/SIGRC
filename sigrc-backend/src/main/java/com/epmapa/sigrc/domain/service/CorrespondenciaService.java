@@ -385,6 +385,63 @@ public class CorrespondenciaService {
         return toDTO(entity);
     }
 
+    @Transactional
+    public CorrespondenciaDTO recepcionarYDerivar(Integer id, String sumilla,
+                                                    List<Integer> idsUsuariosDerivados, Integer idUsuario) {
+        Correspondencia entity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
+        Usuario usuario = usuarioRepository.getReferenceById(idUsuario);
+
+        // Marcar como recibido + guardar sumilla en el registro del destinatario actual
+        for (var d : destinatarioRepository.findByCorrespondenciaIdCorrespondencia(id)) {
+            if ("USUARIO".equals(d.getTipo()) && d.getIdDestinatario().equals(idUsuario)) {
+                if (!Boolean.TRUE.equals(d.getRecibido())) {
+                    d.setRecibido(true);
+                    d.setFechaRecibido(LocalDateTime.now());
+                }
+                if (sumilla != null && !sumilla.isBlank()) {
+                    d.setSumilla(sumilla);
+                }
+                destinatarioRepository.save(d);
+            }
+        }
+
+        // Etiquetar/derivar a otros usuarios (pasan a ser responsables con la sumilla)
+        List<Integer> idsEtiquetas = new ArrayList<>();
+        if (idsUsuariosDerivados != null) {
+            for (Integer idDest : idsUsuariosDerivados) {
+                if (idDest.equals(idUsuario)) continue;
+                boolean yaAsignado = entity.getResponsablesAsignados().stream()
+                        .anyMatch(ra -> ra.getUsuario().getIdUsuario().equals(idDest));
+                if (!yaAsignado) {
+                    Usuario u = usuarioRepository.getReferenceById(idDest);
+                    entity.getResponsablesAsignados().add(CorrespondenciaResponsable.builder()
+                            .correspondencia(entity)
+                            .usuario(u)
+                            .sumilla(sumilla != null ? sumilla : "")
+                            .build());
+                    idsEtiquetas.add(idDest);
+                }
+            }
+        }
+        entity = repository.save(entity);
+
+        String detalle = "Recibido por " + usuario.getNombres() + " " + usuario.getApellidos();
+        if (sumilla != null && !sumilla.isBlank()) detalle += " — Sumilla: " + sumilla;
+        if (!idsEtiquetas.isEmpty()) detalle += " — Derivado a: " + idsEtiquetas.size() + " usuario(s)";
+        registrarHistorial(entity, entity.getEstado(), entity.getEstado(), "RECEPCION_DERIVACION", detalle, usuario);
+
+        // Notificar a los usuarios derivados
+        for (Integer idDest : idsEtiquetas) {
+            notificacionService.notificarAsignacion(idDest, "CORRESPONDENCIA",
+                "Documento Derivado para su atención",
+                "Documento " + entity.getNumeroInterno() + (sumilla != null && !sumilla.isBlank() ? " — " + sumilla : ""),
+                entity.getIdCorrespondencia());
+        }
+
+        return toDTO(entity);
+    }
+
     private void notificarDestinatarios(Correspondencia entity) {
         for (var d : destinatarioRepository.findByCorrespondenciaIdCorrespondencia(entity.getIdCorrespondencia())) {
             if ("USUARIO".equals(d.getTipo())) {
@@ -698,6 +755,7 @@ public class CorrespondenciaService {
                     .idDestinatario(dto.idDestinatario())
                     .nombre(dto.nombre())
                     .recibido(false)
+                    .sumilla(dto.sumilla())
                     .build();
             destinatarioRepository.save(d);
         }
@@ -734,6 +792,14 @@ public class CorrespondenciaService {
                 .stream().map(ca -> ca.getArea().getNombre()).collect(Collectors.toList());
 
         List<CorrespondenciaReferenciaDTO> referencias = entity.getReferencias().stream()
+                .map(ref -> new CorrespondenciaReferenciaDTO(
+                        ref.getIdCorrespondencia(),
+                        ref.getNumeroInterno(),
+                        ref.getAsunto(),
+                        ref.getCodigoDocumento()))
+                .collect(Collectors.toList());
+
+        List<CorrespondenciaReferenciaDTO> referenciadoPor = repository.findReferenciadoPor(entity.getIdCorrespondencia()).stream()
                 .map(ref -> new CorrespondenciaReferenciaDTO(
                         ref.getIdCorrespondencia(),
                         ref.getNumeroInterno(),
@@ -785,6 +851,7 @@ public class CorrespondenciaService {
                 obtenerRespuestas(entity.getIdCorrespondencia()),
                 obtenerTicketsVinculados(entity.getIdCorrespondencia()),
                 referencias,
+                referenciadoPor,
                 destinatariosDTO
         );
     }
@@ -796,7 +863,8 @@ public class CorrespondenciaService {
                 d.getIdDestinatario(),
                 d.getNombre(),
                 d.getRecibido(),
-                d.getFechaRecibido()
+                d.getFechaRecibido(),
+                d.getSumilla()
         );
     }
 

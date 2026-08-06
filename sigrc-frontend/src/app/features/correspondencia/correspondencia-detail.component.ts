@@ -29,6 +29,7 @@ export class CorrespondenciaDetailComponent implements OnInit {
   tiposDocumento: any[] = [];
   usuarios: any[] = [];
   showRespuestaForm = false;
+  showRecepForm = false;
 
   private user: any;
 
@@ -157,6 +158,40 @@ export class CorrespondenciaDetailComponent implements OnInit {
   }
 
   nuevaSumilla = '';
+  usuariosSeleccionados: number[] = [];
+
+  get usuariosDisponibles(): any[] {
+    const asignados = new Set((this.doc?.responsables || []).map((r: any) => r.idUsuario));
+    return this.usuarios.filter(u => !asignados.has(u.idUsuario));
+  }
+
+  toggleUsuarioSeleccionado(idUsuario: number) {
+    const i = this.usuariosSeleccionados.indexOf(idUsuario);
+    if (i >= 0) this.usuariosSeleccionados.splice(i, 1);
+    else this.usuariosSeleccionados.push(idUsuario);
+  }
+
+  estaSeleccionado(idUsuario: number): boolean {
+    return this.usuariosSeleccionados.includes(idUsuario);
+  }
+
+  asignarResponsables() {
+    if (!this.doc || this.usuariosSeleccionados.length === 0) return;
+    const ids = [...this.usuariosSeleccionados];
+    let pendientes = ids.length;
+    let resultado: any = null;
+    ids.forEach((id, idx) => {
+      this.svc.asignarResponsable(this.doc.idCorrespondencia, id, this.nuevaSumilla).subscribe(r => {
+        resultado = r;
+        pendientes--;
+        if (pendientes === 0) {
+          this.doc = resultado;
+          this.usuariosSeleccionados = [];
+          this.nuevaSumilla = '';
+        }
+      });
+    });
+  }
 
   asignarResponsable(idResponsable: number) {
     if (!this.doc || !idResponsable) return;
@@ -170,11 +205,32 @@ export class CorrespondenciaDetailComponent implements OnInit {
     return this.doc?.responsables?.map((r: any) => r.nombre).join(', ') || 'Sin asignar';
   }
 
-  get esDestinatarioPendiente(): boolean {
+  get esDestinatario(): boolean {
     const u = this.auth.getUsuario();
     if (!u || !this.doc?.destinatarios) return false;
     return this.doc.destinatarios.some((d: any) =>
-      d.tipo === 'USUARIO' && d.idDestinatario === u.idUsuario && !d.recibido);
+      d.tipo === 'USUARIO' && d.idDestinatario === u.idUsuario);
+  }
+
+  get miRegistroDestinatario(): any {
+    const u = this.auth.getUsuario();
+    if (!u || !this.doc?.destinatarios) return null;
+    return this.doc.destinatarios.find((d: any) =>
+      d.tipo === 'USUARIO' && d.idDestinatario === u.idUsuario) || null;
+  }
+
+  get esDestinatarioPendiente(): boolean {
+    const r = this.miRegistroDestinatario;
+    return !!r && !r.recibido;
+  }
+
+  sentidoPercibido(): string {
+    const s = this.doc?.sentido;
+    if (s !== 'SALIDA') return s || '';
+    const u = this.auth.getUsuario();
+    if (!u) return s;
+    if (this.esDestinatario && this.doc?.creadoPor !== u.idUsuario) return 'INGRESO';
+    return s;
   }
 
   marcarRecibido() {
@@ -182,6 +238,34 @@ export class CorrespondenciaDetailComponent implements OnInit {
     this.svc.marcarRecibido(this.doc.idCorrespondencia).subscribe(r => {
       this.doc = r;
       Swal.fire('Recibido', 'Has marcado el documento como recibido.', 'success');
+    });
+  }
+
+  sumillaRecepcion = '';
+  usuariosEtiquetar: any[] = [];
+
+  toggleEtiquetado(u: any) {
+    const i = this.usuariosEtiquetar.findIndex(x => x.idUsuario === u.idUsuario);
+    if (i >= 0) this.usuariosEtiquetar.splice(i, 1);
+    else this.usuariosEtiquetar.push(u);
+  }
+
+  estaEtiquetado(u: any): boolean {
+    return this.usuariosEtiquetar.some(x => x.idUsuario === u.idUsuario);
+  }
+
+  recepcionar() {
+    if (!this.doc) return;
+    const body = {
+      sumilla: this.sumillaRecepcion,
+      idsUsuariosDerivados: this.usuariosEtiquetar.map(u => u.idUsuario)
+    };
+    this.svc.recepcionar(this.doc.idCorrespondencia, body).subscribe(r => {
+      this.doc = r;
+      this.sumillaRecepcion = '';
+      this.usuariosEtiquetar = [];
+      this.showRecepForm = false;
+      Swal.fire('Recepcionado', 'Documento recepcionado y derivado correctamente.', 'success');
     });
   }
 

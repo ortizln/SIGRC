@@ -112,6 +112,18 @@ public class CorrespondenciaController {
         return ResponseEntity.ok(service.marcarRecibido(id, idUsuario));
     }
 
+    @PostMapping("/{id}/recepcion")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Recepcionar con sumilla y derivar/etiquetar a otros usuarios")
+    public ResponseEntity<CorrespondenciaDTO> recepcionar(@PathVariable Integer id,
+                                                            @RequestBody(required = false) CorrespondenciaRecepcionRequest request,
+                                                            Authentication auth) {
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
+        String sumilla = request != null ? request.sumilla() : null;
+        List<Integer> idsDerivados = request != null ? request.idsUsuariosDerivados() : null;
+        return ResponseEntity.ok(service.recepcionarYDerivar(id, sumilla, idsDerivados, idUsuario));
+    }
+
     @PostMapping("/{id}/respuesta")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Registrar respuesta al documento")

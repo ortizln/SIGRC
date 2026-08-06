@@ -33,6 +33,7 @@ export interface Correspondencia {
   respuestas: CorrespondenciaRespuesta[];
   ticketsVinculados: TicketVinculado[];
   referencias: CorrespondenciaReferencia[];
+  referenciadoPor: CorrespondenciaReferencia[];
   destinatarios: CorrespondenciaDestinatario[];
 }
 
@@ -67,6 +68,7 @@ export interface CorrespondenciaDestinatario {
   nombre: string;
   recibido?: boolean;
   fechaRecibido?: string;
+  sumilla?: string;
 }
 
 export interface ResponsableAsignado {

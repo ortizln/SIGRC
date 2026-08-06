@@ -88,34 +88,15 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let d of documentos" class="animate-fade-in">
-            <td>
-              <span class="badge-sentido" [class.badge-ingreso]="d.sentido === 'INGRESO'" [class.badge-salida]="d.sentido === 'SALIDA'">
-                {{ d.sentido === 'INGRESO' ? 'IN' : 'SA' }}
-              </span>
-            </td>
-            <td><code class="fw-bold" style="color:var(--primary);font-size:0.75rem;">{{ d.numeroInterno }}</code></td>
-            <td class="small">{{ d.codigoDocumento || '—' }}</td>
-            <td class="small text-muted">{{ d.tipoDocumentoNombre }}</td>
-            <td style="max-width:200px;">
-              <span class="text-truncate d-inline-block" style="max-width:200px;" [title]="d.asunto">{{ d.asunto }}</span>
-            </td>
-            <td class="small">{{ d.personaEntrega }}</td>
-            <td>
-              <span class="fw-semibold small" [class]="prioridadClass(d.prioridad)">{{ d.prioridad }}</span>
-            </td>
-            <td>
-              <span class="badge-estado" [class]="'badge-' + estadoBadge(d.estado)">{{ estadoLabel(d.estado) }}</span>
-            </td>
-            <td class="small">{{ responsablesNombres(d) }}</td>
-            <td class="text-muted small">{{ d.fechaRecepcion | date:'dd/MM/yy' }} {{ d.horaRecepcion }}</td>
-            <td>
-              <a [routerLink]="['/correspondencia', d.idCorrespondencia]" class="btn btn-soft-primary btn-xs">
-                <i class="pi pi-eye" style="font-size:0.7rem;"></i>
-              </a>
-            </td>
-          </tr>
-          <tr *ngIf="(!documentos || documentos.length === 0)">
+          <ng-container *ngFor="let g of grupos">
+            <ng-container *ngTemplateOutlet="filaDoc; context: { $implicit: g.main, esHijo: false, grupo: g }"></ng-container>
+            <ng-container *ngIf="g.expandido && g.hijos.length > 0">
+              <ng-container *ngFor="let h of g.hijos">
+                <ng-container *ngTemplateOutlet="filaDoc; context: { $implicit: h, esHijo: true, grupo: g }"></ng-container>
+              </ng-container>
+            </ng-container>
+          </ng-container>
+          <tr *ngIf="(!grupos || grupos.length === 0)">
             <td colspan="11" class="empty-state">
               <div class="empty-icon"><i class="pi pi-inbox" style="font-size:2.5rem;"></i></div>
               <h5>No se encontraron documentos</h5>
@@ -124,6 +105,43 @@
           </tr>
         </tbody>
       </table>
+
+      <ng-template #filaDoc let-d let-esHijo="esHijo" let-g="grupo">
+        <tr class="animate-fade-in" [class.fila-relacionada]="esHijo" [ngClass]="filaClase(d)">
+          <td>
+            <div class="d-flex align-items-center gap-1">
+              <button type="button" *ngIf="!esHijo && g?.hijos?.length" class="grupo-toggle" (click)="toggleGrupo(g)"
+                      [title]="g.expandido ? 'Ocultar relacionados' : 'Mostrar relacionados'">
+                <i class="pi" [class.pi-chevron-down]="g.expandido" [class.pi-chevron-right]="!g.expandido"></i>
+              </button>
+              <span class="badge-sentido" [class.badge-ingreso]="sentidoPercibido(d) === 'INGRESO'" [class.badge-salida]="sentidoPercibido(d) === 'SALIDA'">
+                {{ sentidoPercibido(d) === 'INGRESO' ? 'IN' : 'SA' }}
+              </span>
+              <span class="badge bg-primary ms-1" style="font-size:0.55rem;" *ngIf="!esHijo && g?.hijos?.length">{{ g.hijos.length }}</span>
+            </div>
+          </td>
+          <td><code class="fw-bold" style="color:var(--primary);font-size:0.75rem;">{{ d.numeroInterno }}</code></td>
+          <td class="small">{{ d.codigoDocumento || '—' }}</td>
+          <td class="small text-muted">{{ d.tipoDocumentoNombre }}</td>
+          <td style="max-width:200px;">
+            <span class="text-truncate d-inline-block" style="max-width:200px;" [title]="d.asunto">{{ d.asunto }}</span>
+          </td>
+          <td class="small">{{ d.personaEntrega }}</td>
+          <td>
+            <span class="fw-semibold small" [class]="prioridadClass(d.prioridad)">{{ d.prioridad }}</span>
+          </td>
+          <td>
+            <span class="badge-estado" [class]="'badge-' + estadoBadge(d.estado)">{{ estadoLabel(d.estado) }}</span>
+          </td>
+          <td class="small">{{ responsablesNombres(d) }}</td>
+          <td class="text-muted small">{{ d.fechaRecepcion | date:'dd/MM/yy' }} {{ d.horaRecepcion }}</td>
+          <td>
+            <a [routerLink]="['/correspondencia', d.idCorrespondencia]" class="btn btn-soft-primary btn-xs">
+              <i class="pi pi-eye" style="font-size:0.7rem;"></i>
+            </a>
+          </td>
+        </tr>
+      </ng-template>
     </div>
     <div class="d-flex justify-content-between align-items-center p-3 border-top">
       <div class="d-flex align-items-center gap-2">

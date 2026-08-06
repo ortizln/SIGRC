@@ -7,8 +7,8 @@
       <div class="d-flex align-items-center gap-2">
         <h2 class="mb-0">{{ doc?.numeroInterno }}</h2>
         <span class="badge-estado" [class]="'badge-' + estadoBadge(doc?.estado)">{{ estadoLabel(doc?.estado) }}</span>
-        <span class="badge-sentido" [class.badge-ingreso]="doc?.sentido === 'INGRESO'" [class.badge-salida]="doc?.sentido === 'SALIDA'">
-          {{ doc?.sentido === 'INGRESO' ? 'Ingreso' : 'Salida' }}
+        <span class="badge-sentido" [class.badge-ingreso]="sentidoPercibido() === 'INGRESO'" [class.badge-salida]="sentidoPercibido() === 'SALIDA'">
+          {{ sentidoPercibido() === 'INGRESO' ? 'Ingreso' : 'Salida' }}
         </span>
       </div>
     </div>
@@ -32,6 +32,7 @@
           <div class="col-md-6"><label class="text-muted small d-block">Prioridad</label><strong [class]="prioridadClass(doc.prioridad)">{{ doc.prioridad }}</strong></div>
           <div class="col-md-6"><label class="text-muted small d-block">Fecha Documento</label><strong>{{ doc.fechaDocumento | date:'dd/MM/yyyy' }}</strong></div>
           <div class="col-md-6"><label class="text-muted small d-block">Fecha Recepción</label><strong>{{ doc.fechaRecepcion | date:'dd/MM/yyyy' }} {{ doc.horaRecepcion }}</strong></div>
+          <div class="col-md-6"><label class="text-muted small d-block">Registrado por</label><strong>{{ doc.creadoPorNombre || '—' }}</strong></div>
           <div class="col-md-6"><label class="text-muted small d-block">{{ doc.sentido === 'SALIDA' ? 'Destinatarios' : 'Remitente' }}</label>
             <ng-container *ngIf="doc.sentido === 'SALIDA' && doc.destinatarios?.length > 0; else remitenteText">
               <div class="d-flex flex-wrap gap-1 mt-1">
@@ -74,6 +75,20 @@
         <div *ngIf="doc.observaciones">
           <h6 class="fw-semibold">Observaciones</h6>
           <p class="text-muted">{{ doc.observaciones }}</p>
+        </div>
+      </div>
+
+      <div class="card-modern p-4 mt-3" *ngIf="doc?.referenciadoPor && doc.referenciadoPor.length > 0">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="pi pi-link" style="color:var(--primary);"></i> Documentos que referencian este
+        </h6>
+        <div *ngFor="let r of doc.referenciadoPor" class="d-flex align-items-center gap-2 mb-2">
+          <i class="pi pi-file" style="font-size:0.8rem;color:var(--primary);"></i>
+          <code style="color:var(--primary);font-weight:600;">{{ r.numeroInterno }}</code>
+          <span class="small flex-grow-1">{{ r.asunto }}</span>
+          <a [routerLink]="['/correspondencia', r.idCorrespondencia]" class="btn btn-soft-primary btn-xs">
+            <i class="pi pi-external-link" style="font-size:0.7rem;"></i>
+          </a>
         </div>
       </div>
 
@@ -145,10 +160,39 @@
           <i class="pi pi-cog" style="color:var(--warning);"></i> Acciones
         </h6>
 
-        <div class="mb-3" *ngIf="esDestinatarioPendiente">
-          <button class="btn btn-success btn-sm w-100" (click)="marcarRecibido()">
-            <i class="pi pi-check-circle" style="font-size:0.7rem;"></i> Marcar como Recibido
-          </button>
+        <div class="mb-3" *ngIf="esDestinatario">
+          <ng-container *ngIf="!showRecepForm">
+            <button class="btn btn-success btn-sm w-100" (click)="showRecepForm = !showRecepForm" *ngIf="esDestinatarioPendiente">
+              <i class="pi pi-check-circle" style="font-size:0.7rem;"></i> Recepcionar Documento
+            </button>
+            <button class="btn btn-outline-success btn-sm w-100" (click)="showRecepForm = !showRecepForm" *ngIf="!esDestinatarioPendiente">
+              <i class="pi pi-plus" style="font-size:0.7rem;"></i> Sumillar / Derivar
+            </button>
+          </ng-container>
+          <ng-container *ngIf="showRecepForm">
+            <label class="form-label small">Sumilla (instrucciones)</label>
+            <input autocomplete="off" [(ngModel)]="sumillaRecepcion" class="form-control form-control-sm mb-2" placeholder="Escriba la sumilla / instrucciones...">
+            <label class="form-label small">Etiquetar a usuarios que deben actuar</label>
+            <select #tagSelect class="form-select form-select-sm mb-2">
+              <option value="">Seleccione...</option>
+              <option *ngFor="let u of usuarios" [ngValue]="u">{{ u.nombres }} {{ u.apellidos }} — {{ u.rolNombre }}</option>
+            </select>
+            <button class="btn btn-outline-secondary btn-sm w-100 mb-2" [disabled]="!tagSelect.value" (click)="toggleEtiquetado(tagSelect.value); tagSelect.value = ''">
+              <i class="pi pi-tag" style="font-size:0.7rem;"></i> Etiquetar
+            </button>
+            <div *ngIf="usuariosEtiquetar.length > 0" class="d-flex flex-wrap gap-1 mb-2">
+              <span *ngFor="let u of usuariosEtiquetar" class="badge-destinatario badge-usuario">
+                {{ u.nombres }} {{ u.apellidos }}
+                <small class="ms-1 cursor-pointer" (click)="toggleEtiquetado(u)">✕</small>
+              </span>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-success btn-sm flex-grow-1" (click)="recepcionar()">
+                <i class="pi pi-check" style="font-size:0.7rem;"></i> Guardar y Notificar
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" (click)="showRecepForm = false">Cancelar</button>
+            </div>
+          </ng-container>
         </div>
 
         <div class="mb-3" *ngIf="doc.estado !== 'ARCHIVADO' && auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">
@@ -165,24 +209,31 @@
         </div>
 
         <div class="mb-3" *ngIf="auth.hasRole('ADMIN') || auth.hasRole('JEFE_TI')">
-          <label class="form-label small">Agregar Responsable</label>
-          <div class="d-flex gap-2 mb-2">
-            <select autocomplete="off" #respSelect class="form-select form-select-sm">
-              <option value="">Seleccione...</option>
-              <option *ngFor="let u of usuarios" [value]="u.idUsuario">{{ u.nombres }} {{ u.apellidos }}</option>
-            </select>
-            <button class="btn btn-primary btn-sm" [disabled]="!respSelect.value" (click)="asignarResponsable(+respSelect.value)">
-              <i class="pi pi-check" style="font-size:0.7rem;"></i>
-            </button>
+          <label class="form-label small">Agregar Responsable(s)</label>
+          <div class="responsable-selector mb-2">
+            <div *ngFor="let u of usuariosDisponibles" class="form-check responsable-option">
+              <input autocomplete="off" class="form-check-input" type="checkbox"
+                     [id]="'chkResp_' + u.idUsuario"
+                     [checked]="estaSeleccionado(u.idUsuario)"
+                     (change)="toggleUsuarioSeleccionado(u.idUsuario)">
+              <label class="form-check-label small" [for]="'chkResp_' + u.idUsuario">
+                {{ u.nombres }} {{ u.apellidos }}
+              </label>
+            </div>
+            <div *ngIf="usuariosDisponibles.length === 0" class="text-muted small px-2 pb-1">Todos los usuarios ya están asignados</div>
           </div>
           <textarea autocomplete="off" class="form-control form-control-sm" rows="2"
-                    placeholder="Sumilla / instrucciones para el responsable..."
+                    placeholder="Sumilla / instrucciones para los responsables..."
                     [(ngModel)]="nuevaSumilla" name="sumillaNueva"></textarea>
-          <div class="form-text small">El responsable se agregará a la lista existente</div>
+          <button class="btn btn-primary btn-sm w-100 mt-2" [disabled]="usuariosSeleccionados.length === 0" (click)="asignarResponsables()">
+            <i class="pi pi-check" style="font-size:0.7rem;"></i> Asignar {{ usuariosSeleccionados.length > 0 ? '(' + usuariosSeleccionados.length + ')' : '' }}
+          </button>
+          <div class="form-text small">Seleccione uno o más responsables a agregar</div>
         </div>
 
-        <div class="mb-3" *ngIf="doc.requiereRespuesta && doc.estado !== 'RESPONDIDO' && doc.estado !== 'ARCHIVADO' && auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">
-          <button class="btn btn-outline-primary btn-sm w-100" (click)="showRespuestaForm = !showRespuestaForm">
+        <div class="mb-3" *ngIf="doc.estado !== 'RESPONDIDO' && doc.estado !== 'ARCHIVADO' && auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">
+          <button class="btn btn-outline-primary btn-sm w-100" [disabled]="!doc.requiereRespuesta" (click)="showRespuestaForm = !showRespuestaForm"
+                  [title]="doc.requiereRespuesta ? '' : 'Este documento no requiere respuesta'">
             <i class="pi pi-reply" style="font-size:0.7rem;"></i> {{ showRespuestaForm ? 'Cancelar' : 'Registrar Respuesta' }}
           </button>
         </div>

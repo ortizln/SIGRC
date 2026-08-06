@@ -16,6 +16,7 @@ import { ESTADOS_CORRESPONDENCIA, PRIORIDADES, SENTIDOS } from '@shared/models/c
 })
 export class CorrespondenciaListComponent implements OnInit {
   documentos: any[] = [];
+  grupos: any[] = [];
   tiposDocumento: any[] = [];
   usuarios: any[] = [];
   filtros: any = {
@@ -152,10 +153,103 @@ export class CorrespondenciaListComponent implements OnInit {
     return d.responsables?.map((r: any) => r.nombre).join(', ') || '—';
   }
 
+  esDestinatarioDe(d: any): boolean {
+    const user = this.auth.getUsuario();
+    if (!user || !d?.destinatarios) return false;
+    return d.destinatarios.some((x: any) =>
+      x.tipo === 'USUARIO' && x.idDestinatario === user.idUsuario);
+  }
+
+  sentidoPercibido(d: any): string {
+    const s = d?.sentido;
+    if (s !== 'SALIDA') return s || '';
+    const user = this.auth.getUsuario();
+    if (!user) return s;
+    if (this.esDestinatarioDe(d) && d.creadoPor !== user.idUsuario) return 'INGRESO';
+    return s;
+  }
+
+  toggleGrupo(g: any) {
+    g.expandido = !g.expandido;
+  }
+
+  filaClase(d: any): string {
+    if (!d?.requiereRespuesta || !d?.fechaLimiteRespuesta) return '';
+    if (d.estado === 'RESPONDIDO' || d.estado === 'ARCHIVADO') return '';
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const limite = new Date(d.fechaLimiteRespuesta + 'T00:00:00');
+    const diffDias = Math.ceil((limite.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDias < 0) return 'fila-caducada';
+    if (diffDias <= 5) return 'fila-proxima';
+    return '';
+  }
+
   private cargar() {
     this.svc.listar(this.filtros).subscribe(r => {
       this.documentos = r.contenido;
       this.pagina = r;
+      this.construirGrupos();
     });
+  }
+
+  private construirGrupos() {
+    const docs = this.documentos;
+    const idSet = new Set<number>(docs.map(d => d.idCorrespondencia));
+
+    const parent = new Map<number, number>();
+    const find = (x: number): number => {
+      if (!parent.has(x)) parent.set(x, x);
+      while (parent.get(x) !== x) {
+        parent.set(x, parent.get(parent.get(x)!)!);
+        x = parent.get(x)!;
+      }
+      return x;
+    };
+    const union = (a: number, b: number) => {
+      const ra = find(a), rb = find(b);
+      if (ra !== rb) parent.set(ra, rb);
+    };
+
+    for (const d of docs) {
+      parent.set(d.idCorrespondencia, d.idCorrespondencia);
+      for (const r of d.referencias || []) {
+        if (idSet.has(r.idCorrespondencia)) union(d.idCorrespondencia, r.idCorrespondencia);
+      }
+    }
+
+    const gruposMap = new Map<number, any[]>();
+    for (const d of docs) {
+      const root = find(d.idCorrespondencia);
+      if (!gruposMap.has(root)) gruposMap.set(root, []);
+      gruposMap.get(root)!.push(d);
+    }
+
+    this.grupos = [];
+    gruposMap.forEach(miembros => {
+      if (miembros.length === 1) {
+        this.grupos.push({ main: miembros[0], hijos: [], expandido: false });
+        return;
+      }
+      const ids = new Set<number>(miembros.map(m => m.idCorrespondencia));
+      const referenciadoPor = new Map<number, number>();
+      for (const m of miembros) {
+        for (const r of m.referencias || []) {
+          if (ids.has(r.idCorrespondencia)) {
+            referenciadoPor.set(r.idCorrespondencia, (referenciadoPor.get(r.idCorrespondencia) || 0) + 1);
+          }
+        }
+      }
+      const main = miembros.find(m =>
+        referenciadoPor.has(m.idCorrespondencia) &&
+        !(m.referencias || []).some((r: any) => ids.has(r.idCorrespondencia))
+      ) || [...miembros].sort((a, b) => (a.fechaRecepcion || '').localeCompare(b.fechaRecepcion || ''))[0];
+      const hijos = miembros.filter(m => m.idCorrespondencia !== main.idCorrespondencia);
+      this.grupos.push({ main, hijos, expandido: false });
+    });
+
+    const orden = new Map<number, number>();
+    docs.forEach((d, i) => orden.set(d.idCorrespondencia, i));
+    this.grupos.sort((a, b) => (orden.get(a.main.idCorrespondencia) || 0) - (orden.get(b.main.idCorrespondencia) || 0));
   }
 }

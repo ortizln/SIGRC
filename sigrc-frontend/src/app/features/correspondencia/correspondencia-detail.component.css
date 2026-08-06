@@ -136,3 +136,21 @@
   text-align: center;
   padding: 3rem 1rem;
 }
+
+.responsable-selector {
+  max-height: 150px;
+  overflow-y: auto;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.5rem;
+  background: var(--surface-card);
+}
+
+.responsable-option {
+  margin: 0.15rem 0;
+}
+
+.responsable-option .form-check-input:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}

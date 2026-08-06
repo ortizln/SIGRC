@@ -39,5 +39,6 @@ public record CorrespondenciaDTO(
     List<CorrespondenciaRespuestaDTO> respuestas,
     List<TicketVinculadoDTO> ticketsVinculados,
     List<CorrespondenciaReferenciaDTO> referencias,
+    List<CorrespondenciaReferenciaDTO> referenciadoPor,
     List<CorrespondenciaDestinatarioDTO> destinatarios
 ) {}

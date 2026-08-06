@@ -20,19 +20,23 @@ public interface CorrespondenciaRepository extends JpaRepository<Correspondencia
            "(:estado IS NULL OR c.estado = :estado) AND " +
            "(:prioridad IS NULL OR c.prioridad = :prioridad) AND " +
            "(:idTipoDocumento IS NULL OR c.id_tipo_documento = :idTipoDocumento) AND " +
-            "((:idResponsable IS NULL AND :idUsuario IS NULL) OR EXISTS (SELECT 1 FROM sigrc.correspondencia_responsable cr WHERE cr.id_correspondencia = c.id_correspondencia AND cr.id_usuario = :idResponsable) OR c.creado_por = :idUsuario OR EXISTS (SELECT 1 FROM sigrc.correspondencia_destinatario cd WHERE cd.id_correspondencia = c.id_correspondencia AND cd.tipo = 'USUARIO' AND cd.id_destinatario = :idUsuario)) AND " +
+            "(:prioridad IS NULL OR c.prioridad = :prioridad) AND " +
+            "(:idTipoDocumento IS NULL OR c.id_tipo_documento = :idTipoDocumento) AND " +
+            "((:idResponsable IS NULL AND :idUsuario IS NULL) OR EXISTS (SELECT 1 FROM sigrc.correspondencia_responsable cr WHERE cr.id_correspondencia = c.id_correspondencia AND cr.id_usuario = :idResponsable) OR c.creado_por = :idUsuario OR EXISTS (SELECT 1 FROM sigrc.correspondencia_destinatario cd WHERE cd.id_correspondencia = c.id_correspondencia AND cd.tipo = 'USUARIO' AND cd.id_destinatario = :idUsuario) OR EXISTS (SELECT 1 FROM sigrc.correspondencia_referencia crr JOIN sigrc.correspondencia_responsable crr2 ON crr2.id_correspondencia = crr.id_correspondencia WHERE crr.id_referencia = c.id_correspondencia AND crr2.id_usuario = :idUsuario)) AND " +
             "(:sentido IS NULL OR c.sentido = :sentido) AND " +
-             "(CAST(:fechaDesde AS date) IS NULL OR c.fecha_recepcion >= CAST(:fechaDesde AS date)) AND " +
-             "(CAST(:fechaHasta AS date) IS NULL OR c.fecha_recepcion <= CAST(:fechaHasta AS date))",
+             "(((CAST(:fechaDesde AS date) IS NULL OR c.fecha_recepcion >= CAST(:fechaDesde AS date)) AND " +
+             "(CAST(:fechaHasta AS date) IS NULL OR c.fecha_recepcion <= CAST(:fechaHasta AS date))) OR " +
+             "EXISTS (SELECT 1 FROM sigrc.correspondencia_responsable cr3 WHERE cr3.id_correspondencia = c.id_correspondencia AND cr3.id_usuario = :idUsuario) OR c.creado_por = :idUsuario OR EXISTS (SELECT 1 FROM sigrc.correspondencia_destinatario cd3 WHERE cd3.id_correspondencia = c.id_correspondencia AND cd3.tipo = 'USUARIO' AND cd3.id_destinatario = :idUsuario))",
              countQuery = "SELECT COUNT(*) FROM sigrc.correspondencia c WHERE c.activo = true AND " +
             "(:texto IS NULL OR LOWER(CAST(c.asunto AS TEXT)) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(CAST(c.numero_interno AS TEXT)) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(CAST(c.codigo_documento AS TEXT)) LIKE LOWER(CONCAT('%',:texto,'%'))) AND " +
             "(:estado IS NULL OR c.estado = :estado) AND " +
             "(:prioridad IS NULL OR c.prioridad = :prioridad) AND " +
             "(:idTipoDocumento IS NULL OR c.id_tipo_documento = :idTipoDocumento) AND " +
-            "((:idResponsable IS NULL AND :idUsuario IS NULL) OR EXISTS (SELECT 1 FROM sigrc.correspondencia_responsable cr WHERE cr.id_correspondencia = c.id_correspondencia AND cr.id_usuario = :idResponsable) OR c.creado_por = :idUsuario OR EXISTS (SELECT 1 FROM sigrc.correspondencia_destinatario cd WHERE cd.id_correspondencia = c.id_correspondencia AND cd.tipo = 'USUARIO' AND cd.id_destinatario = :idUsuario)) AND " +
+            "((:idResponsable IS NULL AND :idUsuario IS NULL) OR EXISTS (SELECT 1 FROM sigrc.correspondencia_responsable cr WHERE cr.id_correspondencia = c.id_correspondencia AND cr.id_usuario = :idResponsable) OR c.creado_por = :idUsuario OR EXISTS (SELECT 1 FROM sigrc.correspondencia_destinatario cd WHERE cd.id_correspondencia = c.id_correspondencia AND cd.tipo = 'USUARIO' AND cd.id_destinatario = :idUsuario) OR EXISTS (SELECT 1 FROM sigrc.correspondencia_referencia crr JOIN sigrc.correspondencia_responsable crr2 ON crr2.id_correspondencia = crr.id_correspondencia WHERE crr.id_referencia = c.id_correspondencia AND crr2.id_usuario = :idUsuario)) AND " +
             "(:sentido IS NULL OR c.sentido = :sentido) AND " +
-             "(CAST(:fechaDesde AS date) IS NULL OR c.fecha_recepcion >= CAST(:fechaDesde AS date)) AND " +
-             "(CAST(:fechaHasta AS date) IS NULL OR c.fecha_recepcion <= CAST(:fechaHasta AS date))",
+             "(((CAST(:fechaDesde AS date) IS NULL OR c.fecha_recepcion >= CAST(:fechaDesde AS date)) AND " +
+             "(CAST(:fechaHasta AS date) IS NULL OR c.fecha_recepcion <= CAST(:fechaHasta AS date))) OR " +
+             "EXISTS (SELECT 1 FROM sigrc.correspondencia_responsable cr3 WHERE cr3.id_correspondencia = c.id_correspondencia AND cr3.id_usuario = :idUsuario) OR c.creado_por = :idUsuario OR EXISTS (SELECT 1 FROM sigrc.correspondencia_destinatario cd3 WHERE cd3.id_correspondencia = c.id_correspondencia AND cd3.tipo = 'USUARIO' AND cd3.id_destinatario = :idUsuario))",
            nativeQuery = true)
     Page<Correspondencia> buscar(@Param("texto") String texto,
                                    @Param("estado") String estado,
@@ -47,6 +51,9 @@ public interface CorrespondenciaRepository extends JpaRepository<Correspondencia
 
     @Query("SELECT c FROM Correspondencia c WHERE c.activo = true AND c.requiereRespuesta = true AND c.fechaLimiteRespuesta < CURRENT_DATE AND c.estado <> 'ARCHIVADO' AND c.estado <> 'RESPONDIDO'")
     List<Correspondencia> findVencidos();
+
+    @Query("SELECT c FROM Correspondencia c JOIN c.referencias r WHERE r.idCorrespondencia = :idCorrespondencia AND c.activo = true ORDER BY c.creadoEn DESC")
+    List<Correspondencia> findReferenciadoPor(@Param("idCorrespondencia") Integer idCorrespondencia);
 
     @Query("SELECT COUNT(c) FROM Correspondencia c WHERE c.activo = true")
     long countActivos();
