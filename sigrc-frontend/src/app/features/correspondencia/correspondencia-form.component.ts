@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CorrespondenciaService } from '@core/services/correspondencia.service';
 import { CatalogoService } from '@core/services/catalogo.service';
 import { UsuarioService } from '@core/services/usuario.service';
@@ -17,6 +17,8 @@ import { ESTADOS_CORRESPONDENCIA, PRIORIDADES, SENTIDOS } from '@shared/models/c
   styleUrl: './correspondencia-form.component.css'
 })
 export class CorrespondenciaFormComponent implements OnInit {
+  idEditar: number | null = null;
+  esEdicion = false;
   form: any = {
     asunto: '', resumenEjecutivo: '', codigoDocumento: '',
     idTipoDocumento: null, fechaDocumento: '', fechaRecepcion: '',
@@ -67,10 +69,16 @@ export class CorrespondenciaFormComponent implements OnInit {
     private usuarioSvc: UsuarioService,
     private ticketSvc: TicketService,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
+    const idParam = this.route.snapshot.paramMap.get('id');
+    if (idParam) {
+      this.idEditar = Number(idParam);
+      this.esEdicion = true;
+    }
     this.svc.getTiposDocumento().subscribe(r => this.tiposDocumento = r);
     this.catSvc.getAreas().subscribe(r => this.areas = r);
     this.catSvc.getSistemas().subscribe(r => this.sistemas = r);
@@ -78,14 +86,54 @@ export class CorrespondenciaFormComponent implements OnInit {
     this.usuarioSvc.listar().subscribe(r => {
       this.usuarios = r;
       this.armarDestinatarios();
+      if (this.esEdicion && this.idEditar) this.cargarDocumento(this.idEditar);
     });
-    const now = new Date();
-    this.form.fechaRecepcion = now.toISOString().split('T')[0];
-    this.form.horaRecepcion = now.toTimeString().slice(0, 5);
-    this.form.fechaDocumento = now.toISOString().split('T')[0];
-    const dentro10Dias = new Date(now);
-    dentro10Dias.setDate(dentro10Dias.getDate() + 10);
-    this.form.fechaLimiteRespuesta = dentro10Dias.toISOString().split('T')[0];
+    if (!this.esEdicion) {
+      const now = new Date();
+      this.form.fechaRecepcion = now.toISOString().split('T')[0];
+      this.form.horaRecepcion = now.toTimeString().slice(0, 5);
+      this.form.fechaDocumento = now.toISOString().split('T')[0];
+      const dentro10Dias = new Date(now);
+      dentro10Dias.setDate(dentro10Dias.getDate() + 10);
+      this.form.fechaLimiteRespuesta = dentro10Dias.toISOString().split('T')[0];
+    }
+  }
+
+  private cargarDocumento(id: number) {
+    this.svc.obtener(id).subscribe(r => {
+      this.form.asunto = r.asunto;
+      this.form.resumenEjecutivo = r.resumenEjecutivo || '';
+      this.form.codigoDocumento = r.codigoDocumento || '';
+      this.form.idTipoDocumento = r.idTipoDocumento;
+      this.form.fechaDocumento = r.fechaDocumento;
+      this.form.fechaRecepcion = r.fechaRecepcion;
+      this.form.horaRecepcion = r.horaRecepcion?.slice(0, 5) || '';
+      this.form.personaEntrega = r.personaEntrega || '';
+      this.form.cargo = r.cargo || '';
+      this.form.institucion = r.institucion || '';
+      this.form.departamentoRemitente = r.departamentoRemitente || '';
+      this.form.responsables = (r.responsables || []).map((x: any) => ({ idUsuario: x.idUsuario, sumilla: x.sumilla || '' }));
+      this.form.prioridad = r.prioridad || 'MEDIA';
+      this.form.sentido = r.sentido;
+      this.form.requiereRespuesta = r.requiereRespuesta;
+      this.form.fechaLimiteRespuesta = r.fechaLimiteRespuesta || '';
+      this.form.generaTicket = r.generaTicket || false;
+      this.form.observaciones = r.observaciones || '';
+      this.form.areasEtiquetadas = r.areasEtiquetadas || [];
+      this.form.idsReferencias = (r.referencias || []).map((x: any) => x.idCorrespondencia);
+      this.form.destinatariosSeleccionados = (r.destinatarios || []).map((d: any) =>
+        (d.tipo === 'USUARIO' ? 'u' : 'a') + d.idDestinatario);
+      this.actualizarPersonaEntrega();
+      if (this.form.sentido === 'SALIDA') {
+        this.cargarTickets();
+        this.cargarTicketsPendientes();
+        const ticket = r.ticketsVinculados?.[0];
+        if (ticket) {
+          this.form.idTicketVinculado = ticket.idTicket;
+          this.ticketVinculadoPreview = { idTicket: ticket.idTicket, numeroTicket: ticket.numeroTicket, asunto: ticket.asunto };
+        }
+      }
+    });
   }
 
   onTipoDocumentoChange() {
@@ -277,10 +325,15 @@ export class CorrespondenciaFormComponent implements OnInit {
       return;
     }
     this.timerBusqueda = setTimeout(() => {
-      this.svc.listar({ texto, pagina: 0, tamanio: 30, sortBy: 'fecha_recepcion', sortDir: 'desc' })
-        .subscribe(r => {
-          this.documentosReferencia = r.contenido;
-        });
+      const filtros: any = { texto, pagina: 0, tamanio: 30, sortBy: 'fecha_recepcion', sortDir: 'desc' };
+      const user = this.auth.getUsuario();
+      if (user && user.rolCodigo !== 'ADMIN') {
+        filtros.idResponsable = user.idUsuario;
+        filtros.idUsuario = user.idUsuario;
+      }
+      this.svc.listar(filtros).subscribe(r => {
+        this.documentosReferencia = r.contenido;
+      });
     }, 300);
   }
 
@@ -420,6 +473,20 @@ export class CorrespondenciaFormComponent implements OnInit {
       ticketIdSubcategoria: this.form.ticketIdSubcategoria || null
     };
 
+    if (this.esEdicion && this.idEditar) {
+      this.svc.actualizar(this.idEditar, body).subscribe({
+        next: async r => {
+          const id = r.idCorrespondencia;
+          for (const f of this.archivos) {
+            try { await this.svc.subirAdjunto(id, f, 'ANEXO').toPromise(); } catch (_) {}
+          }
+          this.router.navigate(['/correspondencia', id]);
+        },
+        error: (err) => this.handleError(err)
+      });
+      return;
+    }
+
     this.svc.crear(body).subscribe({
       next: async r => {
         const id = r.idCorrespondencia;
@@ -449,5 +516,16 @@ export class CorrespondenciaFormComponent implements OnInit {
         }
       }
     });
+  }
+
+  private handleError(err: any) {
+    this.cargando = false;
+    if (err.error?.errores) {
+      this.errorMessage = Object.values(err.error.errores).join('. ');
+    } else if (err.error?.mensaje) {
+      this.errorMessage = err.error.mensaje;
+    } else {
+      this.errorMessage = 'Error al guardar el documento. Verifique los datos e intente nuevamente.';
+    }
   }
 }

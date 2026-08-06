@@ -2,7 +2,7 @@
   <div class="page-header">
     <div class="d-flex justify-content-between align-items-start">
       <div>
-        <h2>Registrar Documento</h2>
+        <h2>{{ esEdicion ? 'Editar Documento' : 'Registrar Documento' }}</h2>
         <p>Sistema de Gestión de Correspondencia — {{ form.sentido === 'SALIDA' ? 'Documento de Salida' : 'Documento de Ingreso' }}</p>
       </div>
       <a routerLink="/correspondencia" class="btn btn-outline-secondary btn-sm">

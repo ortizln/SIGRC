@@ -16,6 +16,7 @@ export const routes: Routes = [
       { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard.component').then(c => c.DashboardComponent) },
       { path: 'correspondencia', loadComponent: () => import('./features/correspondencia/correspondencia.component').then(c => c.CorrespondenciaListComponent) },
       { path: 'correspondencia/nuevo', loadComponent: () => import('./features/correspondencia/correspondencia-form.component').then(c => c.CorrespondenciaFormComponent) },
+      { path: 'correspondencia/editar/:id', loadComponent: () => import('./features/correspondencia/correspondencia-form.component').then(c => c.CorrespondenciaFormComponent) },
       { path: 'correspondencia/:id', loadComponent: () => import('./features/correspondencia/correspondencia-detail.component').then(c => c.CorrespondenciaDetailComponent) },
       { path: 'tickets', loadComponent: () => import('./features/tickets/tickets.component').then(c => c.TicketsComponent) },
       { path: 'tickets/nuevo', loadComponent: () => import('./features/tickets/ticket-form.component').then(c => c.TicketFormComponent) },
