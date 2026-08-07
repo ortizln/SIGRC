@@ -232,9 +232,9 @@
         </div>
 
         <div class="mb-3" *ngIf="doc.estado !== 'RESPONDIDO' && doc.estado !== 'ARCHIVADO' && auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">
-          <button class="btn btn-outline-primary btn-sm w-100" [disabled]="!doc.requiereRespuesta" (click)="showRespuestaForm = !showRespuestaForm"
-                  [title]="doc.requiereRespuesta ? '' : 'Este documento no requiere respuesta'">
-            <i class="pi pi-reply" style="font-size:0.7rem;"></i> {{ showRespuestaForm ? 'Cancelar' : 'Registrar Respuesta' }}
+          <button class="btn btn-outline-primary btn-sm w-100" [disabled]="!doc.requiereRespuesta" (click)="irAResponder()"
+                  [title]="doc.requiereRespuesta ? 'Crear un nuevo documento (salida) para responder esta correspondencia' : 'Este documento no requiere respuesta'">
+            <i class="pi pi-reply" style="font-size:0.7rem;"></i> Registrar Respuesta
           </button>
         </div>
 
@@ -246,21 +246,6 @@
         <div class="mt-3" *ngIf="auth.hasRole('ADMIN')">
           <button class="btn btn-outline-danger btn-sm w-100" (click)="eliminarDocumento()">
             <i class="pi pi-trash" style="font-size:0.7rem;"></i> Eliminar Documento
-          </button>
-        </div>
-      </div>
-
-      <div class="card-modern p-4 mt-3" *ngIf="showRespuestaForm">
-        <h6 class="fw-bold mb-3">Registrar Respuesta</h6>
-        <div class="d-flex flex-column gap-2">
-          <label class="form-label small">Asignar Responsable de la Respuesta <span class="text-danger">*</span></label>
-          <select autocomplete="off" #respModel="ngModel" [(ngModel)]="formRespuesta.idResponsable" name="idResponsableResp" required class="form-select form-select-sm">
-            <option [ngValue]="null">Seleccione...</option>
-            <option *ngFor="let u of usuarios" [value]="u.idUsuario">{{ u.nombres }} {{ u.apellidos }}</option>
-          </select>
-          <textarea autocomplete="off" [(ngModel)]="formRespuesta.observaciones" name="observacionesResp" class="form-control form-control-sm" rows="2" placeholder="Observaciones (opcional)"></textarea>
-          <button class="btn btn-primary btn-sm" [disabled]="!formRespuesta.idResponsable" (click)="registrarRespuesta()">
-            <i class="pi pi-check" style="font-size:0.7rem;"></i> Guardar Respuesta
           </button>
         </div>
       </div>

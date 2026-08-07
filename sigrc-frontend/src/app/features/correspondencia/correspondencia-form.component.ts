@@ -19,6 +19,7 @@ import { ESTADOS_CORRESPONDENCIA, PRIORIDADES, SENTIDOS } from '@shared/models/c
 export class CorrespondenciaFormComponent implements OnInit {
   idEditar: number | null = null;
   esEdicion = false;
+  idRespuestaDe: number | null = null;
   form: any = {
     asunto: '', resumenEjecutivo: '', codigoDocumento: '',
     idTipoDocumento: null, fechaDocumento: '', fechaRecepcion: '',
@@ -79,6 +80,8 @@ export class CorrespondenciaFormComponent implements OnInit {
       this.idEditar = Number(idParam);
       this.esEdicion = true;
     }
+    const respondeA = this.route.snapshot.queryParamMap.get('respondeA');
+    if (respondeA) this.idRespuestaDe = Number(respondeA);
     this.svc.getTiposDocumento().subscribe(r => this.tiposDocumento = r);
     this.catSvc.getAreas().subscribe(r => this.areas = r);
     this.catSvc.getSistemas().subscribe(r => this.sistemas = r);
@@ -87,6 +90,7 @@ export class CorrespondenciaFormComponent implements OnInit {
       this.usuarios = r;
       this.armarDestinatarios();
       if (this.esEdicion && this.idEditar) this.cargarDocumento(this.idEditar);
+      else if (this.idRespuestaDe) this.cargarModoRespuesta(this.idRespuestaDe);
     });
     if (!this.esEdicion) {
       const now = new Date();
@@ -136,6 +140,31 @@ export class CorrespondenciaFormComponent implements OnInit {
         this.recuperarRemitenteCargado();
       }
     });
+  }
+
+  private cargarModoRespuesta(idOrigen: number) {
+    this.form.sentido = 'SALIDA';
+    this.form.idsReferencias = [idOrigen];
+    this.svc.obtener(idOrigen).subscribe(orig => {
+      if (orig?.asunto) {
+        this.form.asunto = 'Respuesta a: ' + orig.asunto;
+      }
+      const nombre = (orig?.personaEntrega || '').trim();
+      if (nombre) {
+        const match = this.usersByIdOnly(nombre);
+        if (match) {
+          this.form.destinatariosSeleccionados.push(`u${match.idUsuario}`);
+          this.actualizarPersonaEntrega();
+          this.cargarTickets();
+          this.cargarTicketsPendientes();
+        }
+      }
+    });
+  }
+
+  private usersByIdOnly(nombre: string): any {
+    return this.usuarios.find((u: any) =>
+      `${u.nombres} ${u.apellidos}`.toLowerCase().trim() === nombre.toLowerCase().trim());
   }
 
   onTipoDocumentoChange() {

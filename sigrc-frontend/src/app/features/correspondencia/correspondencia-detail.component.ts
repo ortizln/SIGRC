@@ -144,6 +144,13 @@ export class CorrespondenciaDetailComponent implements OnInit {
     });
   }
 
+  irAResponder() {
+    if (!this.doc) return;
+    this.router.navigate(['/correspondencia/nuevo'], {
+      queryParams: { respondeA: this.doc.idCorrespondencia }
+    });
+  }
+
   registrarRespuesta() {
     if (!this.doc || !this.formRespuesta.idResponsable) return;
     this.formRespuesta.idCorrespondencia = this.doc.idCorrespondencia;
