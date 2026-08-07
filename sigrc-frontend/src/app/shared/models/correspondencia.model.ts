@@ -50,6 +50,7 @@ export interface CorrespondenciaCrearRequest {
   cargo?: string;
   institucion?: string;
   departamentoRemitente?: string;
+  idRemitenteUsuario?: number;
   responsables?: ResponsableAsignado[];
   prioridad: string;
   sentido?: string;

@@ -153,6 +153,19 @@ public class CorrespondenciaService {
         guardarDestinatarios(entity, request.destinatarios());
         marcarRespuestasDesdeReferencias(entity, creadoPor);
 
+        if ("INGRESO".equals(sentido) && request.idRemitenteUsuario() != null) {
+            Usuario remitente = usuarioRepository.findById(request.idRemitenteUsuario()).orElse(null);
+            if (remitente != null) {
+                Correspondencia salidaExistente = buscarSalidaRemitente(request.codigoDocumento(), remitente.getIdUsuario());
+                if (salidaExistente != null) {
+                    vincularMutuo(entity, salidaExistente);
+                } else {
+                    Correspondencia salidaEspejo = crearSalidaEspejo(request, remitente, creadoPor, entity);
+                    vincularMutuo(entity, salidaEspejo);
+                }
+            }
+        }
+
         String accionHistorial = "INGRESO".equals(sentido) ? "CREACION" : "EMISION";
         String detalleHistorial = "INGRESO".equals(sentido)
                 ? "Documento recibido y registrado en el sistema"
@@ -714,6 +727,82 @@ public class CorrespondenciaService {
             Correspondencia ref = repository.getReferenceById(idRef);
             entity.getReferencias().add(ref);
         }
+    }
+
+    private Correspondencia buscarSalidaRemitente(String codigoDocumento, Integer idRemitente) {
+        if (codigoDocumento == null || codigoDocumento.isBlank()) return null;
+        return repository.findByCodigoDocumentoAndSentido(codigoDocumento, "SALIDA").stream()
+            .filter(c -> {
+                if (c.getCreadoPor() != null && c.getCreadoPor().getIdUsuario().equals(idRemitente)) return true;
+                return c.getResponsablesAsignados() != null && c.getResponsablesAsignados().stream()
+                    .anyMatch(ra -> ra.getUsuario() != null && ra.getUsuario().getIdUsuario().equals(idRemitente));
+            })
+            .findFirst().orElse(null);
+    }
+
+    private void vincularMutuo(Correspondencia ingreso, Correspondencia salida) {
+        if (!salida.getReferencias().contains(ingreso)) {
+            salida.getReferencias().add(ingreso);
+            repository.save(salida);
+        }
+        if (!ingreso.getReferencias().contains(salida)) {
+            ingreso.getReferencias().add(salida);
+            repository.save(ingreso);
+        }
+    }
+
+    private Correspondencia crearSalidaEspejo(CorrespondenciaCrearRequest request, Usuario remitente,
+                                              Usuario activoUsuario, Correspondencia ingreso) {
+        CorrespondenciaDocumentoTipo tipoDoc = tipoDocRepository.findById(request.idTipoDocumento())
+                .orElseThrow(() -> new EntityNotFoundException("Tipo de documento no encontrado"));
+
+        String numeroInterno = generarNumeroInterno(remitente);
+
+        Correspondencia salida = Correspondencia.builder()
+                .numeroInterno(numeroInterno)
+                .codigoDocumento(request.codigoDocumento())
+                .tipoDocumento(tipoDoc)
+                .asunto(request.asunto())
+                .resumenEjecutivo(request.resumenEjecutivo())
+                .fechaDocumento(request.fechaDocumento())
+                .fechaRecepcion(request.fechaRecepcion())
+                .horaRecepcion(request.horaRecepcion())
+                .personaEntrega(request.personaEntrega() != null ? request.personaEntrega() : "")
+                .cargo(request.cargo())
+                .institucion(request.institucion())
+                .departamentoRemitente(request.departamentoRemitente())
+                .prioridad(request.prioridad() != null ? request.prioridad() : "MEDIA")
+                .estado("RECIBIDO")
+                .sentido("SALIDA")
+                .requiereRespuesta(false)
+                .fechaLimiteRespuesta(request.fechaLimiteRespuesta())
+                .generaTicket(false)
+                .observaciones("Documento espejo generado automáticamente a partir del ingreso registrado por " + activoUsuario.getNombres())
+                .creadoPor(remitente)
+                .build();
+
+        CorrespondenciaResponsable ra = CorrespondenciaResponsable.builder()
+                .correspondencia(salida)
+                .usuario(remitente)
+                .sumilla("")
+                .build();
+        salida.getResponsablesAsignados().add(ra);
+
+        salida = repository.save(salida);
+
+        CorrespondenciaDestinatario d = CorrespondenciaDestinatario.builder()
+                .correspondencia(salida)
+                .tipo("USUARIO")
+                .idDestinatario(activoUsuario.getIdUsuario())
+                .nombre(activoUsuario.getNombres() + " " + (activoUsuario.getApellidos() != null ? activoUsuario.getApellidos() : ""))
+                .recibido(false)
+                .build();
+        destinatarioRepository.save(d);
+
+        registrarHistorial(salida, null, "RECIBIDO", "EMISION",
+                "Documento espejo generado automáticamente a partir del ingreso " + ingreso.getNumeroInterno(), remitente);
+
+        return salida;
     }
 
     private void marcarRespuestasDesdeReferencias(Correspondencia entity, Usuario usuario) {

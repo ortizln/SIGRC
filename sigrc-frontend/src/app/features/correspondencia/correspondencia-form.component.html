@@ -98,8 +98,29 @@
           <label class="form-label">Persona que Entrega <span class="text-danger">*</span></label>
           <input autocomplete="off" #perModel="ngModel" [(ngModel)]="form.personaEntrega" name="personaEntrega" required
                  class="form-control" placeholder="Nombre completo"
-                 [class.is-invalid]="perModel.invalid && perModel.touched">
+                 [class.is-invalid]="perModel.invalid && perModel.touched"
+                 (ngModelChange)="remitenteSeleccionado = null; form.idRemitenteUsuario = null">
           <div class="validation-feedback" *ngIf="perModel.invalid && perModel.touched">Campo obligatorio</div>
+        </div>
+        <div class="col-md-8">
+          <label class="form-label">Buscar remitente de la empresa (opcional)</label>
+          <div class="position-relative">
+            <input autocomplete="off" [(ngModel)]="busquedaRemitente" name="busquedaRemitente" class="form-control"
+                   placeholder="Escriba nombre para buscar un usuario de la empresa..."
+                   (input)="filtrarRemitentes()" (blur)="cerrarSugerenciasRemitente()">
+            <div class="sugerencias-dropdown" *ngIf="sugerenciasRemitente.length > 0">
+              <button type="button" class="sugerencia-item" *ngFor="let u of sugerenciasRemitente"
+                      (mousedown)="seleccionarRemitente(u)">
+                <span class="fw-semibold">{{ u.nombres }} {{ u.apellidos }}</span>
+                <small class="text-muted d-block">{{ u.cargo || '—' }} · {{ u.areaNombre || '—' }}</small>
+              </button>
+            </div>
+            <small class="text-muted" *ngIf="remitenteSeleccionado" style="font-size:0.68rem;">
+              <i class="pi pi-check-circle me-1" style="color:var(--success);"></i>
+              Remitente de la empresa seleccionado: al guardar se vinculará el documento como SALIDA en su perfil.
+              <a href="javascript:void(0)" (click)="limpiarRemitente()">Quitar</a>
+            </small>
+          </div>
         </div>
         <div class="col-md-4">
           <label class="form-label">Cargo</label>

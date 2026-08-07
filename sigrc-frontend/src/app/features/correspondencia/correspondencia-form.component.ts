@@ -23,7 +23,7 @@ export class CorrespondenciaFormComponent implements OnInit {
     asunto: '', resumenEjecutivo: '', codigoDocumento: '',
     idTipoDocumento: null, fechaDocumento: '', fechaRecepcion: '',
     horaRecepcion: '', personaEntrega: '', cargo: '', institucion: '',
-    departamentoRemitente: '', responsables: [], prioridad: 'MEDIA',
+    departamentoRemitente: '', idRemitenteUsuario: null, responsables: [], prioridad: 'MEDIA',
     sentido: 'INGRESO',
     requiereRespuesta: false, fechaLimiteRespuesta: '',
     generaTicket: false, observaciones: '', areasEtiquetadas: [],
@@ -360,6 +360,43 @@ export class CorrespondenciaFormComponent implements OnInit {
   busquedaDestinatario = '';
   sugerenciasFiltradas: any[] = [];
 
+  busquedaRemitente = '';
+  sugerenciasRemitente: any[] = [];
+  remitenteSeleccionado: any = null;
+  cargoRemitente = '';
+
+  remitentesDisponibles(): any[] {
+    return this.usuarios.filter((u: any) => u.idUsuario !== this.usuarioActual?.idUsuario && u.rolCodigo !== 'ADMIN');
+  }
+
+  filtrarRemitentes() {
+    const texto = this.busquedaRemitente?.toLowerCase().trim() || '';
+    this.sugerenciasRemitente = this.remitentesDisponibles()
+      .filter(u => !texto || `${u.nombres} ${u.apellidos}`.toLowerCase().includes(texto))
+      .slice(0, 8);
+  }
+
+  cerrarSugerenciasRemitente() {
+    setTimeout(() => this.sugerenciasRemitente = [], 200);
+  }
+
+  seleccionarRemitente(u: any) {
+    this.remitenteSeleccionado = u;
+    this.form.idRemitenteUsuario = u.idUsuario;
+    this.form.personaEntrega = `${u.nombres} ${u.apellidos}`.trim();
+    this.form.cargo = u.cargo || this.form.cargo;
+    this.form.institucion = 'EPMAPA-T';
+    this.form.departamentoRemitente = u.areaNombre || '';
+    this.busquedaRemitente = this.form.personaEntrega;
+    this.sugerenciasRemitente = [];
+  }
+
+  limpiarRemitente() {
+    this.remitenteSeleccionado = null;
+    this.form.idRemitenteUsuario = null;
+    this.busquedaRemitente = this.form.personaEntrega || '';
+  }
+
   filtrarDestinatarios() {
     const texto = this.busquedaDestinatario?.toLowerCase().trim() || '';
     if (!texto) {
@@ -458,6 +495,7 @@ export class CorrespondenciaFormComponent implements OnInit {
       cargo: this.form.cargo || null,
       institucion: this.form.institucion || null,
       departamentoRemitente: this.form.departamentoRemitente || null,
+      idRemitenteUsuario: this.form.sentido === 'INGRESO' ? this.form.idRemitenteUsuario : null,
       responsables: this.form.responsables,
       prioridad: this.form.prioridad,
       sentido: this.form.sentido,
