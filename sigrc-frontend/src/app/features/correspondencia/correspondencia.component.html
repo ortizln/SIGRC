@@ -131,7 +131,12 @@
             <span class="fw-semibold small" [class]="prioridadClass(d.prioridad)">{{ d.prioridad }}</span>
           </td>
           <td>
-            <span class="badge-estado" [class]="'badge-' + estadoBadge(d.estado)">{{ estadoLabel(d.estado) }}</span>
+            <div class="d-flex align-items-center gap-1">
+              <span class="badge-estado" [class]="'badge-' + estadoBadge(d.estado)">{{ estadoLabel(d.estado) }}</span>
+              <span *ngIf="(d.cantidadAdjuntos ?? 0) === 0" class="badge-adjuntos-faltantes" title="Falta cargar documento adjunto">
+                <i class="pi pi-exclamation-triangle"></i>
+              </span>
+            </div>
           </td>
           <td class="small">{{ responsablesNombres(d) }}</td>
           <td class="text-muted small">{{ d.fechaRecepcion | date:'dd/MM/yy' }} {{ d.horaRecepcion }}</td>

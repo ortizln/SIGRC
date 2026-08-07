@@ -91,3 +91,19 @@
 .fila-proxima:hover {
   background: #ffedd5;
 }
+
+.badge-adjuntos-faltantes {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fef3c7;
+  color: #b45309;
+  cursor: help;
+}
+
+.badge-adjuntos-faltantes i {
+  font-size: 0.7rem;
+}

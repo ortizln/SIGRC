@@ -35,6 +35,7 @@ public record CorrespondenciaDTO(
     List<Integer> areasEtiquetadas,
     List<String> areasEtiquetadasNombre,
     List<CorrespondenciaAdjuntoDTO> adjuntos,
+    Integer cantidadAdjuntos,
     List<CorrespondenciaHistorialDTO> historial,
     List<CorrespondenciaRespuestaDTO> respuestas,
     List<TicketVinculadoDTO> ticketsVinculados,

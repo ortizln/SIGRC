@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface CorrespondenciaAdjuntoRepository extends JpaRepository<CorrespondenciaAdjunto, Integer> {
     List<CorrespondenciaAdjunto> findByCorrespondenciaIdCorrespondenciaOrderByCreadoEnAsc(Integer idCorrespondencia);
+
+    long countByCorrespondenciaIdCorrespondencia(Integer idCorrespondencia);
 }

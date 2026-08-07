@@ -847,6 +847,7 @@ public class CorrespondenciaService {
                 areaIds,
                 areaNombres,
                 listarAdjuntos(entity.getIdCorrespondencia()),
+                adjuntoRepository.countByCorrespondenciaIdCorrespondencia(entity.getIdCorrespondencia()),
                 obtenerHistorial(entity.getIdCorrespondencia()),
                 obtenerRespuestas(entity.getIdCorrespondencia()),
                 obtenerTicketsVinculados(entity.getIdCorrespondencia()),

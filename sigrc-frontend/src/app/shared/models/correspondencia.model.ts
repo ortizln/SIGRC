@@ -29,6 +29,7 @@ export interface Correspondencia {
   areasEtiquetadas: number[];
   areasEtiquetadasNombre: string[];
   adjuntos: CorrespondenciaAdjunto[];
+  cantidadAdjuntos: number;
   historial: CorrespondenciaHistorial[];
   respuestas: CorrespondenciaRespuesta[];
   ticketsVinculados: TicketVinculado[];
