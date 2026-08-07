@@ -50,11 +50,14 @@
           <div class="col-md-6"><label class="text-muted small d-block">Cargo / Institución</label><strong>{{ doc.cargo }}{{ doc.cargo && doc.institucion ? ' — ' : '' }}{{ doc.institucion }}</strong></div>
           <div class="col-md-6"><label class="text-muted small d-block">Departamento Remitente</label><strong>{{ doc.departamentoRemitente || '—' }}</strong></div>
           <div class="col-md-6">
-            <label class="text-muted small d-block">Responsable(s)</label>
+            <label class="text-muted small d-block">Responsable(s) y Sumillas</label>
             <div *ngIf="doc?.responsables?.length; else sinResp">
               <div *ngFor="let r of doc?.responsables" class="mb-1">
-                <strong class="small">{{ r.nombre }}</strong>
-                <div *ngIf="r.sumilla" class="text-muted small ms-2 border-start ps-2" style="font-style:italic;border-color:var(--primary)!important;">{{ r.sumilla }}</div>
+                <strong class="small"><i class="pi pi-user me-1" style="font-size:0.7rem;color:var(--primary);"></i>{{ r.nombre }}</strong>
+                <div *ngIf="r.sumilla" class="sumilla-box">
+                  <small class="text-muted d-block" style="font-size:0.6rem;text-transform:uppercase;letter-spacing:.03em;">Sumilla</small>
+                  <div class="text-muted small">{{ r.sumilla }}</div>
+                </div>
               </div>
             </div>
             <ng-template #sinResp><strong class="text-muted">Sin asignar</strong></ng-template>
@@ -160,39 +163,42 @@
           <i class="pi pi-cog" style="color:var(--warning);"></i> Acciones
         </h6>
 
-        <div class="mb-3" *ngIf="esDestinatario">
-          <ng-container *ngIf="!showRecepForm">
-            <button class="btn btn-success btn-sm w-100" (click)="showRecepForm = !showRecepForm" *ngIf="esDestinatarioPendiente">
-              <i class="pi pi-check-circle" style="font-size:0.7rem;"></i> Recepcionar Documento
-            </button>
-            <button class="btn btn-outline-success btn-sm w-100" (click)="showRecepForm = !showRecepForm" *ngIf="!esDestinatarioPendiente">
-              <i class="pi pi-plus" style="font-size:0.7rem;"></i> Sumillar / Derivar
-            </button>
-          </ng-container>
-          <ng-container *ngIf="showRecepForm">
-            <label class="form-label small">Sumilla (instrucciones)</label>
-            <input autocomplete="off" [(ngModel)]="sumillaRecepcion" class="form-control form-control-sm mb-2" placeholder="Escriba la sumilla / instrucciones...">
-            <label class="form-label small">Etiquetar a usuarios que deben actuar</label>
-            <select #tagSelect class="form-select form-select-sm mb-2">
-              <option value="">Seleccione...</option>
-              <option *ngFor="let u of usuarios" [ngValue]="u">{{ u.nombres }} {{ u.apellidos }} — {{ u.rolNombre }}</option>
-            </select>
-            <button class="btn btn-outline-secondary btn-sm w-100 mb-2" [disabled]="!tagSelect.value" (click)="toggleEtiquetado(tagSelect.value); tagSelect.value = ''">
-              <i class="pi pi-tag" style="font-size:0.7rem;"></i> Etiquetar
-            </button>
-            <div *ngIf="usuariosEtiquetar.length > 0" class="d-flex flex-wrap gap-1 mb-2">
-              <span *ngFor="let u of usuariosEtiquetar" class="badge-destinatario badge-usuario">
-                {{ u.nombres }} {{ u.apellidos }}
-                <small class="ms-1 cursor-pointer" (click)="toggleEtiquetado(u)">✕</small>
-              </span>
-            </div>
-            <div class="d-flex gap-2">
-              <button class="btn btn-success btn-sm flex-grow-1" (click)="recepcionar()">
-                <i class="pi pi-check" style="font-size:0.7rem;"></i> Guardar y Notificar
+        <div class="mb-3" *ngIf="esDestinatario && esDestinatarioPendiente">
+          <button class="btn btn-success btn-sm w-100" (click)="marcarRecibido()">
+            <i class="pi pi-check-circle" style="font-size:0.7rem;"></i> Recepcionar Documento
+          </button>
+          <div class="form-text small mt-1">Marca el documento como recibido por ti.</div>
+        </div>
+
+        <div class="mb-3" *ngIf="auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">
+          <label class="form-label small">Sumilla (instrucciones)</label>
+          <textarea autocomplete="off" class="form-control form-control-sm mb-2" rows="3"
+                    placeholder="Escriba las instrucciones para los usuarios sumillados..."
+                    [(ngModel)]="nuevaSumilla" name="sumillaDerivar"></textarea>
+          <label class="form-label small">Usuarios a sumillar / derivar</label>
+          <div class="position-relative">
+            <input autocomplete="off" class="form-control form-control-sm" placeholder="Escriba y seleccione un usuario..."
+                   [(ngModel)]="busquedaSumillaUsuarios" name="busquedaSumilla"
+                   (input)="filtrarSumillaUsuarios()" (blur)="cerrarSugerenciasSumilla()">
+            <div class="sugerencias-dropdown" *ngIf="sugerenciasSumilla.length > 0">
+              <button type="button" class="sugerencia-item" *ngFor="let u of sugerenciasSumilla"
+                      (mousedown)="agregarUsuarioSumilla(u)">
+                <span class="fw-semibold">{{ u.nombres }} {{ u.apellidos }}</span>
+                <small class="text-muted d-block">{{ u.cargo || '—' }} · {{ u.areaNombre || '—' }}</small>
               </button>
-              <button class="btn btn-outline-secondary btn-sm" (click)="showRecepForm = false">Cancelar</button>
             </div>
-          </ng-container>
+          </div>
+          <div *ngIf="usuariosSeleccionados.length > 0" class="d-flex flex-wrap gap-1 mt-2 mb-2">
+            <span *ngFor="let id of usuariosSeleccionados" class="badge-destinatario badge-usuario">
+              {{ nombreUsuarioSumilla(id) }}
+              <small class="ms-1 cursor-pointer" (click)="quitarUsuarioSumilla(id)">✕</small>
+            </span>
+          </div>
+          <div *ngIf="usuariosSeleccionados.length === 0 && usuariosDisponibles.length === 0" class="text-muted small">Todos los usuarios ya están asignados</div>
+          <button class="btn btn-primary btn-sm w-100 mt-1" [disabled]="usuariosSeleccionados.length === 0" (click)="asignarResponsables()">
+            <i class="pi pi-tag" style="font-size:0.7rem;"></i> Sumillar y Derivar {{ usuariosSeleccionados.length ? '(' + usuariosSeleccionados.length + ')' : '' }}
+          </button>
+          <div class="form-text small">Los usuarios sumillados quedan como responsables: verán el documento en su bandeja y las instrucciones en el detalle.</div>
         </div>
 
         <div class="mb-3" *ngIf="doc.estado !== 'ARCHIVADO' && auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">
@@ -206,29 +212,6 @@
               <i class="pi pi-check" style="font-size:0.7rem;"></i>
             </button>
           </div>
-        </div>
-
-        <div class="mb-3" *ngIf="auth.hasRole('ADMIN') || auth.hasRole('JEFE_TI')">
-          <label class="form-label small">Agregar Responsable(s)</label>
-          <div class="responsable-selector mb-2">
-            <div *ngFor="let u of usuariosDisponibles" class="form-check responsable-option">
-              <input autocomplete="off" class="form-check-input" type="checkbox"
-                     [id]="'chkResp_' + u.idUsuario"
-                     [checked]="estaSeleccionado(u.idUsuario)"
-                     (change)="toggleUsuarioSeleccionado(u.idUsuario)">
-              <label class="form-check-label small" [for]="'chkResp_' + u.idUsuario">
-                {{ u.nombres }} {{ u.apellidos }}
-              </label>
-            </div>
-            <div *ngIf="usuariosDisponibles.length === 0" class="text-muted small px-2 pb-1">Todos los usuarios ya están asignados</div>
-          </div>
-          <textarea autocomplete="off" class="form-control form-control-sm" rows="2"
-                    placeholder="Sumilla / instrucciones para los responsables..."
-                    [(ngModel)]="nuevaSumilla" name="sumillaNueva"></textarea>
-          <button class="btn btn-primary btn-sm w-100 mt-2" [disabled]="usuariosSeleccionados.length === 0" (click)="asignarResponsables()">
-            <i class="pi pi-check" style="font-size:0.7rem;"></i> Asignar {{ usuariosSeleccionados.length > 0 ? '(' + usuariosSeleccionados.length + ')' : '' }}
-          </button>
-          <div class="form-text small">Seleccione uno o más responsables a agregar</div>
         </div>
 
         <div class="mb-3" *ngIf="doc.estado !== 'RESPONDIDO' && doc.estado !== 'ARCHIVADO' && auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">

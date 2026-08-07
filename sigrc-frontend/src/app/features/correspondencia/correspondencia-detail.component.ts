@@ -29,7 +29,6 @@ export class CorrespondenciaDetailComponent implements OnInit {
   tiposDocumento: any[] = [];
   usuarios: any[] = [];
   showRespuestaForm = false;
-  showRecepForm = false;
 
   private user: any;
 
@@ -166,10 +165,42 @@ export class CorrespondenciaDetailComponent implements OnInit {
 
   nuevaSumilla = '';
   usuariosSeleccionados: number[] = [];
+  busquedaSumillaUsuarios = '';
+  sugerenciasSumilla: any[] = [];
 
   get usuariosDisponibles(): any[] {
     const asignados = new Set((this.doc?.responsables || []).map((r: any) => r.idUsuario));
     return this.usuarios.filter(u => !asignados.has(u.idUsuario));
+  }
+
+  filtrarSumillaUsuarios() {
+    const texto = this.busquedaSumillaUsuarios?.toLowerCase().trim() || '';
+    this.sugerenciasSumilla = this.usuariosDisponibles
+      .filter(u => !this.usuariosSeleccionados.includes(u.idUsuario))
+      .filter(u => !texto || `${u.nombres} ${u.apellidos}`.toLowerCase().includes(texto))
+      .slice(0, 8);
+  }
+
+  cerrarSugerenciasSumilla() {
+    setTimeout(() => this.sugerenciasSumilla = [], 200);
+  }
+
+  agregarUsuarioSumilla(u: any) {
+    if (!this.usuariosSeleccionados.includes(u.idUsuario)) {
+      this.usuariosSeleccionados.push(u.idUsuario);
+    }
+    this.busquedaSumillaUsuarios = '';
+    this.sugerenciasSumilla = [];
+  }
+
+  quitarUsuarioSumilla(idUsuario: number) {
+    const i = this.usuariosSeleccionados.indexOf(idUsuario);
+    if (i >= 0) this.usuariosSeleccionados.splice(i, 1);
+  }
+
+  nombreUsuarioSumilla(idUsuario: number): string {
+    const u = this.usuarios.find(x => x.idUsuario === idUsuario);
+    return u ? `${u.nombres} ${u.apellidos}` : '—';
   }
 
   toggleUsuarioSeleccionado(idUsuario: number) {
@@ -185,16 +216,19 @@ export class CorrespondenciaDetailComponent implements OnInit {
   asignarResponsables() {
     if (!this.doc || this.usuariosSeleccionados.length === 0) return;
     const ids = [...this.usuariosSeleccionados];
+    const sumilla = this.nuevaSumilla;
     let pendientes = ids.length;
     let resultado: any = null;
     ids.forEach((id, idx) => {
-      this.svc.asignarResponsable(this.doc.idCorrespondencia, id, this.nuevaSumilla).subscribe(r => {
+      this.svc.asignarResponsable(this.doc.idCorrespondencia, id, sumilla).subscribe(r => {
         resultado = r;
         pendientes--;
         if (pendientes === 0) {
           this.doc = resultado;
           this.usuariosSeleccionados = [];
           this.nuevaSumilla = '';
+          this.busquedaSumillaUsuarios = '';
+          Swal.fire('Sumillado', `Documento sumillado y derivado a ${ids.length} usuario(s).`, 'success');
         }
       });
     });
@@ -245,34 +279,6 @@ export class CorrespondenciaDetailComponent implements OnInit {
     this.svc.marcarRecibido(this.doc.idCorrespondencia).subscribe(r => {
       this.doc = r;
       Swal.fire('Recibido', 'Has marcado el documento como recibido.', 'success');
-    });
-  }
-
-  sumillaRecepcion = '';
-  usuariosEtiquetar: any[] = [];
-
-  toggleEtiquetado(u: any) {
-    const i = this.usuariosEtiquetar.findIndex(x => x.idUsuario === u.idUsuario);
-    if (i >= 0) this.usuariosEtiquetar.splice(i, 1);
-    else this.usuariosEtiquetar.push(u);
-  }
-
-  estaEtiquetado(u: any): boolean {
-    return this.usuariosEtiquetar.some(x => x.idUsuario === u.idUsuario);
-  }
-
-  recepcionar() {
-    if (!this.doc) return;
-    const body = {
-      sumilla: this.sumillaRecepcion,
-      idsUsuariosDerivados: this.usuariosEtiquetar.map(u => u.idUsuario)
-    };
-    this.svc.recepcionar(this.doc.idCorrespondencia, body).subscribe(r => {
-      this.doc = r;
-      this.sumillaRecepcion = '';
-      this.usuariosEtiquetar = [];
-      this.showRecepForm = false;
-      Swal.fire('Recepcionado', 'Documento recepcionado y derivado correctamente.', 'success');
     });
   }
 

@@ -407,7 +407,8 @@ public class CorrespondenciaService {
 
         // Marcar como recibido + guardar sumilla en el registro del destinatario actual
         for (var d : destinatarioRepository.findByCorrespondenciaIdCorrespondencia(id)) {
-            if ("USUARIO".equals(d.getTipo()) && d.getIdDestinatario().equals(idUsuario)) {
+            if ("USUARIO".equals(d.getTipo()) && d.getIdDestinatario() != null
+                    && d.getIdDestinatario().equals(idUsuario)) {
                 if (!Boolean.TRUE.equals(d.getRecibido())) {
                     d.setRecibido(true);
                     d.setFechaRecibido(LocalDateTime.now());
@@ -423,9 +424,10 @@ public class CorrespondenciaService {
         List<Integer> idsEtiquetas = new ArrayList<>();
         if (idsUsuariosDerivados != null) {
             for (Integer idDest : idsUsuariosDerivados) {
-                if (idDest.equals(idUsuario)) continue;
+                if (idDest == null || idDest.equals(idUsuario)) continue;
                 boolean yaAsignado = entity.getResponsablesAsignados().stream()
-                        .anyMatch(ra -> ra.getUsuario().getIdUsuario().equals(idDest));
+                        .anyMatch(ra -> ra.getUsuario() != null
+                                && idDest.equals(ra.getUsuario().getIdUsuario()));
                 if (!yaAsignado) {
                     Usuario u = usuarioRepository.getReferenceById(idDest);
                     entity.getResponsablesAsignados().add(CorrespondenciaResponsable.builder()
