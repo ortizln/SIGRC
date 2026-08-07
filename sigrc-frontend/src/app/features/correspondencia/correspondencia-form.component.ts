@@ -123,8 +123,8 @@ export class CorrespondenciaFormComponent implements OnInit {
       this.form.idsReferencias = (r.referencias || []).map((x: any) => x.idCorrespondencia);
       this.form.destinatariosSeleccionados = (r.destinatarios || []).map((d: any) =>
         (d.tipo === 'USUARIO' ? 'u' : 'a') + d.idDestinatario);
-      this.actualizarPersonaEntrega();
       if (this.form.sentido === 'SALIDA') {
+        this.actualizarPersonaEntrega();
         this.cargarTickets();
         this.cargarTicketsPendientes();
         const ticket = r.ticketsVinculados?.[0];
