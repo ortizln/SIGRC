@@ -132,6 +132,8 @@ export class CorrespondenciaFormComponent implements OnInit {
           this.form.idTicketVinculado = ticket.idTicket;
           this.ticketVinculadoPreview = { idTicket: ticket.idTicket, numeroTicket: ticket.numeroTicket, asunto: ticket.asunto };
         }
+      } else {
+        this.recuperarRemitenteCargado();
       }
     });
   }
@@ -395,6 +397,20 @@ export class CorrespondenciaFormComponent implements OnInit {
     this.remitenteSeleccionado = null;
     this.form.idRemitenteUsuario = null;
     this.busquedaRemitente = this.form.personaEntrega || '';
+  }
+
+  private recuperarRemitenteCargado() {
+    const nombre = (this.form.personaEntrega || '').toLowerCase().trim();
+    if (!nombre) return;
+    const coincidencia = this.remitentesDisponibles().find(u =>
+      `${u.nombres} ${u.apellidos}`.toLowerCase().trim() === nombre);
+    if (coincidencia) {
+      this.remitenteSeleccionado = coincidencia;
+      this.form.idRemitenteUsuario = coincidencia.idUsuario;
+      this.busquedaRemitente = this.form.personaEntrega;
+    } else {
+      this.busquedaRemitente = this.form.personaEntrega;
+    }
   }
 
   filtrarDestinatarios() {
