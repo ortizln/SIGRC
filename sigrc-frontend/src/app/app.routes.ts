@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '@core/guards/auth.guard';
+import { authGuard, roleGuard } from '@core/guards/auth.guard';
 import { MainLayoutComponent } from '@layout/main-layout.component';
 
 export const routes: Routes = [
@@ -23,11 +23,11 @@ export const routes: Routes = [
       { path: 'tickets/:id', loadComponent: () => import('./features/tickets/ticket-detail.component').then(c => c.TicketDetailComponent) },
       { path: 'cambios', loadComponent: () => import('./features/cambios/cambios.component').then(c => c.CambiosComponent) },
       { path: 'cambios/nuevo', loadComponent: () => import('./features/cambios/cambio-form.component').then(c => c.CambioFormComponent) },
-      { path: 'auditoria', loadComponent: () => import('./features/auditoria/auditoria.component').then(c => c.AuditoriaComponent) },
+      { path: 'auditoria', loadComponent: () => import('./features/auditoria/auditoria.component').then(c => c.AuditoriaComponent), canActivate: [() => roleGuard(['ADMIN', 'AUDITOR'])] },
       { path: 'usuarios', loadComponent: () => import('./features/usuarios/usuarios.component').then(c => c.UsuariosComponent) },
       { path: 'conocimiento', loadComponent: () => import('./features/conocimiento/conocimiento.component').then(c => c.ConocimientoComponent) },
       { path: 'versiones', loadComponent: () => import('./features/versiones/versiones.component').then(c => c.VersionesComponent) },
-      { path: 'roles', loadComponent: () => import('./features/roles/roles.component').then(c => c.RolesComponent) },
+      { path: 'roles', loadComponent: () => import('./features/roles/roles.component').then(c => c.RolesComponent), canActivate: [() => roleGuard(['ADMIN'])] },
       { path: 'catalogos', loadComponent: () => import('./features/catalogos/catalogos.component').then(c => c.CatalogosComponent) },
       { path: 'reportes', loadComponent: () => import('./features/reportes/reportes.component').then(c => c.ReportesComponent) },
       { path: 'app-movil', loadComponent: () => import('./features/app-movil/app-movil.component').then(c => c.AppMovilComponent) },
