@@ -399,6 +399,24 @@ public class CorrespondenciaService {
     }
 
     @Transactional
+    public CorrespondenciaDTO marcarLeido(Integer id, Integer idUsuario) {
+        Correspondencia entity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
+
+        for (var d : destinatarioRepository.findByCorrespondenciaIdCorrespondencia(id)) {
+            if ("USUARIO".equals(d.getTipo()) && d.getIdDestinatario() != null
+                    && d.getIdDestinatario().equals(idUsuario)
+                    && !Boolean.TRUE.equals(d.getLeido())) {
+                d.setLeido(true);
+                d.setFechaLeido(LocalDateTime.now());
+                destinatarioRepository.save(d);
+            }
+        }
+
+        return toDTO(entity);
+    }
+
+    @Transactional
     public CorrespondenciaDTO recepcionarYDerivar(Integer id, String sumilla,
                                                     List<Integer> idsUsuariosDerivados, Integer idUsuario) {
         Correspondencia entity = repository.findById(id)
@@ -956,6 +974,8 @@ public class CorrespondenciaService {
                 d.getNombre(),
                 d.getRecibido(),
                 d.getFechaRecibido(),
+                d.getLeido(),
+                d.getFechaLeido(),
                 d.getSumilla()
         );
     }

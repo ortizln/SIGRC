@@ -1,5 +1,6 @@
 package com.epmapa.sigrc.web.controller;
 
+import com.epmapa.sigrc.domain.dto.PaginacionDTO;
 import com.epmapa.sigrc.domain.dto.UsuarioActualizarRequest;
 import com.epmapa.sigrc.domain.dto.UsuarioCrearRequest;
 import com.epmapa.sigrc.domain.dto.UsuarioDTO;
@@ -31,6 +32,16 @@ public class UsuarioController {
     @Operation(summary = "Listar usuarios activos")
     public ResponseEntity<List<UsuarioDTO>> listar() {
         return ResponseEntity.ok(usuarioService.listarActivos());
+    }
+
+    @GetMapping("/paginado")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Listar usuarios con paginación y búsqueda")
+    public ResponseEntity<PaginacionDTO<UsuarioDTO>> listarPaginado(
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int tamanio,
+            @RequestParam(required = false) String texto) {
+        return ResponseEntity.ok(usuarioService.listarPaginado(pagina, tamanio, texto));
     }
 
     @GetMapping("/{id}")

@@ -45,16 +45,21 @@ export class CorrespondenciaDetailComponent implements OnInit {
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (id) {
-      this.svc.obtener(id).subscribe(r => {
-        this.doc = r;
-        this.adjuntos = r.adjuntos || [];
-        this.historial = r.historial || [];
-        this.respuestas = r.respuestas || [];
-        this.tickets = r.ticketsVinculados || [];
+      this.svc.marcarLeido(id).subscribe({
+        next: r => this.cargarDocumento(r),
+        error: () => this.svc.obtener(id).subscribe(r => this.cargarDocumento(r))
       });
       this.svc.getTiposDocumento().subscribe(r => this.tiposDocumento = r);
       this.usuarioSvc.listar().subscribe(r => this.usuarios = r.filter(u => u.rolCodigo !== 'ADMIN'));
     }
+  }
+
+  private cargarDocumento(r: any) {
+    this.doc = r;
+    this.adjuntos = r.adjuntos || [];
+    this.historial = r.historial || [];
+    this.respuestas = r.respuestas || [];
+    this.tickets = r.ticketsVinculados || [];
   }
 
   estadoBadge(estado: string): string {

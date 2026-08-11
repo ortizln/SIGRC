@@ -82,6 +82,38 @@
   color: #92400e;
 }
 
+.destinatario-chip {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+.destinatario-chip.badge-usuario {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.destinatario-chip.badge-area {
+  background: #fef3c7;
+  color: #92400e;
+}
+.chip-estados {
+  display: flex;
+  gap: 0.4rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.chip-estado {
+  padding: 0.05rem 0.35rem;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.6);
+}
+
 .preview-overlay {
   position: fixed;
   inset: 0;

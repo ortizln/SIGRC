@@ -91,4 +91,51 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
     List<Ticket> findCerrados();
 
     List<Ticket> findByEstadoOrderByCreadoEnDesc(String estado);
+
+    // ─── Consultas filtradas por usuario (dashboard personal) ───
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.activo = true AND t.estado NOT IN (:estados) AND (t.responsable.idUsuario = :idUsuario OR t.solicitante.idUsuario = :idUsuario)")
+    long contarAbiertosPorUsuario(@Param("estados") List<String> estados, @Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.activo = true AND t.estado IN (:estados) AND (t.responsable.idUsuario = :idUsuario OR t.solicitante.idUsuario = :idUsuario)")
+    long contarCerradosPorUsuario(@Param("estados") List<String> estados, @Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.activo = true AND t.estado NOT IN ('CERRADO','RECHAZADO') AND t.fechaLimite < CURRENT_TIMESTAMP AND (t.responsable.idUsuario = :idUsuario OR t.solicitante.idUsuario = :idUsuario)")
+    long countVencidosPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.activo = true AND t.estado = 'NUEVO' AND t.responsable IS NULL AND t.solicitante.idUsuario = :idUsuario")
+    long countNuevosPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query(value = "SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (fecha_cierre - creado_en)) / 3600.0), 0) FROM sigrc.tickets WHERE fecha_cierre IS NOT NULL AND (id_responsable = :idUsuario OR id_solicitante = :idUsuario)", nativeQuery = true)
+    Double avgTiempoAtencionHorasPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT t.estado, COUNT(t) FROM Ticket t WHERE t.activo = true AND (t.responsable.idUsuario = :idUsuario OR t.solicitante.idUsuario = :idUsuario) GROUP BY t.estado")
+    List<Object[]> countByEstadoGroupPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT t.prioridad, COUNT(t) FROM Ticket t WHERE t.activo = true AND (t.responsable.idUsuario = :idUsuario OR t.solicitante.idUsuario = :idUsuario) GROUP BY t.prioridad")
+    List<Object[]> countByPrioridadGroupPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT t.area.nombre, COUNT(t) FROM Ticket t WHERE t.activo = true AND (t.responsable.idUsuario = :idUsuario OR t.solicitante.idUsuario = :idUsuario) GROUP BY t.area.nombre ORDER BY COUNT(t) DESC")
+    List<Object[]> countByAreaGroupPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT t.sistema.nombre, COUNT(t) FROM Ticket t WHERE t.sistema IS NOT NULL AND t.activo = true AND (t.responsable.idUsuario = :idUsuario OR t.solicitante.idUsuario = :idUsuario) GROUP BY t.sistema.nombre ORDER BY COUNT(t) DESC")
+    List<Object[]> countBySistemaGroupPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT t.tipo, COUNT(t) FROM Ticket t WHERE t.activo = true AND (t.responsable.idUsuario = :idUsuario OR t.solicitante.idUsuario = :idUsuario) GROUP BY t.tipo")
+    List<Object[]> countByTipoGroupPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query(value = "SELECT TO_CHAR(t.creado_en, 'YYYY-MM') as mes, COUNT(*) FROM sigrc.tickets t WHERE t.creado_en >= :desde AND (t.id_responsable = :idUsuario OR t.id_solicitante = :idUsuario) GROUP BY mes ORDER BY mes", nativeQuery = true)
+    List<Object[]> tendenciasMensualesPorUsuario(@Param("desde") LocalDateTime desde, @Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT t FROM Ticket t WHERE t.activo = true AND t.estado NOT IN ('CERRADO','RECHAZADO') AND (t.responsable.idUsuario = :idUsuario OR t.solicitante.idUsuario = :idUsuario) ORDER BY t.creadoEn DESC")
+    List<Ticket> findAbiertosPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT t FROM Ticket t WHERE t.activo = true AND t.estado IN ('CERRADO','RECHAZADO') AND (t.responsable.idUsuario = :idUsuario OR t.solicitante.idUsuario = :idUsuario) ORDER BY t.creadoEn DESC")
+    List<Ticket> findCerradosPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT t FROM Ticket t WHERE t.estado NOT IN ('CERRADO','RECHAZADO') AND t.fechaLimite < CURRENT_TIMESTAMP AND (t.responsable.idUsuario = :idUsuario OR t.solicitante.idUsuario = :idUsuario)")
+    List<Ticket> findVencidosActivosPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT t FROM Ticket t WHERE t.estado = 'NUEVO' AND t.responsable IS NULL AND t.solicitante.idUsuario = :idUsuario ORDER BY t.creadoEn DESC")
+    List<Ticket> findNuevosPorSolicitante(@Param("idUsuario") Integer idUsuario);
 }

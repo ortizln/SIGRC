@@ -94,4 +94,30 @@ public interface CorrespondenciaRepository extends JpaRepository<Correspondencia
     List<Correspondencia> findQueGeneraronTicket();
 
     List<Correspondencia> findByEstadoOrderByCreadoEnDesc(String estado);
+
+    // ─── Consultas filtradas por usuario (dashboard personal) ───
+
+    @Query("SELECT c FROM Correspondencia c WHERE c.activo = true AND c.sentido = 'INGRESO' AND c.requiereRespuesta = true AND c.estado NOT IN ('RESPONDIDO', 'ARCHIVADO') AND (c.creadoPor.idUsuario = :idUsuario OR EXISTS (SELECT 1 FROM c.responsablesAsignados ra WHERE ra.usuario.idUsuario = :idUsuario) OR EXISTS (SELECT 1 FROM c.destinatarios d WHERE d.tipo = 'USUARIO' AND d.idDestinatario = :idUsuario)) ORDER BY CASE c.prioridad WHEN 'CRITICA' THEN 0 WHEN 'ALTA' THEN 1 WHEN 'MEDIA' THEN 2 ELSE 3 END, c.fechaLimiteRespuesta ASC")
+    List<Correspondencia> findMemosPendientesPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT COUNT(c) FROM Correspondencia c WHERE c.activo = true AND (c.creadoPor.idUsuario = :idUsuario OR EXISTS (SELECT 1 FROM c.responsablesAsignados ra WHERE ra.usuario.idUsuario = :idUsuario) OR EXISTS (SELECT 1 FROM c.destinatarios d WHERE d.tipo = 'USUARIO' AND d.idDestinatario = :idUsuario))")
+    long countActivosPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT c FROM Correspondencia c WHERE c.activo = true AND c.requiereRespuesta = true AND c.fechaLimiteRespuesta < CURRENT_DATE AND c.estado <> 'ARCHIVADO' AND c.estado <> 'RESPONDIDO' AND (c.creadoPor.idUsuario = :idUsuario OR EXISTS (SELECT 1 FROM c.responsablesAsignados ra WHERE ra.usuario.idUsuario = :idUsuario) OR EXISTS (SELECT 1 FROM c.destinatarios d WHERE d.tipo = 'USUARIO' AND d.idDestinatario = :idUsuario))")
+    List<Correspondencia> findVencidosPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT COUNT(c) FROM Correspondencia c WHERE c.activo = true AND c.generaTicket = true AND (c.creadoPor.idUsuario = :idUsuario OR EXISTS (SELECT 1 FROM c.responsablesAsignados ra WHERE ra.usuario.idUsuario = :idUsuario) OR EXISTS (SELECT 1 FROM c.destinatarios d WHERE d.tipo = 'USUARIO' AND d.idDestinatario = :idUsuario))")
+    long countQueGeneraronTicketPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query(value = "SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (r.creado_en - c.creado_en)) / 3600), 0) FROM sigrc.correspondencia c JOIN sigrc.correspondencia_respuesta r ON r.id_correspondencia = c.id_correspondencia WHERE c.activo = true AND r.creado_en IS NOT NULL AND (c.creado_por = :idUsuario OR EXISTS (SELECT 1 FROM sigrc.correspondencia_responsable cr WHERE cr.id_correspondencia = c.id_correspondencia AND cr.id_usuario = :idUsuario) OR EXISTS (SELECT 1 FROM sigrc.correspondencia_destinatario cd WHERE cd.id_correspondencia = c.id_correspondencia AND cd.tipo = 'USUARIO' AND cd.id_destinatario = :idUsuario))", nativeQuery = true)
+    Double tiempoPromedioRespuestaHorasPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT c.estado, COUNT(c) FROM Correspondencia c WHERE c.activo = true AND (c.creadoPor.idUsuario = :idUsuario OR EXISTS (SELECT 1 FROM c.responsablesAsignados ra WHERE ra.usuario.idUsuario = :idUsuario) OR EXISTS (SELECT 1 FROM c.destinatarios d WHERE d.tipo = 'USUARIO' AND d.idDestinatario = :idUsuario)) GROUP BY c.estado")
+    List<Object[]> countByEstadoPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT c.prioridad, COUNT(c) FROM Correspondencia c WHERE c.activo = true AND (c.creadoPor.idUsuario = :idUsuario OR EXISTS (SELECT 1 FROM c.responsablesAsignados ra WHERE ra.usuario.idUsuario = :idUsuario) OR EXISTS (SELECT 1 FROM c.destinatarios d WHERE d.tipo = 'USUARIO' AND d.idDestinatario = :idUsuario)) GROUP BY c.prioridad")
+    List<Object[]> countByPrioridadPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT c FROM Correspondencia c WHERE c.activo = true AND c.generaTicket = true AND (c.creadoPor.idUsuario = :idUsuario OR EXISTS (SELECT 1 FROM c.responsablesAsignados ra WHERE ra.usuario.idUsuario = :idUsuario) OR EXISTS (SELECT 1 FROM c.destinatarios d WHERE d.tipo = 'USUARIO' AND d.idDestinatario = :idUsuario)) ORDER BY c.creadoEn DESC")
+    List<Correspondencia> findQueGeneraronTicketPorUsuario(@Param("idUsuario") Integer idUsuario);
 }

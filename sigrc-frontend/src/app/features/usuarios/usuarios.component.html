@@ -7,13 +7,29 @@
         <h2>Usuarios del Sistema</h2>
         <p>Gestión de usuarios, roles y permisos del sistema SIGRC</p>
       </div>
-      <button class="btn btn-primary btn-sm" (click)="abrirFormulario()">
+      <button class="btn btn-primary btn-sm" *ngIf="!formVisible" (click)="abrirFormulario()">
         <span>+</span> Nuevo Usuario
       </button>
     </div>
 
     <!-- Tabla -->
     <div class="card-modern p-0 animate-fade-in" *ngIf="!formVisible">
+      <div class="d-flex flex-wrap align-items-center gap-2 p-3 pb-0">
+        <div class="input-group" style="max-width:340px;">
+          <span class="input-group-text bg-white border-end-0"><i class="pi pi-search" style="font-size:0.75rem;"></i></span>
+          <input autocomplete="off" class="form-control form-control-sm" placeholder="Buscar por nombre, username o email..."
+                 [(ngModel)]="textoBusqueda" (keyup.enter)="buscar()">
+          <button class="btn btn-soft-primary btn-sm" (click)="buscar()">Buscar</button>
+        </div>
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <label class="small text-muted mb-0">Mostrar</label>
+          <select class="form-select form-select-sm" style="width:auto;" [(ngModel)]="tamanio" (change)="buscar()">
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="20">20</option>
+            <option [ngValue]="50">50</option>
+          </select>
+        </div>
+      </div>
       <div class="table-responsive">
         <table class="table-modern">
           <thead>
@@ -57,6 +73,22 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 py-2 border-top">
+        <small class="text-muted">Mostrando {{ rangoActual }} usuarios</small>
+        <nav *ngIf="totalPaginas > 1">
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="pagina === 0">
+              <button class="page-link" (click)="cambiarPagina(pagina - 1)">‹</button>
+            </li>
+            <li class="page-item" *ngFor="let p of paginasVisibles" [class.active]="p === pagina">
+              <button class="page-link" (click)="cambiarPagina(p)">{{ p + 1 }}</button>
+            </li>
+            <li class="page-item" [class.disabled]="pagina >= totalPaginas - 1">
+              <button class="page-link" (click)="cambiarPagina(pagina + 1)">›</button>
+            </li>
+          </ul>
+        </nav>
       </div>
     </div>
 

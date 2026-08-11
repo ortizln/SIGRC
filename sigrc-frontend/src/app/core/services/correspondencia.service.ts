@@ -50,6 +50,10 @@ export class CorrespondenciaService {
     return this.http.post<Correspondencia>(`${this.apiUrl}/${id}/recibir`, null);
   }
 
+  marcarLeido(id: number): Observable<Correspondencia> {
+    return this.http.post<Correspondencia>(`${this.apiUrl}/${id}/leido`, null);
+  }
+
   recepcionar(id: number, data: any): Observable<Correspondencia> {
     return this.http.post<Correspondencia>(`${this.apiUrl}/${id}/recepcion`, data);
   }

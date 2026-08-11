@@ -36,13 +36,21 @@
           <div class="col-md-6"><label class="text-muted small d-block">{{ doc.sentido === 'SALIDA' ? 'Destinatarios' : 'Remitente' }}</label>
             <ng-container *ngIf="doc.sentido === 'SALIDA' && doc.destinatarios?.length > 0; else remitenteText">
               <div class="d-flex flex-wrap gap-1 mt-1">
-                <span *ngFor="let d of doc.destinatarios" class="badge-destinatario"
-                      [class.badge-usuario]="d.tipo === 'USUARIO'"
-                      [class.badge-area]="d.tipo === 'AREA'">
-                  {{ d.nombre }}
-                  <small>{{ d.tipo === 'USUARIO' ? '👤' : '🏢' }}</small>
-                  <small *ngIf="d.recibido" class="ms-1 text-success" title="Recibido el {{ d.fechaRecibido | date:'dd/MM/yyyy HH:mm' }}">✓</small>
-                </span>
+                <div *ngFor="let d of doc.destinatarios" class="destinatario-chip"
+                     [class.badge-usuario]="d.tipo === 'USUARIO'"
+                     [class.badge-area]="d.tipo === 'AREA'">
+                  <span>
+                    {{ d.nombre }}
+                    <small>{{ d.tipo === 'USUARIO' ? '👤' : '🏢' }}</small>
+                  </span>
+                  <span class="chip-estados">
+                    <span *ngIf="d.leido" class="chip-estado text-info"
+                          title="Leído el {{ d.fechaLeido | date:'dd/MM/yyyy HH:mm' }}">👁 Leído</span>
+                    <span *ngIf="d.recibido" class="chip-estado text-success"
+                          title="Recibido el {{ d.fechaRecibido | date:'dd/MM/yyyy HH:mm' }}">✓ Recibido</span>
+                    <span *ngIf="!d.leido && !d.recibido" class="chip-estado text-muted">Pendiente</span>
+                  </span>
+                </div>
               </div>
             </ng-container>
             <ng-template #remitenteText><strong>{{ doc.personaEntrega }}</strong></ng-template>

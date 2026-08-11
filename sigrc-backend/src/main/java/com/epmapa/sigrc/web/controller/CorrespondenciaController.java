@@ -112,6 +112,15 @@ public class CorrespondenciaController {
         return ResponseEntity.ok(service.marcarRecibido(id, idUsuario));
     }
 
+    @PostMapping("/{id}/leido")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Marcar el documento como leído por el destinatario")
+    public ResponseEntity<CorrespondenciaDTO> marcarLeido(@PathVariable Integer id,
+                                                           Authentication auth) {
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
+        return ResponseEntity.ok(service.marcarLeido(id, idUsuario));
+    }
+
     @PostMapping("/{id}/recepcion")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Recepcionar con sumilla y derivar/etiquetar a otros usuarios")

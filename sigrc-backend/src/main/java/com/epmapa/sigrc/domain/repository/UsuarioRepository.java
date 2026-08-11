@@ -1,7 +1,11 @@
 package com.epmapa.sigrc.domain.repository;
 
 import com.epmapa.sigrc.domain.entity.Usuario;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -10,4 +14,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     Optional<Usuario> findByEmailAndActivoTrue(String email);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
+
+    @Query(value = "SELECT * FROM sigrc.usuarios u WHERE (:texto IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(u.nombres) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(u.apellidos) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%',:texto,'%'))) ORDER BY u.apellidos ASC, u.nombres ASC",
+            countQuery = "SELECT COUNT(*) FROM sigrc.usuarios u WHERE (:texto IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(u.nombres) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(u.apellidos) LIKE LOWER(CONCAT('%',:texto,'%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%',:texto,'%')))",
+            nativeQuery = true)
+    Page<Usuario> buscar(@Param("texto") String texto, Pageable pageable);
 }

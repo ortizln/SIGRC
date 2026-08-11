@@ -29,6 +29,11 @@ public class CorrespondenciaDestinatario {
 
     private LocalDateTime fechaRecibido;
 
+    @Builder.Default
+    private Boolean leido = false;
+
+    private LocalDateTime fechaLeido;
+
     @Column(columnDefinition = "TEXT")
     private String sumilla;
 }

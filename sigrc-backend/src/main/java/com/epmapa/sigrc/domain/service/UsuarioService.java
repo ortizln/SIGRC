@@ -1,5 +1,6 @@
 package com.epmapa.sigrc.domain.service;
 
+import com.epmapa.sigrc.domain.dto.PaginacionDTO;
 import com.epmapa.sigrc.domain.dto.UsuarioActualizarRequest;
 import com.epmapa.sigrc.domain.dto.UsuarioCrearRequest;
 import com.epmapa.sigrc.domain.dto.UsuarioDTO;
@@ -11,6 +12,9 @@ import com.epmapa.sigrc.domain.repository.RolRepository;
 import com.epmapa.sigrc.domain.repository.UsuarioPermisoRepository;
 import com.epmapa.sigrc.domain.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +49,18 @@ public class UsuarioService {
             .filter(Usuario::getActivo)
             .map(authService::toUsuarioDTO)
             .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PaginacionDTO<UsuarioDTO> listarPaginado(int pagina, int tamanio, String texto) {
+        if (tamanio > 100) tamanio = 100;
+        var pageable = PageRequest.of(pagina, tamanio, Sort.by(Sort.Direction.ASC, "apellidos"));
+        Page<Usuario> result = usuarioRepository.buscar(texto, pageable);
+        List<UsuarioDTO> dtos = result.getContent().stream()
+                .map(authService::toUsuarioDTO)
+                .toList();
+        return new PaginacionDTO<>(dtos, result.getNumber(), result.getSize(),
+                result.getTotalElements(), result.getTotalPages(), result.isFirst(), result.isLast());
     }
 
     @Transactional(readOnly = true)

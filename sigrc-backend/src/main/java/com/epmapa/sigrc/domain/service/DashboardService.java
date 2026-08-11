@@ -35,22 +35,77 @@ public class DashboardService {
         this.versionRepository = versionRepository;
     }
 
-    public DashboardDTO obtenerDashboard() {
-        long abiertos = ticketRepository.contarAbiertos(List.of("CERRADO", "RECHAZADO"));
-        long cerrados = ticketRepository.contarCerrados(List.of("CERRADO", "RECHAZADO"));
-        long vencidos = ticketRepository.countVencidos();
-        long sinAsignar = ticketRepository.countByEstado("NUEVO");
-        double tiempoPromedio = Optional.ofNullable(ticketRepository.avgTiempoAtencionHoras()).orElse(0.0);
+    public DashboardDTO obtenerDashboard(Integer idUsuario, boolean esAdmin) {
+        long abiertos;
+        long cerrados;
+        long vencidos;
+        long sinAsignar;
+        double tiempoPromedio;
+        long totalDocs;
+        long docsVencidos;
+        long docsConTicket;
+        double docsTiempoProm;
+        long docsPendientes;
+        long cambiosSol;
+        long cambiosAprob;
+        long cambiosComp;
+        List<Map<String, Object>> memosPendientes;
+        List<Object[]> ticketsPorEstado, ticketsPorPrioridad, ticketsPorArea, ticketsPorSistema, ticketsPorTipo;
+        List<Object[]> documentosPorEstado, documentosPorPrioridad;
+        List<Object[]> cambiosPorEstado, cambiosPorImpacto;
+        List<Object[]> tendenciasMensuales;
 
-        long totalDocs = correspondenciaRepository.countActivos();
-        long docsVencidos = correspondenciaRepository.findVencidos().size();
-        long docsConTicket = correspondenciaRepository.countQueGeneraronTicket();
-        double docsTiempoProm = Optional.ofNullable(correspondenciaRepository.tiempoPromedioRespuestaHoras()).orElse(0.0);
-        long docsPendientes = correspondenciaRepository.findMemosPendientes().size();
-
-        long cambiosSol = cambioRepository.countSolicitados();
-        long cambiosAprob = cambioRepository.countAprobados();
-        long cambiosComp = cambioRepository.countCompletados();
+        if (esAdmin) {
+            abiertos = ticketRepository.contarAbiertos(List.of("CERRADO", "RECHAZADO"));
+            cerrados = ticketRepository.contarCerrados(List.of("CERRADO", "RECHAZADO"));
+            vencidos = ticketRepository.countVencidos();
+            sinAsignar = ticketRepository.countByEstado("NUEVO");
+            tiempoPromedio = Optional.ofNullable(ticketRepository.avgTiempoAtencionHoras()).orElse(0.0);
+            totalDocs = correspondenciaRepository.countActivos();
+            docsVencidos = correspondenciaRepository.findVencidos().size();
+            docsConTicket = correspondenciaRepository.countQueGeneraronTicket();
+            docsTiempoProm = Optional.ofNullable(correspondenciaRepository.tiempoPromedioRespuestaHoras()).orElse(0.0);
+            docsPendientes = correspondenciaRepository.findMemosPendientes().size();
+            cambiosSol = cambioRepository.countSolicitados();
+            cambiosAprob = cambioRepository.countAprobados();
+            cambiosComp = cambioRepository.countCompletados();
+            memosPendientes = buildMemos(correspondenciaRepository.findMemosPendientes());
+            ticketsPorEstado = ticketRepository.countByEstadoGroup();
+            ticketsPorPrioridad = ticketRepository.countByPrioridadGroup();
+            ticketsPorArea = ticketRepository.countByAreaGroup();
+            ticketsPorSistema = ticketRepository.countBySistemaGroup();
+            ticketsPorTipo = ticketRepository.countByTipoGroup();
+            documentosPorEstado = correspondenciaRepository.countByEstado();
+            documentosPorPrioridad = correspondenciaRepository.countByPrioridad();
+            cambiosPorEstado = cambioRepository.countByEstadoGroup();
+            cambiosPorImpacto = cambioRepository.countByImpactoGroup();
+            tendenciasMensuales = ticketRepository.tendenciasMensuales(LocalDateTime.now().minusMonths(12));
+        } else {
+            abiertos = ticketRepository.contarAbiertosPorUsuario(List.of("CERRADO", "RECHAZADO"), idUsuario);
+            cerrados = ticketRepository.contarCerradosPorUsuario(List.of("CERRADO", "RECHAZADO"), idUsuario);
+            vencidos = ticketRepository.countVencidosPorUsuario(idUsuario);
+            sinAsignar = ticketRepository.countNuevosPorUsuario(idUsuario);
+            tiempoPromedio = Optional.ofNullable(ticketRepository.avgTiempoAtencionHorasPorUsuario(idUsuario)).orElse(0.0);
+            totalDocs = correspondenciaRepository.countActivosPorUsuario(idUsuario);
+            docsVencidos = correspondenciaRepository.findVencidosPorUsuario(idUsuario).size();
+            docsConTicket = correspondenciaRepository.countQueGeneraronTicketPorUsuario(idUsuario);
+            docsTiempoProm = Optional.ofNullable(correspondenciaRepository.tiempoPromedioRespuestaHorasPorUsuario(idUsuario)).orElse(0.0);
+            docsPendientes = correspondenciaRepository.findMemosPendientesPorUsuario(idUsuario).size();
+            cambiosSol = cambioRepository.countSolicitadosPorUsuario(idUsuario);
+            cambiosAprob = cambioRepository.countAprobadosPorUsuario(idUsuario);
+            cambiosComp = cambioRepository.countCompletadosPorUsuario(idUsuario);
+            memosPendientes = buildMemos(correspondenciaRepository.findMemosPendientesPorUsuario(idUsuario));
+            ticketsPorEstado = ticketRepository.countByEstadoGroupPorUsuario(idUsuario);
+            ticketsPorPrioridad = ticketRepository.countByPrioridadGroupPorUsuario(idUsuario);
+            ticketsPorArea = ticketRepository.countByAreaGroupPorUsuario(idUsuario);
+            ticketsPorSistema = ticketRepository.countBySistemaGroupPorUsuario(idUsuario);
+            ticketsPorTipo = ticketRepository.countByTipoGroupPorUsuario(idUsuario);
+            documentosPorEstado = correspondenciaRepository.countByEstadoPorUsuario(idUsuario);
+            documentosPorPrioridad = correspondenciaRepository.countByPrioridadPorUsuario(idUsuario);
+            cambiosPorEstado = cambioRepository.countByEstadoGroupPorUsuario(idUsuario);
+            cambiosPorImpacto = cambioRepository.countByImpactoGroupPorUsuario(idUsuario);
+            tendenciasMensuales = ticketRepository.tendenciasMensualesPorUsuario(LocalDateTime.now().minusMonths(12), idUsuario);
+        }
 
         String versionActual = "";
         String sistemaReciente = "";
@@ -72,9 +127,29 @@ public class DashboardService {
                     : "";
         }
 
-        List<Map<String, Object>> memosPendientes = new ArrayList<>();
-        List<Correspondencia> memos = correspondenciaRepository.findMemosPendientes();
+        return new DashboardDTO(
+            abiertos, cerrados, vencidos, sinAsignar, tiempoPromedio,
+            calcularCumplimientoSLA(),
+            totalDocs, docsPendientes, docsVencidos, docsConTicket, docsTiempoProm,
+            cambiosSol, cambiosAprob, cambiosComp,
+            versionActual, sistemaReciente, ultimoCambioDesc, fechaUltimoCambio,
+            memosPendientes,
+            toMapList(ticketsPorEstado, "estado", "cantidad"),
+            toMapList(ticketsPorPrioridad, "prioridad", "cantidad"),
+            toMapList(ticketsPorArea, "area", "cantidad"),
+            toMapList(ticketsPorSistema, "sistema", "cantidad"),
+            toMapList(ticketsPorTipo, "tipo", "cantidad"),
+            toMapList(documentosPorEstado, "estado", "cantidad"),
+            toMapList(documentosPorPrioridad, "prioridad", "cantidad"),
+            toMapList(cambiosPorEstado, "estado", "cantidad"),
+            toMapList(cambiosPorImpacto, "impacto", "cantidad"),
+            toMapList(tendenciasMensuales, "mes", "cantidad")
+        );
+    }
+
+    private List<Map<String, Object>> buildMemos(List<Correspondencia> memos) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        List<Map<String, Object>> result = new ArrayList<>();
         for (Correspondencia m : memos) {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("id", m.getIdCorrespondencia());
@@ -84,27 +159,9 @@ public class DashboardService {
             map.put("fechaLimite", m.getFechaLimiteRespuesta() != null ? m.getFechaLimiteRespuesta().format(dtf) : "");
             map.put("codigoDocumento", m.getCodigoDocumento());
             map.put("departamentoRemitente", m.getDepartamentoRemitente());
-            memosPendientes.add(map);
+            result.add(map);
         }
-
-        return new DashboardDTO(
-            abiertos, cerrados, vencidos, sinAsignar, tiempoPromedio,
-            calcularCumplimientoSLA(),
-            totalDocs, docsPendientes, docsVencidos, docsConTicket, docsTiempoProm,
-            cambiosSol, cambiosAprob, cambiosComp,
-            versionActual, sistemaReciente, ultimoCambioDesc, fechaUltimoCambio,
-            memosPendientes,
-            toMapList(ticketRepository.countByEstadoGroup(), "estado", "cantidad"),
-            toMapList(ticketRepository.countByPrioridadGroup(), "prioridad", "cantidad"),
-            toMapList(ticketRepository.countByAreaGroup(), "area", "cantidad"),
-            toMapList(ticketRepository.countBySistemaGroup(), "sistema", "cantidad"),
-            toMapList(ticketRepository.countByTipoGroup(), "tipo", "cantidad"),
-            toMapList(correspondenciaRepository.countByEstado(), "estado", "cantidad"),
-            toMapList(correspondenciaRepository.countByPrioridad(), "prioridad", "cantidad"),
-            toMapList(cambioRepository.countByEstadoGroup(), "estado", "cantidad"),
-            toMapList(cambioRepository.countByImpactoGroup(), "impacto", "cantidad"),
-            toMapList(ticketRepository.tendenciasMensuales(LocalDateTime.now().minusMonths(12)), "mes", "cantidad")
-        );
+        return result;
     }
 
     private double calcularCumplimientoSLA() {
@@ -120,46 +177,46 @@ public class DashboardService {
         }).collect(Collectors.toList());
     }
 
-    public List<TicketResumenDTO> listarTicketsAbiertos() {
-        return ticketRepository.findAbiertos().stream()
-                .map(this::toTicketResumen)
-                .collect(Collectors.toList());
+    public List<TicketResumenDTO> listarTicketsAbiertos(Integer idUsuario, boolean esAdmin) {
+        List<Ticket> tickets = esAdmin ? ticketRepository.findAbiertos()
+                : ticketRepository.findAbiertosPorUsuario(idUsuario);
+        return tickets.stream().map(this::toTicketResumen).collect(Collectors.toList());
     }
 
-    public List<TicketResumenDTO> listarTicketsCerrados() {
-        return ticketRepository.findCerrados().stream()
-                .map(this::toTicketResumen)
-                .collect(Collectors.toList());
+    public List<TicketResumenDTO> listarTicketsCerrados(Integer idUsuario, boolean esAdmin) {
+        List<Ticket> tickets = esAdmin ? ticketRepository.findCerrados()
+                : ticketRepository.findCerradosPorUsuario(idUsuario);
+        return tickets.stream().map(this::toTicketResumen).collect(Collectors.toList());
     }
 
-    public List<TicketResumenDTO> listarTicketsVencidos() {
-        return ticketRepository.findVencidosActivos().stream()
-                .map(this::toTicketResumen)
-                .collect(Collectors.toList());
+    public List<TicketResumenDTO> listarTicketsVencidos(Integer idUsuario, boolean esAdmin) {
+        List<Ticket> tickets = esAdmin ? ticketRepository.findVencidosActivos()
+                : ticketRepository.findVencidosActivosPorUsuario(idUsuario);
+        return tickets.stream().map(this::toTicketResumen).collect(Collectors.toList());
     }
 
-    public List<TicketResumenDTO> listarTicketsSinAsignar() {
-        return ticketRepository.findByEstadoOrderByCreadoEnDesc("NUEVO").stream()
-                .map(this::toTicketResumen)
-                .collect(Collectors.toList());
+    public List<TicketResumenDTO> listarTicketsSinAsignar(Integer idUsuario, boolean esAdmin) {
+        List<Ticket> tickets = esAdmin ? ticketRepository.findByEstadoOrderByCreadoEnDesc("NUEVO")
+                : ticketRepository.findNuevosPorSolicitante(idUsuario);
+        return tickets.stream().map(this::toTicketResumen).collect(Collectors.toList());
     }
 
-    public List<DocumentoResumenDTO> listarDocumentosPendientes() {
-        return correspondenciaRepository.findMemosPendientes().stream()
-                .map(this::toDocumentoResumen)
-                .collect(Collectors.toList());
+    public List<DocumentoResumenDTO> listarDocumentosPendientes(Integer idUsuario, boolean esAdmin) {
+        List<Correspondencia> docs = esAdmin ? correspondenciaRepository.findMemosPendientes()
+                : correspondenciaRepository.findMemosPendientesPorUsuario(idUsuario);
+        return docs.stream().map(this::toDocumentoResumen).collect(Collectors.toList());
     }
 
-    public List<DocumentoResumenDTO> listarDocumentosVencidos() {
-        return correspondenciaRepository.findVencidos().stream()
-                .map(this::toDocumentoResumen)
-                .collect(Collectors.toList());
+    public List<DocumentoResumenDTO> listarDocumentosVencidos(Integer idUsuario, boolean esAdmin) {
+        List<Correspondencia> docs = esAdmin ? correspondenciaRepository.findVencidos()
+                : correspondenciaRepository.findVencidosPorUsuario(idUsuario);
+        return docs.stream().map(this::toDocumentoResumen).collect(Collectors.toList());
     }
 
-    public List<DocumentoResumenDTO> listarDocumentosConTicket() {
-        return correspondenciaRepository.findQueGeneraronTicket().stream()
-                .map(this::toDocumentoResumen)
-                .collect(Collectors.toList());
+    public List<DocumentoResumenDTO> listarDocumentosConTicket(Integer idUsuario, boolean esAdmin) {
+        List<Correspondencia> docs = esAdmin ? correspondenciaRepository.findQueGeneraronTicket()
+                : correspondenciaRepository.findQueGeneraronTicketPorUsuario(idUsuario);
+        return docs.stream().map(this::toDocumentoResumen).collect(Collectors.toList());
     }
 
     private TicketResumenDTO toTicketResumen(Ticket t) {

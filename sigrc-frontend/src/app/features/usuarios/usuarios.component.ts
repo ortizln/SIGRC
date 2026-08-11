@@ -41,6 +41,13 @@ export class UsuariosComponent implements OnInit {
   permisosModulo: { [modulo: string]: { lectura: boolean; escritura: boolean } } = {};
   esAdmin = false;
 
+  // Paginación
+  pagina = 0;
+  tamanio = 10;
+  totalElementos = 0;
+  totalPaginas = 0;
+  textoBusqueda = '';
+
   // Para perfil no-admin
   currentUser: Usuario | null = null;
 
@@ -74,7 +81,37 @@ export class UsuariosComponent implements OnInit {
   }
 
   cargar() {
-    this.usuarioService.listar().subscribe(r => this.usuarios = r);
+    this.usuarioService.listarPaginado(this.pagina, this.tamanio, this.textoBusqueda || undefined)
+      .subscribe(r => {
+        this.usuarios = r.contenido;
+        this.totalElementos = r.totalElementos;
+        this.totalPaginas = r.totalPaginas;
+        this.pagina = r.pagina;
+      });
+  }
+
+  buscar() { this.pagina = 0; this.cargar(); }
+
+  cambiarPagina(p: number) {
+    if (p < 0 || p >= this.totalPaginas || p === this.pagina) return;
+    this.pagina = p;
+    this.cargar();
+  }
+
+  get rangoActual(): string {
+    if (this.totalElementos === 0) return '0 - 0 de 0';
+    const desde = this.pagina * this.tamanio + 1;
+    const hasta = Math.min((this.pagina + 1) * this.tamanio, this.totalElementos);
+    return `${desde} - ${hasta} de ${this.totalElementos}`;
+  }
+
+  get paginasVisibles(): number[] {
+    const total = Math.max(this.totalPaginas, 1);
+    const inicio = Math.max(0, Math.min(this.pagina - 2, total - 5));
+    const fin = Math.min(total, inicio + 5);
+    const arr: number[] = [];
+    for (let i = inicio; i < fin; i++) arr.push(i);
+    return arr;
   }
 
   private initPermisos() {

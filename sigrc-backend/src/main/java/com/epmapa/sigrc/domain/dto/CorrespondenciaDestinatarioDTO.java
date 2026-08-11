@@ -9,5 +9,7 @@ public record CorrespondenciaDestinatarioDTO(
     String nombre,
     Boolean recibido,
     LocalDateTime fechaRecibido,
+    Boolean leido,
+    LocalDateTime fechaLeido,
     String sumilla
 ) {}
