@@ -60,7 +60,7 @@ param(
     [string]$Username = 'postgres',
     [string]$Password = '',
     [string]$PsqlBin = '',
-    [string]$RepoRoot = (Split-Path -Parent $MyInvocation.MyCommand.Path),
+    [string]$RepoRoot = $PSScriptRoot,
     [string]$BackupDir = '',
     [switch]$SkipBackup,
     [switch]$SkipVerification,
