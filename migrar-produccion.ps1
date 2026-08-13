@@ -100,8 +100,7 @@ $pgRestoreExe = Get-PostgresBin 'pg_restore.exe'
 # Credenciales
 if (-not $Password) {
     $sec = Read-Host -Prompt "Contraseña de PostgreSQL para $Username" -AsSecureString
-    $Password = [System.Runtime.InteropServices.Marshal]::PtrToStringUnicode(
-        [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec))
+    $Password = (New-Object System.Net.NetworkCredential("", $sec)).Password
     Remove-Variable sec
 }
 $env:PGPASSWORD = $Password
