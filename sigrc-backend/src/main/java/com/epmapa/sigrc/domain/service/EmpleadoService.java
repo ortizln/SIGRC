@@ -12,6 +12,7 @@ import com.epmapa.sigrc.domain.repository.UsuarioPermisoRepository;
 import com.epmapa.sigrc.domain.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.hibernate.Hibernate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,6 +96,11 @@ public class EmpleadoService {
         auditoriaService.registrar(username, idUsuario, "CONSULTAR_EXPEDIENTE", "CONSULTA",
             "empleado", id, null, null, request,
             accesoCompleto ? "OK" : "PARCIAL");
+
+        Hibernate.initialize(empleado.getFormaciones());
+        Hibernate.initialize(empleado.getExperiencias());
+        Hibernate.initialize(empleado.getCapacitaciones());
+        Hibernate.initialize(empleado.getDocumentos());
         return empleado;
     }
 

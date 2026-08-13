@@ -13,6 +13,7 @@ import com.epmapa.sigrc.domain.repository.PuestoRepository;
 import com.epmapa.sigrc.domain.repository.UnidadOrganizacionalRepository;
 import com.epmapa.sigrc.domain.repository.VersionManualRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,8 +48,15 @@ public class PuestoService {
 
     @Transactional(readOnly = true)
     public Puesto obtenerConPerfil(Integer id) {
-        return puestoRepository.findById(id)
+        var puesto = puestoRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Puesto no encontrado: " + id));
+        Hibernate.initialize(puesto.getFunciones());
+        Hibernate.initialize(puesto.getFormaciones());
+        Hibernate.initialize(puesto.getExperiencias());
+        Hibernate.initialize(puesto.getCapacitaciones());
+        Hibernate.initialize(puesto.getProductos());
+        Hibernate.initialize(puesto.getInterfaces());
+        return puesto;
     }
 
     @Transactional
