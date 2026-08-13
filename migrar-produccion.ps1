@@ -60,7 +60,7 @@ param(
     [string]$Username = 'postgres',
     [string]$Password = '',
     [string]$PsqlBin = '',
-    [string]$RepoRoot = $PSScriptRoot,
+    [string]$RepoRoot = $(if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }),
     [string]$BackupDir = '',
     [switch]$SkipBackup,
     [switch]$SkipVerification,
