@@ -2,6 +2,7 @@ package com.epmapa.sigrc.domain.service;
 
 import com.epmapa.sigrc.domain.dto.NivelOrganizacionalDTO;
 import com.epmapa.sigrc.domain.dto.NodoOrganigramaDTO;
+import com.epmapa.sigrc.domain.dto.PuestoOcupacionDTO;
 import com.epmapa.sigrc.domain.dto.UnidadOrganizacionalDTO;
 import com.epmapa.sigrc.domain.dto.UnidadOrganizacionalRequest;
 import com.epmapa.sigrc.domain.entity.AsignacionPuesto;
@@ -241,6 +242,27 @@ public class EstructuraOrganizacionalService {
         int plazasOcupadas = asignacionesUnidad.size();
         int vacantes = Math.max(0, plazas - plazasOcupadas);
 
+        List<PuestoOcupacionDTO> puestosUnidad = puestos.stream()
+            .filter(p -> p.getUnidadOrganizacional() != null
+                && p.getUnidadOrganizacional().getIdUnidad().equals(unidad.getIdUnidad())
+                && p.getActivo() != null && p.getActivo())
+            .map(p -> {
+                int numPlazas = p.getNumeroPlazas() != null ? p.getNumeroPlazas() : 0;
+                int ocupados = (int) asignacionesUnidad.stream()
+                    .filter(a -> a.getPuesto() != null && a.getPuesto().getIdPuesto().equals(p.getIdPuesto()))
+                    .count();
+                return new PuestoOcupacionDTO(
+                    p.getIdPuesto(),
+                    p.getCodigo(),
+                    p.getNombre(),
+                    p.getEsJefatura(),
+                    p.getEsResponsableUnidad(),
+                    numPlazas,
+                    ocupados,
+                    Math.max(0, numPlazas - ocupados));
+            })
+            .toList();
+
         var responsable = resolverResponsable(unidad, asignacionesUnidad);
 
         return new NodoOrganigramaDTO(
@@ -258,6 +280,7 @@ public class EstructuraOrganizacionalService {
             plazas,
             plazasOcupadas,
             vacantes,
+            puestosUnidad,
             hijos
         );
     }

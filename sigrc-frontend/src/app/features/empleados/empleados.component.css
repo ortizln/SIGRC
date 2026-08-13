@@ -87,6 +87,9 @@
 .perfil-row .perfil-meses {
   flex: 0 0 150px;
 }
+.perfil-row .perfil-fecha {
+  flex: 0 0 140px;
+}
 .perfil-row .perfil-check {
   flex: 0 0 auto;
   white-space: nowrap;

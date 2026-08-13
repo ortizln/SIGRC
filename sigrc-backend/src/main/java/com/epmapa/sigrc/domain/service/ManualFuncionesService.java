@@ -10,6 +10,7 @@ import com.epmapa.sigrc.domain.repository.PuestoRepository;
 import com.epmapa.sigrc.domain.repository.UnidadOrganizacionalRepository;
 import com.epmapa.sigrc.domain.repository.VersionManualRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,6 +112,7 @@ public class ManualFuncionesService {
 
         var unidades = unidadRepository.findByActivoTrueOrderByOrdenAsc();
         var puestos = puestoRepository.findByActivoTrueOrderByNombre();
+        puestos.forEach(ManualFuncionesService::inicializarPerfilPuesto);
 
         var direcciones = unidades.stream()
             .filter(u -> u.getUnidadPadre() == null)
@@ -156,6 +158,15 @@ public class ManualFuncionesService {
             hijas,
             puestosDirectos
         );
+    }
+
+    private static void inicializarPerfilPuesto(Puesto p) {
+        Hibernate.initialize(p.getFunciones());
+        Hibernate.initialize(p.getFormaciones());
+        Hibernate.initialize(p.getExperiencias());
+        Hibernate.initialize(p.getCapacitaciones());
+        Hibernate.initialize(p.getProductos());
+        Hibernate.initialize(p.getInterfaces());
     }
 
     private static ManualFuncionesDTO.PuestoManualDTO toPuestoManualDTO(Puesto p) {

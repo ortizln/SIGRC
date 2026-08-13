@@ -16,5 +16,6 @@ public record NodoOrganigramaDTO(
     Integer plazas,
     Integer plazasOcupadas,
     Integer vacantes,
+    List<PuestoOcupacionDTO> puestos,
     List<NodoOrganigramaDTO> hijos
 ) {}

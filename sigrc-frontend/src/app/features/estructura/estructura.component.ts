@@ -26,6 +26,7 @@ export class EstructuraComponent implements OnInit {
   menuAbierto: number | null = null;
 
   expandidos = new Set<number>();
+  detalle: any = null;
 
   migracionVisible = false;
   migracionCargando = false;
@@ -73,9 +74,24 @@ export class EstructuraComponent implements OnInit {
   }
 
   verPerfil(unidad: any) {
+    this.detalle = unidad;
+  }
+
+  cerrarDetalle() {
+    this.detalle = null;
+  }
+
+  editarDesdeDetalle() {
+    if (!this.detalle) return;
     this.tabActivo = 'unidades';
-    this.cancelar();
-    this.editar(unidad);
+    this.editar(this.detalle);
+  }
+
+  estadoPuesto(p: any): { clase: string; etiqueta: string } {
+    if (!p.numeroPlazas) return { clase: 'org-puesto-ok', etiqueta: 'Completo' };
+    if (p.ocupados <= 0) return { clase: 'org-puesto-vacante', etiqueta: 'Vacante' };
+    if (p.vacantes > 0) return { clase: 'org-puesto-parcial', etiqueta: 'Parcial' };
+    return { clase: 'org-puesto-ok', etiqueta: 'Completo' };
   }
 
   ejecutarMigracion(dryRun: boolean) {

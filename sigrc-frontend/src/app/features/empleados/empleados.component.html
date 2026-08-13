@@ -118,7 +118,9 @@
           </select>
           <input autocomplete="off" [(ngModel)]="f.titulo" name="forTitulo{{idx}}" class="form-control form-control-sm" placeholder="Título">
           <input autocomplete="off" [(ngModel)]="f.institucion" name="forInst{{idx}}" class="form-control form-control-sm" placeholder="Institución">
-          <input autocomplete="off" [(ngModel)]="f.registroSenescyt" name="forReg{{idx}}" class="form-control form-control-sm perfil-meses" placeholder="Registro Senescyt">
+          <input autocomplete="off" [(ngModel)]="f.fechaInicio" name="forIni{{idx}}" type="date" class="form-control form-control-sm perfil-fecha" title="Desde">
+          <input autocomplete="off" [(ngModel)]="f.fechaFin" name="forFin{{idx}}" type="date" class="form-control form-control-sm perfil-fecha" title="Hasta">
+          <input autocomplete="off" [(ngModel)]="f.registroSenescyt" name="forReg{{idx}}" class="form-control form-control-sm perfil-meses" placeholder="Reg. Senescyt">
           <label class="d-flex align-items-center gap-1 small perfil-check"><input type="checkbox" [(ngModel)]="f.verificado" name="forVer{{idx}}"> Verif.</label>
           <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('formaciones', idx)">✕</button>
         </div>
@@ -129,6 +131,9 @@
         <div class="perfil-row" *ngFor="let e of form.experiencias; let idx = index">
           <input autocomplete="off" [(ngModel)]="e.institucion" name="expInst{{idx}}" class="form-control form-control-sm" placeholder="Institución">
           <input autocomplete="off" [(ngModel)]="e.cargo" name="expCargo{{idx}}" class="form-control form-control-sm" placeholder="Cargo">
+          <input autocomplete="off" [(ngModel)]="e.fechaInicio" name="expIni{{idx}}" type="date" class="form-control form-control-sm perfil-fecha" title="Desde">
+          <input autocomplete="off" [(ngModel)]="e.fechaFin" name="expFin{{idx}}" type="date" class="form-control form-control-sm perfil-fecha" title="Hasta" *ngIf="!e.actualmenteTrabajando">
+          <label class="d-flex align-items-center gap-1 small perfil-check"><input type="checkbox" [(ngModel)]="e.actualmenteTrabajando" name="expAct{{idx}}"> Actualmente</label>
           <input autocomplete="off" [(ngModel)]="e.descripcion" name="expDesc{{idx}}" class="form-control form-control-sm" placeholder="Descripción">
           <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('experiencias', idx)">✕</button>
         </div>
@@ -139,6 +144,8 @@
         <div class="perfil-row" *ngFor="let c of form.capacitaciones; let idx = index">
           <input autocomplete="off" [(ngModel)]="c.nombre" name="capNom{{idx}}" class="form-control form-control-sm" placeholder="Nombre">
           <input autocomplete="off" [(ngModel)]="c.institucion" name="capInst{{idx}}" class="form-control form-control-sm" placeholder="Institución">
+          <input autocomplete="off" [(ngModel)]="c.fechaInicio" name="capIni{{idx}}" type="date" class="form-control form-control-sm perfil-fecha" title="Desde">
+          <input autocomplete="off" [(ngModel)]="c.fechaFin" name="capFin{{idx}}" type="date" class="form-control form-control-sm perfil-fecha" title="Hasta">
           <input autocomplete="off" [(ngModel)]="c.horas" name="capHoras{{idx}}" type="number" min="0" class="form-control form-control-sm perfil-meses" placeholder="Horas">
           <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('capacitaciones', idx)">✕</button>
         </div>
@@ -264,6 +271,7 @@
                 <div class="fw-medium">{{ f.titulo || 'Título' }}</div>
                 <div class="small text-muted">
                   {{ f.nivel || '' }}<span *ngIf="f.nivel && f.institucion"> · </span>{{ f.institucion || '' }}
+                  <span *ngIf="f.fechaInicio || f.fechaFin"> · {{ f.fechaInicio || '' }} – {{ f.fechaFin || '' }}</span>
                   <span *ngIf="f.registroSenescyt"> · Reg. {{ f.registroSenescyt }}</span>
                 </div>
               </div>
@@ -290,7 +298,7 @@
             <div *ngIf="tieneDatos(expediente.capacitaciones)">
               <div class="mb-2" *ngFor="let c of expediente.capacitaciones">
                 <div class="fw-medium">{{ c.nombre }}</div>
-                <div class="small text-muted">{{ c.institucion || '' }}<span *ngIf="c.horas"> · {{ c.horas }} h</span></div>
+                <div class="small text-muted">{{ c.institucion || '' }}<span *ngIf="c.fechaInicio || c.fechaFin"> · {{ c.fechaInicio || '' }} – {{ c.fechaFin || '' }}</span><span *ngIf="c.horas"> · {{ c.horas }} h</span></div>
               </div>
             </div>
             <div *ngIf="!tieneDatos(expediente.capacitaciones)" class="text-muted small">Sin capacitaciones registradas.</div>

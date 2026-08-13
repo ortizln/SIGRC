@@ -13,6 +13,17 @@ export interface UnidadOrganizacional {
   activo: boolean;
 }
 
+export interface PuestoOcupacion {
+  idPuesto: number;
+  codigo: string;
+  nombre: string;
+  esJefatura?: boolean;
+  esResponsableUnidad?: boolean;
+  numeroPlazas: number;
+  ocupados: number;
+  vacantes: number;
+}
+
 export interface NodoOrganigrama {
   idUnidad: number;
   codigo: string;
@@ -27,6 +38,7 @@ export interface NodoOrganigrama {
   plazas: number;
   plazasOcupadas: number;
   vacantes: number;
+  puestos: PuestoOcupacion[];
   hijos: NodoOrganigrama[];
 }
 

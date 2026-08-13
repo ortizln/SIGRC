@@ -90,7 +90,10 @@ export class EmpleadosComponent implements OnInit {
         fechaSalidaInstitucion: r.fechaSalidaInstitucion || '',
         observaciones: r.observaciones || '',
         formaciones: r.formaciones || [],
-        experiencias: r.experiencias || [],
+        experiencias: (r.experiencias || []).map((x: any) => ({
+          ...x,
+          actualmenteTrabajando: !x.fechaFin
+        })),
         capacitaciones: r.capacitaciones || [],
         documentos: (r.documentos || []).map((d: any) => ({
           ...d,
@@ -113,9 +116,9 @@ export class EmpleadosComponent implements OnInit {
 
   agregar(lista: string) {
     if (!this.form[lista]) this.form[lista] = [];
-    if (lista === 'formaciones') this.form[lista].push({ nivel: '', titulo: '', institucion: '', pais: 'ECUADOR', registroSenescyt: '', verificado: false });
-    else if (lista === 'experiencias') this.form[lista].push({ institucion: '', cargo: '', descripcion: '' });
-    else if (lista === 'capacitaciones') this.form[lista].push({ nombre: '', institucion: '', horas: null, tipo: 'CURSO' });
+    if (lista === 'formaciones') this.form[lista].push({ nivel: '', titulo: '', institucion: '', pais: 'ECUADOR', registroSenescyt: '', fechaInicio: '', fechaFin: '', verificado: false });
+    else if (lista === 'experiencias') this.form[lista].push({ institucion: '', cargo: '', descripcion: '', fechaInicio: '', fechaFin: '', actualmenteTrabajando: false });
+    else if (lista === 'capacitaciones') this.form[lista].push({ nombre: '', institucion: '', horas: null, tipo: 'CURSO', fechaInicio: '', fechaFin: '' });
     else if (lista === 'documentos') this.form[lista].push({ tipo: 'OTRO', confidencial: false, nivelAcceso: 'PUBLICO_INSTITUCIONAL' });
   }
 
@@ -147,9 +150,21 @@ export class EmpleadosComponent implements OnInit {
       fechaIngresoInstitucion: this.form.fechaIngresoInstitucion || null,
       fechaSalidaInstitucion: this.form.fechaSalidaInstitucion || null,
       observaciones: this.form.observaciones || null,
-      formaciones: this.form.formaciones || [],
-      experiencias: this.form.experiencias || [],
-      capacitaciones: this.form.capacitaciones || [],
+      formaciones: (this.form.formaciones || []).map((f: any) => ({
+        ...f,
+        fechaInicio: f.fechaInicio || null,
+        fechaFin: f.fechaFin || null
+      })),
+      experiencias: (this.form.experiencias || []).map(({ actualmenteTrabajando, ...e }: any) => ({
+        ...e,
+        fechaInicio: e.fechaInicio || null,
+        fechaFin: actualmenteTrabajando ? null : (e.fechaFin || null)
+      })),
+      capacitaciones: (this.form.capacitaciones || []).map((c: any) => ({
+        ...c,
+        fechaInicio: c.fechaInicio || null,
+        fechaFin: c.fechaFin || null
+      })),
       documentos: this.form.documentos || []
     };
     const obs = this.editando && this.editandoId

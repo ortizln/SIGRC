@@ -233,47 +233,105 @@
       </div>
 
       <ng-container *ngIf="organigrama.length > 0; else sinOrganigrama">
-        <div class="org-tree">
-          <ng-template #orgNodo let-n>
-            <div class="org-nodo">
-              <div class="org-head">
-                <button class="org-caret" [class.org-caret-vacio]="!n.hijos?.length" (click)="toggleExpandir(n.idUnidad)">
-                  <i class="pi" [ngClass]="expandidos.has(n.idUnidad) ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
-                </button>
-                <div class="org-card" [class.org-inactiva]="!n.activo" (click)="verPerfil(n)">
-                  <div class="org-icon"><i class="pi pi-sitemap"></i></div>
-                  <div class="org-info">
-                    <strong>{{ n.nombre }}</strong>
-                    <small>
-                      <code>{{ n.codigo }}</code>
-                      <span *ngIf="n.sigla"> · {{ n.sigla }}</span>
-                      <span *ngIf="n.tipoUnidad"> · {{ n.tipoUnidad }}</span>
-                      <span *ngIf="n.nivelNombre"> · {{ n.nivelNombre }}</span>
-                    </small>
-                    <div class="org-meta">
-                      <span class="org-metaitem" *ngIf="n.responsable" title="Responsable de la unidad">
-                        <i class="pi pi-user"></i> {{ n.puestoResponsable || 'Responsable' }}: <b>{{ n.responsable }}</b>
-                      </span>
-                      <span class="org-metaitem" *ngIf="n.plazas > 0" title="Plazas / ocupadas">
-                        <i class="pi pi-users"></i> Plazas: <b>{{ n.plazas }}</b> · Ocupadas: <b>{{ n.plazasOcupadas }}</b>
-                      </span>
-                      <span class="org-metaitem" [class.org-vacante]="n.vacantes > 0" *ngIf="n.plazas > 0">
-                        Vacantes: <b>{{ n.vacantes }}</b>
-                      </span>
+        <div class="row g-3">
+          <div class="col-lg-7">
+            <div class="org-tree">
+              <ng-template #orgNodo let-n>
+                <div class="org-nodo">
+                  <div class="org-head">
+                    <button class="org-caret" [class.org-caret-vacio]="!n.hijos?.length" (click)="toggleExpandir(n.idUnidad)">
+                      <i class="pi" [ngClass]="expandidos.has(n.idUnidad) ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+                    </button>
+                    <div class="org-card" [class.org-inactiva]="!n.activo" [class.org-seleccionado]="detalle?.idUnidad === n.idUnidad" (click)="verPerfil(n)">
+                      <div class="org-icon"><i class="pi pi-sitemap"></i></div>
+                      <div class="org-info">
+                        <strong>{{ n.nombre }}</strong>
+                        <small>
+                          <code>{{ n.codigo }}</code>
+                          <span *ngIf="n.sigla"> · {{ n.sigla }}</span>
+                          <span *ngIf="n.tipoUnidad"> · {{ n.tipoUnidad }}</span>
+                          <span *ngIf="n.nivelNombre"> · {{ n.nivelNombre }}</span>
+                        </small>
+                        <div class="org-meta">
+                          <span class="org-metaitem" *ngIf="n.responsable" title="Responsable de la unidad">
+                            <i class="pi pi-user"></i> {{ n.puestoResponsable || 'Responsable' }}: <b>{{ n.responsable }}</b>
+                          </span>
+                          <span class="org-metaitem" *ngIf="n.plazas > 0" title="Plazas / ocupadas">
+                            <i class="pi pi-users"></i> Plazas: <b>{{ n.plazas }}</b> · Ocupadas: <b>{{ n.plazasOcupadas }}</b>
+                          </span>
+                          <span class="org-metaitem" [class.org-vacante]="n.vacantes > 0" *ngIf="n.plazas > 0">
+                            Vacantes: <b>{{ n.vacantes }}</b>
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                  <div class="org-children" *ngIf="n.hijos?.length && expandidos.has(n.idUnidad)">
+                    <ng-container *ngFor="let h of n.hijos">
+                      <ng-container *ngTemplateOutlet="orgNodo; context: { $implicit: h }"></ng-container>
+                    </ng-container>
+                  </div>
+                </div>
+              </ng-template>
+              <ng-container *ngFor="let raiz of organigrama">
+                <ng-container *ngTemplateOutlet="orgNodo; context: { $implicit: raiz }"></ng-container>
+              </ng-container>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="card-modern p-3 org-detalle" *ngIf="detalle; else sinDetalle">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <h6 class="fw-bold mb-1">{{ detalle.nombre }}</h6>
+                  <small class="text-muted">
+                    <code>{{ detalle.codigo }}</code><span *ngIf="detalle.sigla"> · {{ detalle.sigla }}</span>
+                    <span *ngIf="detalle.tipoUnidad"> · {{ detalle.tipoUnidad }}</span>
+                    <span *ngIf="detalle.nivelNombre"> · {{ detalle.nivelNombre }}</span>
+                  </small>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" (click)="cerrarDetalle()">✕</button>
+              </div>
+
+              <div class="org-detalle-resumen mb-3" *ngIf="detalle.responsable">
+                <i class="pi pi-user"></i> <b>{{ detalle.puestoResponsable || 'Responsable' }}:</b> {{ detalle.responsable }}
+              </div>
+              <div class="org-detalle-resumen mb-3" *ngIf="detalle.plazas > 0">
+                <i class="pi pi-users"></i>
+                <span>Plazas: <b>{{ detalle.plazas }}</b></span>
+                <span>Ocupadas: <b>{{ detalle.plazasOcupadas }}</b></span>
+                <span [class.org-vacante]="detalle.vacantes > 0">Vacantes: <b>{{ detalle.vacantes }}</b></span>
+              </div>
+
+              <h6 class="fw-bold mb-2">Puestos</h6>
+              <div class="org-detalle-lista">
+                <div class="org-puesto" *ngFor="let p of detalle.puestos">
+                  <div class="flex-grow-1">
+                    <div class="fw-medium">{{ p.nombre }}</div>
+                    <small class="text-muted">
+                      <code>{{ p.codigo }}</code>
+                      <span *ngIf="p.esResponsableUnidad" class="org-tag ms-2">Responsable</span>
+                      <span *ngIf="p.esJefatura && !p.esResponsableUnidad" class="org-tag ms-2">Jefatura</span>
+                    </small>
+                    <small class="d-block text-muted">Plazas: {{ p.numeroPlazas }} · Ocupados: {{ p.ocupados }}</small>
+                  </div>
+                  <span class="org-estado" [ngClass]="estadoPuesto(p).clase">{{ estadoPuesto(p).etiqueta }}</span>
+                </div>
+                <div class="text-muted small py-2" *ngIf="!detalle.puestos?.length">Sin puestos definidos para esta unidad.</div>
+              </div>
+
+              <button class="btn btn-primary btn-sm mt-3" (click)="editarDesdeDetalle()" *ngIf="isAdmin">
+                <i class="pi pi-pencil" style="font-size:0.7rem;"></i> Editar unidad
+              </button>
+            </div>
+            <ng-template #sinDetalle>
+              <div class="card-modern p-3 org-detalle-empty">
+                <div class="text-center text-muted py-4">
+                  <i class="pi pi-sitemap d-block mb-2" style="font-size:1.6rem;"></i>
+                  Selecciona una unidad del organigrama para ver el detalle de sus puestos.
                 </div>
               </div>
-              <div class="org-children" *ngIf="n.hijos?.length && expandidos.has(n.idUnidad)">
-                <ng-container *ngFor="let h of n.hijos">
-                  <ng-container *ngTemplateOutlet="orgNodo; context: { $implicit: h }"></ng-container>
-                </ng-container>
-              </div>
-            </div>
-          </ng-template>
-          <ng-container *ngFor="let raiz of organigrama">
-            <ng-container *ngTemplateOutlet="orgNodo; context: { $implicit: raiz }"></ng-container>
-          </ng-container>
+            </ng-template>
+          </div>
         </div>
       </ng-container>
       <ng-template #sinOrganigrama>
