@@ -1,5 +1,9 @@
 
 
+-- Migraciones incrementales de correspondencia.
+-- Idempotente: puede ejecutarse varias veces sin duplicar datos.
+SET search_path TO sigrc, public;
+
 -- 2. Agregar columna sentido a correspondencia
 ALTER TABLE correspondencia
   ADD COLUMN IF NOT EXISTS sentido VARCHAR(10);
@@ -40,12 +44,15 @@ DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.columns
              WHERE table_schema = 'sigrc' AND table_name = 'correspondencia' AND column_name = 'id_responsable') THEN
-    INSERT INTO sigrc.correspondencia_responsable (id_correspondencia, id_usuario)
-    SELECT id_correspondencia, id_responsable
-    FROM sigrc.correspondencia
-    WHERE id_responsable IS NOT NULL
-    ON CONFLICT DO NOTHING;
+    INSERT INTO sigrc.correspondencia_responsable (id_correspondencia, id_usuario, sumilla, creado_en)
+    SELECT c.id_correspondencia, c.id_responsable, '', NOW()
+    FROM sigrc.correspondencia c
+    WHERE c.id_responsable IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1 FROM sigrc.correspondencia_responsable cr
+        WHERE cr.id_correspondencia = c.id_correspondencia AND cr.id_usuario = c.id_responsable
+      );
 
-    ALTER TABLE sigrc.correspondencia DROP COLUMN id_responsable;
+    ALTER TABLE sigrc.correspondencia DROP COLUMN IF EXISTS id_responsable;
   END IF;
 END $$;
