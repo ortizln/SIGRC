@@ -230,12 +230,14 @@ psql -h <host_prod> -U postgres -d sigrc --set ON_ERROR_STOP=1 -f migracion-corr
 
 ```bash
 psql -h <host_prod> -U postgres -d sigrc --set ON_ERROR_STOP=1 -f fix-auditoria-columns.sql
+psql -h <host_prod> -U postgres -d sigrc --set ON_ERROR_STOP=1 -f fix-auditoria-checks.sql
 psql -h <host_prod> -U postgres -d sigrc --set ON_ERROR_STOP=1 -f fix-generar-numero-ticket.sql
 psql -h <host_prod> -U postgres -d sigrc --set ON_ERROR_STOP=1 -f fix-numero-interno-por-usuario.sql
 psql -h <host_prod> -U postgres -d sigrc --set ON_ERROR_STOP=1 -f arreglar-fk-responsables.sql
 ```
 
 - `fix-auditoria-columns.sql`: `datos_anteriores`/`datos_nuevos` de `VARCHAR(255)` → `TEXT` (el JSON de auditoría puede exceder 255).
+- `fix-auditoria-checks.sql`: **OBLIGATORIO si la BD viene del esquema antiguo.** Elimina los CHECK constraints viejos de `sigrc.auditoria` (`auditoria_resultado_check` = solo `EXITO/FRACASO` y `auditoria_tipo_operacion_check` = solo `CREATE/READ/...`). El código nuevo escribe `resultado='OK'` y `tipo_operacion='AUTENTICACION'/'REGISTRO'/'CONSULTA'`, que los violan y rompen el login (`DataIntegrityViolationException`).
 - `fix-generar-numero-ticket.sql`: corrige la función del consecutivo de tickets (prefijo 12 caracteres).
 - `fix-numero-interno-por-usuario.sql`: consecutivo de correspondencia por iniciales del creador.
 - `arreglar-fk-responsables.sql`: asegura que la FK de `correspondencia_responsable` apunte a `sigrc.usuarios`.
