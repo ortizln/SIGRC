@@ -91,6 +91,7 @@ export interface CorrespondenciaReferencia {
   numeroInterno: string;
   asunto: string;
   codigoDocumento: string;
+  fechaDocumento: string;
 }
 
 export interface CorrespondenciaAdjunto {

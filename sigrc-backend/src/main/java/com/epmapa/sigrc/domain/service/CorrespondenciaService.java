@@ -1104,7 +1104,8 @@ public class CorrespondenciaService {
                         ref.getIdCorrespondencia(),
                         ref.getNumeroInterno(),
                         ref.getAsunto(),
-                        ref.getCodigoDocumento()))
+                        ref.getCodigoDocumento(),
+                        ref.getFechaDocumento()))
                 .collect(Collectors.toList());
 
         List<CorrespondenciaReferenciaDTO> referenciadoPor = repository.findReferenciadoPor(entity.getIdCorrespondencia()).stream()
@@ -1112,7 +1113,8 @@ public class CorrespondenciaService {
                         ref.getIdCorrespondencia(),
                         ref.getNumeroInterno(),
                         ref.getAsunto(),
-                        ref.getCodigoDocumento()))
+                        ref.getCodigoDocumento(),
+                        ref.getFechaDocumento()))
                 .collect(Collectors.toList());
 
         List<CorrespondenciaDestinatarioDTO> destinatariosDTO = destinatarioRepository

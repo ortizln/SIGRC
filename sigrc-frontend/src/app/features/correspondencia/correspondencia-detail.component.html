@@ -100,7 +100,8 @@
           <i class="pi pi-file" style="font-size:0.8rem;color:var(--primary);"></i>
           <code style="color:var(--primary);font-weight:600;">{{ r.numeroInterno }}</code>
           <span class="small flex-grow-1">{{ r.asunto }}</span>
-          <a [routerLink]="['/correspondencia', r.idCorrespondencia]" class="btn btn-soft-primary btn-xs">
+          <span class="small text-muted" *ngIf="r.fechaDocumento" title="Fecha del documento">{{ r.fechaDocumento | date:'dd/MM/yyyy' }}</span>
+          <a [routerLink]="['/correspondencia', r.idCorrespondencia]" class="btn btn-soft-primary btn-xs" title="Ir al documento">
             <i class="pi pi-external-link" style="font-size:0.7rem;"></i>
           </a>
         </div>
@@ -114,7 +115,8 @@
           <i class="pi pi-file" style="font-size:0.8rem;color:var(--primary);"></i>
           <code style="color:var(--primary);font-weight:600;">{{ r.numeroInterno }}</code>
           <span class="small flex-grow-1">{{ r.asunto }}</span>
-          <a [routerLink]="['/correspondencia', r.idCorrespondencia]" class="btn btn-soft-primary btn-xs">
+          <span class="small text-muted" *ngIf="r.fechaDocumento" title="Fecha del documento">{{ r.fechaDocumento | date:'dd/MM/yyyy' }}</span>
+          <a [routerLink]="['/correspondencia', r.idCorrespondencia]" class="btn btn-soft-primary btn-xs" title="Ir al documento">
             <i class="pi pi-external-link" style="font-size:0.7rem;"></i>
           </a>
         </div>

@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
 import { CorrespondenciaService } from '@core/services/correspondencia.service';
 import { AuthService } from '@core/services/auth.service';
 import { UsuarioService } from '@core/services/usuario.service';
@@ -17,7 +18,7 @@ import Swal from 'sweetalert2';
   templateUrl: './correspondencia-detail.component.html',
   styleUrl: './correspondencia-detail.component.css'
 })
-export class CorrespondenciaDetailComponent implements OnInit {
+export class CorrespondenciaDetailComponent implements OnInit, OnDestroy {
   doc?: any;
   adjuntos: any[] = [];
   historial: any[] = [];
@@ -32,6 +33,7 @@ export class CorrespondenciaDetailComponent implements OnInit {
   showRespuestaForm = false;
 
   private user: any;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private route: ActivatedRoute,
@@ -45,25 +47,35 @@ export class CorrespondenciaDetailComponent implements OnInit {
   }
 
   ngOnInit() {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    if (id) {
-      this.svc.marcarLeido(id).subscribe({
-        next: r => this.cargarDocumento(r),
-        error: () => this.svc.obtener(id).subscribe(r => this.cargarDocumento(r))
-      });
-      this.svc.getTiposDocumento().subscribe(r => this.tiposDocumento = r);
-      this.usuarioSvc.listar().subscribe(r => this.usuarios = r.filter(u => u.rolCodigo !== 'ADMIN'));
-      this.thSvc.getPuestos().subscribe(r => this.puestos = r);
-      this.thSvc.getUnidades().subscribe(r => this.unidades = r);
-    }
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      const id = Number(params.get('id'));
+      if (id) this.cargarDocumento(id);
+    });
+    this.svc.getTiposDocumento().subscribe(r => this.tiposDocumento = r);
+    this.usuarioSvc.listar().subscribe(r => this.usuarios = r.filter(u => u.rolCodigo !== 'ADMIN'));
+    this.thSvc.getPuestos().subscribe(r => this.puestos = r);
+    this.thSvc.getUnidades().subscribe(r => this.unidades = r);
   }
 
-  private cargarDocumento(r: any) {
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private cargarDocumento(id: number) {
+    this.svc.marcarLeido(id).subscribe({
+      next: r => this.aplicarDTO(r),
+      error: () => this.svc.obtener(id).subscribe(r => this.aplicarDTO(r))
+    });
+  }
+
+  private aplicarDTO(r: any) {
     this.doc = r;
     this.adjuntos = r.adjuntos || [];
     this.historial = r.historial || [];
     this.respuestas = r.respuestas || [];
     this.tickets = r.ticketsVinculados || [];
+    this.cerrarPreview();
   }
 
   estadoBadge(estado: string): string {
