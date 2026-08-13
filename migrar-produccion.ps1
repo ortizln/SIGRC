@@ -229,6 +229,7 @@ Write-Step 'Correcciones y fixes'
 $scriptsFix = @(
     'fix-auditoria-columns.sql',
     'fix-auditoria-checks.sql',
+    'fix-auditoria-anchos.sql',
     'fix-generar-numero-ticket.sql',
     'fix-numero-interno-por-usuario.sql',
     'arreglar-fk-responsables.sql'
