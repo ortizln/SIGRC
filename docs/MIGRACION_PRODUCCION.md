@@ -70,6 +70,29 @@ backend con `spring.jpa.hibernate.ddl-auto: update` (configuración por defecto)
   `pg_dump --schema-only`), o escribir el DDL equivalente. *No hay script TH
   completo en el repo; la opción A es la vía soportada.*
 
+### 2.1 Despliegue Docker (Opción A en contenedores)
+
+El backend de producción corre en Docker (`docker/docker-compose.yml`, perfil
+`prod`, BD en `192.168.1.43`). Para crear el esquema TH con la opción A:
+
+```bash
+# 1) Llevar el código nuevo al servidor donde se construyen las imágenes
+#    (git pull o copiar sigrc-backend/).
+
+# 2) Construir y levantar la imagen backend (desde la carpeta del compose)
+cd docker
+docker compose build backend
+docker compose up -d backend
+
+# 3) Verificar el arranque y la creación de tablas
+docker logs -f sigrc-backend
+#    Buscar: "Started SigrcApplication" y ausencia de errores de BD
+```
+
+> El contenedor apunta a la BD por variables de entorno del `.env` del servidor
+> (`DATABASE_HOST/PORT/NAME`, `DATABASE_USER`, `DB_PASSWORD`). `ddl-auto: update`
+> solo **crea/actualiza** tablas; no toca ni borra datos existentes.
+
 Verificar que las tablas existen tras el arranque:
 
 ```sql
@@ -95,8 +118,19 @@ WHERE table_schema='sigrc' AND table_name='usuarios' AND column_name='empleado_i
 
 ## 3. Orden de ejecución de los scripts
 
-Todos los scripts están en la raíz del repositorio. Ejecutar en este orden.
-Cada comando usa `--set ON_ERROR_STOP=1` para abortar ante error.
+> **Forma automatizada (recomendada):** usar `migrar-produccion.ps1` (o
+> `migrar-produccion.bat` para doble clic) que ejecuta todos los pasos de este
+> capítulo en orden, con respaldo previo, detección de errores y verificación
+> final. Solo requiere la contraseña de PostgreSQL:
+>
+> ```powershell
+> .\migrar-produccion.ps1          # prod por defecto (192.168.1.43), pide password
+> .\migrar-produccion.ps1 -Restore # restaura el último respaldo de .\backups
+> ```
+
+Los pasos manuales quedan a continuación por si se prefiere ejecutar cada script
+individualmente. Todos los scripts están en la raíz del repositorio. Ejecutar en
+este orden. Cada comando usa `--set ON_ERROR_STOP=1` para abortar ante error.
 
 ```bash
 cd <ruta_del_repositorio>
@@ -297,9 +331,10 @@ pg_restore -h <host_prod> -U postgres -d sigrc --clean --if-exists \
 
 ## 7. Resumen ejecutivo (checklist)
 
-- [ ] Respaldo `pg_dump` verificado y guardado fuera del servidor.
-- [ ] Backend nuevo desplegado y arrancado (esquema TH creado por Hibernate).
-- [ ] `migracion-usuarios-empleados.sql` ejecutado sin errores.
+- [ ] Respaldo `pg_dump` verificado y guardado fuera del servidor (lo genera el `.ps1` en `.\backups`).
+- [ ] Backend nuevo desplegado y arrancado (esquema TH creado por Hibernate) — ver §2.1 (Docker) si aplica.
+- [ ] Verificado que existen las tablas TH (`empleado`, `puesto`, `unidad_organizacional`, `asignacion_puesto`, `nivel_organizacional`).
+- [ ] `migracion-usuarios-empleados.sql` ejecutado sin errores (paso 3.1 / del `.ps1`).
 - [ ] Scripts TH (§3.2) ejecutados.
 - [ ] Scripts de correspondencia (§3.3) ejecutados (respetando la advertencia de `migracion-responsables-sumilla.sql`).
 - [ ] Fixes (§3.4) ejecutados.
