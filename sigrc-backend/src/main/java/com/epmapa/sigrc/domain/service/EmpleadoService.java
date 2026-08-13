@@ -51,8 +51,9 @@ public class EmpleadoService {
 
     @Transactional(readOnly = true)
     public Empleado obtenerConExpediente(Integer id) {
-        return empleadoRepository.findById(id)
+        var empleado = empleadoRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Empleado no encontrado: " + id));
+        return (Empleado) Hibernate.unproxy(empleado);
     }
 
     /**

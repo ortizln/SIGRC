@@ -50,6 +50,7 @@ public class PuestoService {
     public Puesto obtenerConPerfil(Integer id) {
         var puesto = puestoRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Puesto no encontrado: " + id));
+        puesto = (Puesto) Hibernate.unproxy(puesto);
         Hibernate.initialize(puesto.getFunciones());
         Hibernate.initialize(puesto.getFormaciones());
         Hibernate.initialize(puesto.getExperiencias());
