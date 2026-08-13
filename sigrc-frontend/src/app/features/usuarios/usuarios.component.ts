@@ -5,6 +5,7 @@ import { UsuarioService } from '@core/services/usuario.service';
 import { RolService } from '@core/services/rol.service';
 import { CatalogoService } from '@core/services/catalogo.service';
 import { AuthService } from '@core/services/auth.service';
+import { TalentoHumanoService } from '@core/services/talento-humano.service';
 import { Usuario } from '@shared/models/usuario.model';
 
 const MODULOS = [
@@ -19,6 +20,7 @@ const MODULOS = [
   { clave: 'CATALOGOS', nombre: 'Catálogos' },
   { clave: 'REPORTES', nombre: 'Reportes' },
   { clave: 'CONOCIMIENTO', nombre: 'Base Conocimiento' },
+  { clave: 'TALENTO_HUMANO', nombre: 'Talento Humano' },
 ];
 
 @Component({
@@ -51,10 +53,18 @@ export class UsuariosComponent implements OnInit {
   // Para perfil no-admin
   currentUser: Usuario | null = null;
 
+  // Vinculación Usuario <-> Empleado
+  vinculoVisible = false;
+  vinculoUsuario: Usuario | null = null;
+  empleados: any[] = [];
+  idEmpleadoSeleccionado: number | null = null;
+  cargandoVinculo = false;
+
   constructor(
     private usuarioService: UsuarioService,
     private rolService: RolService,
     private catalogoService: CatalogoService,
+    private talentoHumanoService: TalentoHumanoService,
     public auth: AuthService
   ) {
     this.esAdmin = this.auth.hasRole('ADMIN');
@@ -242,5 +252,46 @@ export class UsuariosComponent implements OnInit {
   eliminar(u: Usuario) {
     if (!confirm(`¿Desactivar al usuario ${u.username}?`)) return;
     this.usuarioService.eliminar(u.idUsuario).subscribe(() => this.cargar());
+  }
+
+  abrirVinculacion(u: Usuario) {
+    this.vinculoUsuario = u;
+    this.idEmpleadoSeleccionado = u.idEmpleado ?? null;
+    this.vinculoVisible = true;
+    this.talentoHumanoService.getEmpleados().subscribe({
+      next: (emps) => {
+        this.empleados = emps;
+        if (this.idEmpleadoSeleccionado) {
+          const actual = emps.find(e => e.idEmpleado === this.idEmpleadoSeleccionado);
+          if (!actual) {
+            this.empleados = [...emps, {
+              idEmpleado: this.idEmpleadoSeleccionado,
+              nombreCompleto: u.empleadoNombre || 'Empleado vinculado',
+            }];
+          }
+        }
+      },
+      error: () => { this.empleados = []; }
+    });
+  }
+
+  guardarVinculacion() {
+    if (!this.vinculoUsuario) return;
+    this.cargandoVinculo = true;
+    this.usuarioService.vincularEmpleado(this.vinculoUsuario.idUsuario, this.idEmpleadoSeleccionado)
+      .subscribe({
+        next: (usuarioActualizado) => {
+          this.cargandoVinculo = false;
+          this.vinculoVisible = false;
+          this.vinculoUsuario = null;
+          this.cargar();
+        },
+        error: () => { this.cargandoVinculo = false; }
+      });
+  }
+
+  desvincular(u: Usuario) {
+    if (!confirm(`¿Desvincular el empleado de "${u.username}"?`)) return;
+    this.usuarioService.vincularEmpleado(u.idUsuario, null).subscribe(() => this.cargar());
   }
 }

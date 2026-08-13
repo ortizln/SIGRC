@@ -16,6 +16,14 @@
   font-style: italic;
 }
 
+.firma-institucional {
+  display: block;
+  margin-left: 1.1rem;
+  color: var(--primary);
+  font-weight: 600;
+  opacity: 0.85;
+}
+
 .timeline {
   position: relative;
   padding-left: 1.5rem;

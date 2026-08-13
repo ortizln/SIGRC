@@ -1,0 +1,100 @@
+<div class="container-fluid px-0" style="max-width:1400px;">
+  <div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+      <h2>Distributivo de Personal</h2>
+      <p>Reporte del personal por unidad, puesto y estado laboral</p>
+    </div>
+    <div class="d-flex gap-1">
+      <button class="btn btn-outline-secondary btn-sm" (click)="exportarCSV()" [disabled]="filas.length === 0" title="Exportar CSV">
+        <i class="pi pi-file" style="font-size:0.8rem;"></i> CSV
+      </button>
+      <button class="btn btn-outline-secondary btn-sm" (click)="exportar('excel')" [disabled]="filas.length === 0" title="Exportar Excel">
+        <i class="pi pi-file-excel" style="font-size:0.8rem;"></i> Excel
+      </button>
+      <button class="btn btn-primary btn-sm" (click)="exportar('pdf')" [disabled]="filas.length === 0">
+        <i class="pi pi-file-pdf" style="font-size:0.8rem;"></i> PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="card-modern p-3 mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small mb-1">Unidad</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filtros.idUnidad" (change)="cargar()">
+          <option value="">Todas</option>
+          <option *ngFor="let u of unidades" [value]="u.idUnidad">{{ u.nombre }}</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small mb-1">Puesto</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filtros.idPuesto" (change)="cargar()">
+          <option value="">Todos</option>
+          <option *ngFor="let p of puestos" [value]="p.idPuesto">{{ p.nombre }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1">Estado</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filtros.estado" (change)="cargar()">
+          <option value="">Todos</option>
+          <option value="ACTIVO">Activo</option>
+          <option value="VACACIONES">Vacaciones</option>
+          <option value="LICENCIA">Licencia</option>
+          <option value="JUBILADO">Jubilado</option>
+          <option value="RENUNCIA">Renuncia</option>
+          <option value="INACTIVO">Inactivo</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1">Tipo personal</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filtros.tipoPersonal" (change)="cargar()">
+          <option value="">Todos</option>
+          <option value="EMPLEADO">Empleado</option>
+          <option value="FUNCIONARIO">Funcionario</option>
+          <option value="SERVICIO_PROFESIONAL">Servicio Profesional</option>
+          <option value="CONTRATO">Contrato</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex gap-1">
+        <button class="btn btn-primary btn-sm flex-grow-1" (click)="cargar()" [disabled]="cargando">
+          <i class="pi pi-refresh" style="font-size:0.7rem;"></i> Consultar
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" (click)="limpiar()" title="Limpiar">
+          <i class="pi pi-times" style="font-size:0.7rem;"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-modern p-0">
+    <div class="table-responsive">
+      <table class="table-modern">
+        <thead>
+          <tr>
+            <th>Identificación</th>
+            <th>Funcionario</th>
+            <th>Unidad</th>
+            <th>Puesto</th>
+            <th>Grupo ocup.</th>
+            <th>Relación</th>
+            <th>Ingreso</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of filas">
+            <td class="small">{{ f.identificacion }}</td>
+            <td class="fw-medium">{{ f.funcionario }}</td>
+            <td class="small">{{ f.unidad || '—' }}</td>
+            <td class="small">{{ f.puesto || '—' }}</td>
+            <td class="small">{{ f.grupoOcupacional || '—' }}</td>
+            <td class="small">{{ f.tipoRelacion || '—' }}</td>
+            <td class="small">{{ f.fechaIngreso || '—' }}</td>
+            <td><span class="badge-unidad" [class]="estadoBadge(f.estadoLaboral)">{{ f.estadoLaboral || '—' }}</span></td>
+          </tr>
+          <tr *ngIf="filas.length === 0"><td colspan="8" class="empty-state"><h5>{{ cargando ? 'Cargando...' : 'Sin registros para los filtros seleccionados' }}</h5></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

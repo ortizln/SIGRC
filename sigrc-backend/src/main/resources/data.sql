@@ -130,6 +130,56 @@ SELECT * FROM (VALUES
 WHERE NOT EXISTS (SELECT 1 FROM areas);
 
 -- ============================================================
+-- Talento Humano - Estructura organizacional
+-- ============================================================
+
+INSERT INTO nivel_organizacional (codigo, nombre, descripcion, orden, activo, creado_en)
+SELECT * FROM (VALUES
+    ('DIRECTIVO','Directivo','Nivel de dirección y gerencia', 1, true, CURRENT_TIMESTAMP),
+    ('ASESOR','Asesor','Nivel de asesoría', 2, true, CURRENT_TIMESTAMP),
+    ('OPERATIVO','Operativo','Nivel operativo', 3, true, CURRENT_TIMESTAMP),
+    ('APOYO','Apoyo','Nivel de apoyo', 4, true, CURRENT_TIMESTAMP)
+) AS v
+WHERE NOT EXISTS (SELECT 1 FROM nivel_organizacional);
+
+INSERT INTO unidad_organizacional (codigo, nombre, tipo_unidad, nivel_organizacional_id, orden, activo, fecha_creacion)
+SELECT * FROM (VALUES
+    ('GER','Gerencia General','GERENCIA', 1, 1, true, CURRENT_TIMESTAMP),
+    ('AJ','Asesoría Jurídica','ASESORIA', 2, 2, true, CURRENT_TIMESTAMP),
+    ('SG','Secretaría General','SECRETARIA', 2, 3, true, CURRENT_TIMESTAMP),
+    ('DA','Dirección Administrativa','DIRECCION', 1, 4, true, CURRENT_TIMESTAMP),
+    ('TH','Jefatura de Talento Humano','JEFATURA', 3, 5, true, CURRENT_TIMESTAMP),
+    ('CP','Compras Públicas','UNIDAD', 3, 6, true, CURRENT_TIMESTAMP),
+    ('SGSL','Servicios Generales y Logística','UNIDAD', 3, 7, true, CURRENT_TIMESTAMP),
+    ('TIC','Unidad de TIC','UNIDAD', 3, 8, true, CURRENT_TIMESTAMP),
+    ('DF','Dirección Financiera','DIRECCION', 1, 9, true, CURRENT_TIMESTAMP),
+    ('DC','Dirección Comercial','DIRECCION', 1, 10, true, CURRENT_TIMESTAMP),
+    ('DGT','Dirección de Gestión Técnica','DIRECCION', 1, 11, true, CURRENT_TIMESTAMP)
+) AS v
+WHERE NOT EXISTS (SELECT 1 FROM unidad_organizacional);
+
+INSERT INTO puesto (codigo, nombre, unidad_organizacional_id, rol_funcional, eje, grupo_ocupacional,
+                    objetivo, nivel_instruccion, experiencia_meses, es_jefatura, es_responsable_unidad,
+                    numero_plazas, activo, vigente_desde, version, creado_en)
+SELECT * FROM (VALUES
+    ('GER-GG-001','Gerente General', 1, 'DIRECCIÓN INSTITUCIONAL', 'DIRECTIVO', 'SP1',
+     'Dirigir y administrar la empresa pública', 'Cuarto nivel', 60, true, true, 1, true, CURRENT_DATE, 1, CURRENT_TIMESTAMP),
+    ('DA-DAD-001','Director Administrativo', 4, 'EJECUCIÓN DE PROCESOS', 'PROCESO', 'SP2',
+     'Administrar los recursos administrativos de la institución', 'Tercer nivel', 48, true, true, 1, true, CURRENT_DATE, 1, CURRENT_TIMESTAMP),
+    ('TH-JTH-001','Jefe de Talento Humano', 5, 'EJECUCIÓN DE PROCESOS', 'PROCESO', 'SP3',
+     'Gestionar el talento humano de la institución', 'Tercer nivel', 36, true, true, 1, true, CURRENT_DATE, 1, CURRENT_TIMESTAMP),
+    ('TH-TTH-001','Técnico de Talento Humano', 5, 'EJECUCIÓN DE PROCESOS', 'PROCESO', 'SP5',
+     'Apoyar la gestión de talento humano', 'Tercer nivel', 24, false, false, 2, true, CURRENT_DATE, 1, CURRENT_TIMESTAMP),
+    ('TIC-JTIC-001','Jefe de Unidad de TIC', 8, 'EJECUCIÓN DE PROCESOS', 'PROCESO', 'SP3',
+     'Gestionar la infraestructura tecnológica institucional', 'Tercer nivel', 36, true, true, 1, true, CURRENT_DATE, 1, CURRENT_TIMESTAMP),
+    ('TIC-TDP-001','Técnico de Desarrollo y Programación', 8, 'EJECUCIÓN DE PROCESOS', 'PROCESO', 'SP5',
+     'Desarrollar y dar mantenimiento a los sistemas informáticos', 'Tercer nivel', 24, false, false, 2, true, CURRENT_DATE, 1, CURRENT_TIMESTAMP),
+    ('FIN-CONT-001','Contador', 9, 'EJECUCIÓN DE PROCESOS', 'PROCESO', 'SP3',
+     'Registrar las operaciones contables de la institución', 'Tercer nivel', 36, false, false, 1, true, CURRENT_DATE, 1, CURRENT_TIMESTAMP)
+) AS v
+WHERE NOT EXISTS (SELECT 1 FROM puesto);
+
+-- ============================================================
 -- Correspondencia Institucional
 -- ============================================================
 

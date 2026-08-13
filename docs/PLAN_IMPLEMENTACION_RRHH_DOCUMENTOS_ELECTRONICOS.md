@@ -1545,21 +1545,21 @@ y NO el puesto actual de Juan ni el nombre de María.
 
 El módulo se considerará correctamente implementado cuando:
 
-- [ ] usuario y empleado sean entidades independientes;
-- [ ] rol y puesto sean conceptos independientes;
-- [ ] exista estructura jerárquica administrable;
-- [ ] el organigrama se genere desde base de datos;
-- [ ] cada puesto tenga perfil institucional;
-- [ ] cada empleado tenga expediente;
-- [ ] exista historial de asignaciones;
-- [ ] se identifique automáticamente al jefe inmediato;
-- [ ] documentos históricos conserven puesto/unidad del momento de emisión;
-- [ ] los documentos puedan dirigirse a unidades o puestos;
-- [ ] existan movimientos y acciones de personal;
-- [ ] exista distributivo;
-- [ ] los expedientes tengan control de acceso;
-- [ ] toda operación sensible tenga auditoría;
-- [ ] el Manual de Funciones pueda administrarse/versionarse.
+- [x] usuario y empleado sean entidades independientes;
+- [x] rol y puesto sean conceptos independientes;
+- [x] exista estructura jerárquica administrable;
+- [x] el organigrama se genere desde base de datos;
+- [x] cada puesto tenga perfil institucional;
+- [x] cada empleado tenga expediente;
+- [x] exista historial de asignaciones;
+- [x] se identifique automáticamente al jefe inmediato;
+- [x] documentos históricos conserven puesto/unidad del momento de emisión;
+- [x] los documentos puedan dirigirse a unidades o puestos;
+- [x] existan movimientos y acciones de personal;
+- [x] exista distributivo;
+- [x] los expedientes tengan control de acceso;
+- [x] toda operación sensible tenga auditoría;
+- [x] el Manual de Funciones pueda administrarse/versionarse.
 
 ---
 
@@ -1686,5 +1686,29 @@ ORGANIZACIÓN
             ├── Bandejas
             └── Auditoría
 ```
+
+---
+
+# ESTADO DE IMPLEMENTACIÓN (actualizado)
+
+| Sección | Estado |
+|---------|--------|
+| §1-§19 Modelo organizacional, puestos, empleados, asignaciones, movimientos, ausencias, roles/permisos, jefatura, organigrama | ✅ Implementado (Sprints 1-7) — §19 organigrama interactivo (árbol expandible/colapsable, responsable y puesto, plazas/ocupadas/vacantes, navegación al perfil de la unidad) |
+| §20-21 Manual de funciones digital y control de versiones | ✅ Implementado (`version_manual`, `ManualFuncionesService/Controller`) |
+| §22-23 Integración documental y derivación automática | ✅ Implementado (CorrespondenciaService) |
+| §24 Bandejas por función | ✅ Implementado (`/bandeja-puesto`, `/pendientes`) |
+| §25 Delegaciones | ✅ Implementado (`delegacion_funcion`, resolver en derivación) |
+| §26 Matriz persona-puesto | ✅ Implementado (`/matriz-persona-puesto/{idEmpleado}`) |
+| §27 Distributivo de personal | ✅ Implementado (JSON, CSV en frontend, export Excel/PDF `/distributivo/exportar`) |
+| §28 Dashboard de Talento Humano | ✅ Implementado (`/dashboard`) |
+| §29 Documentos del expediente | ✅ Implementado (`empleado_documento` con `confidencial`, `nivel_acceso` y repositorio de archivos: subir/descargar con hash SHA-256) |
+| §30 Seguridad de información | ✅ Implementado (autorización en backend para expediente; auto-consulta con documentos confidenciales ocultos; 403 para no autorizados) |
+| §31 Auditoría | ✅ Implementado (`AuditoriaEventos`; eventos obligatorios registrados, incluido `DESCARGAR_DOCUMENTO_CONFIDENCIAL`) |
+| §32-§34 Documentación (modelo, API, frontend) | ✅ `docs/API.md` actualizado |
+| §35 Migración usuarios → empleados | ✅ Implementado como `MigracionTHService` + `POST /talento-humano/migracion/usuarios` (Fases 1-5: vincula empleado, crea asignación desde `area+cargo`, reutiliza unidades/puestos por nombre; idempotente, auditable y con modo `dryRun`). Pendiente: ejecución contra la BD productiva con respaldo previo |
+| §37 Pruebas obligatorias | ✅ Implementado — 48 pruebas unitarias (JUnit 5 + Mockito) en `sigrc-backend/src/test`: estructura/ciclos/organigrama, puestos/perfil, empleados (duplicados, desvinculación), asignaciones (traslado conserva historial, jefatura automática), autorización de expediente §30, matriz persona-puesto, organigrama con plazas/vacantes y migración §35 (idempotencia, dry-run sin persistir, reutilización de unidad/puesto) |
+
+Pendientes fuera de alcance: ninguna funcional del plan. (`documentoId` de `empleado_documento` sigue siendo una referencia entera al repositorio documental general; el repositorio del expediente usa archivos físicos bajo `app.upload.path`.)
+
 
 Esta arquitectura permitirá que el sistema documental refleje la estructura institucional real y pueda evolucionar posteriormente hacia módulos adicionales de Talento Humano sin volver a rediseñar el núcleo de usuarios.

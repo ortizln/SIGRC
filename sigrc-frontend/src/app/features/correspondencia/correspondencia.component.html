@@ -28,6 +28,23 @@
       </a>
     </div>
 
+    <!-- Bandejas por función -->
+    <div class="d-flex flex-wrap gap-1 mt-2">
+      <button class="btn btn-sm bandeja-btn" [class.btn-primary]="bandeja === 'mis'" [class.btn-outline-secondary]="bandeja !== 'mis'" (click)="seleccionarBandeja('mis')" title="Mis documentos">
+        <i class="pi pi-inbox" style="font-size:0.75rem;"></i> Mis documentos
+      </button>
+      <button class="btn btn-sm bandeja-btn" [class.btn-primary]="bandeja === 'puesto'" [class.btn-outline-secondary]="bandeja !== 'puesto'" (click)="seleccionarBandeja('puesto')" title="Documentos del puesto que ocupo">
+        <i class="pi pi-briefcase" style="font-size:0.75rem;"></i> Mi puesto
+      </button>
+      <button class="btn btn-sm bandeja-btn" [class.btn-primary]="bandeja === 'unidad'" [class.btn-outline-secondary]="bandeja !== 'unidad'" (click)="seleccionarBandeja('unidad')" title="Documentos de mi unidad organizacional">
+        <i class="pi pi-building" style="font-size:0.75rem;"></i> Mi unidad
+      </button>
+      <button class="btn btn-sm bandeja-btn" [class.btn-primary]="bandeja === 'pendientes'" [class.btn-outline-secondary]="bandeja !== 'pendientes'" (click)="seleccionarBandeja('pendientes')" title="Documentos abiertos en los que participo">
+        <i class="pi pi-clock" style="font-size:0.75rem;"></i> Pendientes
+      </button>
+      <span *ngIf="cargandoBandeja" class="align-self-center small text-muted ms-1"><i class="pi pi-spin pi-spinner"></i> Cargando...</span>
+    </div>
+
     <!-- Panel expandible de filtros -->
     <div class="row g-2 mt-3 animate-fade-in" *ngIf="filtrosExpandidos">
       <div class="col-md-3">

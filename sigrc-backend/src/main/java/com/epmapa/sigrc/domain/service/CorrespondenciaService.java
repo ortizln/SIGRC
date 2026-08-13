@@ -44,6 +44,10 @@ public class CorrespondenciaService {
     private final AuditoriaService auditoriaService;
     private final TicketService ticketService;
     private final NotificacionWebSocketService notificacionService;
+    private final AsignacionPuestoRepository asignacionPuestoRepository;
+    private final UnidadOrganizacionalRepository unidadOrganizacionalRepository;
+    private final AsignacionPuestoService asignacionPuestoService;
+    private final DelegacionFuncionService delegacionService;
 
     @Value("${app.upload.path:/data/sigrc/uploads}")
     private String uploadPath;
@@ -61,7 +65,11 @@ public class CorrespondenciaService {
                                   UsuarioPermisoRepository usuarioPermisoRepository,
                                   AuditoriaService auditoriaService,
                                   TicketService ticketService,
-                                  NotificacionWebSocketService notificacionService) {
+                                  NotificacionWebSocketService notificacionService,
+                                  AsignacionPuestoRepository asignacionPuestoRepository,
+                                  UnidadOrganizacionalRepository unidadOrganizacionalRepository,
+                                  AsignacionPuestoService asignacionPuestoService,
+                                  DelegacionFuncionService delegacionService) {
         this.repository = repository;
         this.tipoDocRepository = tipoDocRepository;
         this.adjuntoRepository = adjuntoRepository;
@@ -76,6 +84,10 @@ public class CorrespondenciaService {
         this.auditoriaService = auditoriaService;
         this.ticketService = ticketService;
         this.notificacionService = notificacionService;
+        this.asignacionPuestoRepository = asignacionPuestoRepository;
+        this.unidadOrganizacionalRepository = unidadOrganizacionalRepository;
+        this.asignacionPuestoService = asignacionPuestoService;
+        this.delegacionService = delegacionService;
     }
 
     @Transactional
@@ -91,18 +103,22 @@ public class CorrespondenciaService {
         if (request.responsables() != null && !request.responsables().isEmpty()) {
             for (var r : request.responsables()) {
                 Usuario u = usuarioRepository.getReferenceById(r.idUsuario());
-                responsablesAsignados.add(CorrespondenciaResponsable.builder()
+                var ra = CorrespondenciaResponsable.builder()
                     .correspondencia(null)
                     .usuario(u)
                     .sumilla(r.sumilla())
-                    .build());
+                    .build();
+                capturarFirma(ra);
+                responsablesAsignados.add(ra);
             }
         } else if ("SALIDA".equals(sentido)) {
-            responsablesAsignados.add(CorrespondenciaResponsable.builder()
+            var ra = CorrespondenciaResponsable.builder()
                 .correspondencia(null)
                 .usuario(creadoPor)
                 .sumilla("")
-                .build());
+                .build();
+            capturarFirma(ra);
+            responsablesAsignados.add(ra);
         }
 
         String numeroInterno = generarNumeroInterno(creadoPor);
@@ -312,6 +328,7 @@ public class CorrespondenciaService {
                 .usuario(responsable)
                 .sumilla(sumilla != null ? sumilla : "")
                 .build();
+            capturarFirma(ra);
             entity.getResponsablesAsignados().add(ra);
         }
         if ("RECIBIDO".equals(entity.getEstado())) {
@@ -448,11 +465,13 @@ public class CorrespondenciaService {
                                 && idDest.equals(ra.getUsuario().getIdUsuario()));
                 if (!yaAsignado) {
                     Usuario u = usuarioRepository.getReferenceById(idDest);
-                    entity.getResponsablesAsignados().add(CorrespondenciaResponsable.builder()
+                    var ra = CorrespondenciaResponsable.builder()
                             .correspondencia(entity)
                             .usuario(u)
                             .sumilla(sumilla != null ? sumilla : "")
-                            .build());
+                            .build();
+                    capturarFirma(ra);
+                    entity.getResponsablesAsignados().add(ra);
                     idsEtiquetas.add(idDest);
                 }
             }
@@ -473,6 +492,168 @@ public class CorrespondenciaService {
         }
 
         return toDTO(entity);
+    }
+
+    /**
+     * Derivación institucional: resuelve destinos por estructura organizacional
+     * (USUARIO, PUESTO, UNIDAD, RESPONSABLE_UNIDAD, JEFE_INMEDIATO) y los deriva.
+     */
+    @Transactional
+    public CorrespondenciaDTO derivarInstitucional(Integer id, String sumilla,
+                                                   List<DestinoDerivacionDTO> destinos,
+                                                   Integer idUsuario) {
+        Correspondencia entity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
+
+        Set<Integer> idsUsuarios = new LinkedHashSet<>();
+        if (destinos != null) {
+            for (var d : destinos) {
+                resolverDestino(d, idUsuario, idsUsuarios);
+            }
+        }
+        if (idsUsuarios.isEmpty()) {
+            throw new IllegalArgumentException("No se pudo resolver ningún destinatario institucional");
+        }
+        return recepcionarYDerivar(id, sumilla, new ArrayList<>(idsUsuarios), idUsuario);
+    }
+
+    private void resolverDestino(DestinoDerivacionDTO destino, Integer idUsuario, Set<Integer> idsUsuarios) {
+        if (destino == null) return;
+        String tipo = destino.tipo();
+        if (tipo == null) return;
+        switch (tipo) {
+            case "USUARIO" -> {
+                agregarDestinatario(idsUsuarios, destino.idDestino());
+            }
+            case "PUESTO" -> usuarioRepository.findByPuestoVigente(destino.idDestino())
+                    .forEach(u -> agregarDestinatario(idsUsuarios, u.getIdUsuario()));
+            case "UNIDAD" -> usuarioRepository.findByUnidadVigente(destino.idDestino())
+                    .forEach(u -> agregarDestinatario(idsUsuarios, u.getIdUsuario()));
+            case "RESPONSABLE_UNIDAD" -> {
+                var idResp = resolverResponsableUnidad(destino.idDestino());
+                agregarDestinatario(idsUsuarios, idResp);
+            }
+            case "JEFE_INMEDIATO" -> {
+                var idResp = resolverJefeInmediato(idUsuario);
+                agregarDestinatario(idsUsuarios, idResp);
+            }
+            default -> throw new IllegalArgumentException("Tipo de destino no válido: " + tipo);
+        }
+    }
+
+    /**
+     * Añade un destinatario aplicando la delegación de funciones activa:
+     * si el usuario destino tiene una delegación vigente, se resuelve al delegado.
+     */
+    private void agregarDestinatario(Set<Integer> idsUsuarios, Integer idUsuario) {
+        if (idUsuario == null) return;
+        Integer delegado = delegacionService.resolverDelegado(idUsuario);
+        idsUsuarios.add(delegado != null ? delegado : idUsuario);
+    }
+
+    /**
+     * Bandeja por unidad: documentos en los que participa la unidad organizacional
+     * vigente del usuario autenticado (creador, responsable o destinatario).
+     */
+    @Transactional(readOnly = true)
+    public List<CorrespondenciaDTO> bandejaUnidad(Integer idUsuario) {
+        var usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+        if (usuario.getEmpleado() == null) return List.of();
+
+        var asignacionActual = asignacionPuestoRepository
+            .findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
+                usuario.getEmpleado().getIdEmpleado(), "ACTIVA")
+            .orElse(null);
+        if (asignacionActual == null || asignacionActual.getUnidadOrganizacional() == null) {
+            return List.of();
+        }
+        Integer idUnidad = asignacionActual.getUnidadOrganizacional().getIdUnidad();
+
+        // Incluir también las unidades hijas de la unidad del usuario
+        var idsUnidades = unidadOrganizacionalRepository.findByIdWithHijas(idUnidad);
+        var idsUsuarios = new LinkedHashSet<Integer>();
+        for (Integer u : idsUnidades) {
+            usuarioRepository.findByUnidadVigente(u).forEach(x -> idsUsuarios.add(x.getIdUsuario()));
+        }
+        if (idsUsuarios.isEmpty()) return List.of();
+
+        return repository.findByUsuariosParticipanOrderByCreadoEnDesc(new ArrayList<>(idsUsuarios)).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Bandeja por puesto: documentos en los que participan las personas que
+     * ocupan el mismo puesto vigente del usuario autenticado.
+     */
+    @Transactional(readOnly = true)
+    public List<CorrespondenciaDTO> bandejaPuesto(Integer idUsuario) {
+        var usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+        if (usuario.getEmpleado() == null) return List.of();
+
+        var asignacionActual = asignacionPuestoRepository
+            .findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
+                usuario.getEmpleado().getIdEmpleado(), "ACTIVA")
+            .orElse(null);
+        if (asignacionActual == null || asignacionActual.getPuesto() == null) {
+            return List.of();
+        }
+        Integer idPuesto = asignacionActual.getPuesto().getIdPuesto();
+
+        var idsUsuarios = new LinkedHashSet<Integer>();
+        usuarioRepository.findByPuestoVigente(idPuesto).forEach(u -> idsUsuarios.add(u.getIdUsuario()));
+        if (idsUsuarios.isEmpty()) return List.of();
+
+        return repository.findByUsuariosParticipanOrderByCreadoEnDesc(new ArrayList<>(idsUsuarios)).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Bandeja de pendientes: documentos abiertos (no respondidos/archivados)
+     * en los que el usuario participa, ordenados por prioridad y plazo.
+     */
+    @Transactional(readOnly = true)
+    public List<CorrespondenciaDTO> pendientes(Integer idUsuario) {
+        return repository.findPendientesPorUsuario(idUsuario).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    private Integer resolverResponsableUnidad(Integer idUnidad) {
+        if (idUnidad == null) return null;
+        var unidad = unidadOrganizacionalRepository.findById(idUnidad).orElse(null);
+        if (unidad == null) return null;
+
+        // 1) Responsable explícito de la unidad (responsable_asignacion_id)
+        if (unidad.getResponsableAsignacionId() != null) {
+            var asig = asignacionPuestoRepository.findById(unidad.getResponsableAsignacionId()).orElse(null);
+            if (asig != null && asig.getEmpleado() != null) {
+                return usuarioRepository.findByEmpleadoIdEmpleadoAndActivoTrue(asig.getEmpleado().getIdEmpleado())
+                        .map(Usuario::getIdUsuario).orElse(null);
+            }
+        }
+
+        // 2) Empleado con puesto de jefatura en esa unidad
+        return asignacionPuestoRepository
+                .findFirstByUnidadOrganizacionalIdUnidadAndEstadoAndEsPrincipalTrueAndPuestoEsJefaturaTrueOrderByFechaInicioDesc(
+                        idUnidad, "ACTIVA")
+                .filter(a -> a.getEmpleado() != null)
+                .flatMap(a -> usuarioRepository.findByEmpleadoIdEmpleadoAndActivoTrue(a.getEmpleado().getIdEmpleado()))
+                .map(Usuario::getIdUsuario)
+                .orElse(null);
+    }
+
+    private Integer resolverJefeInmediato(Integer idUsuario) {
+        var usuario = usuarioRepository.findById(idUsuario).orElse(null);
+        if (usuario == null || usuario.getEmpleado() == null) return null;
+        var jefe = asignacionPuestoService.jefeInmediato(usuario.getEmpleado().getIdEmpleado());
+        if (jefe == null || jefe.idJefe() == null) return null;
+        return usuarioRepository.findByEmpleadoIdEmpleadoAndActivoTrue(jefe.idJefe())
+                .map(Usuario::getIdUsuario)
+                .orElse(null);
     }
 
     private void notificarDestinatarios(Correspondencia entity) {
@@ -881,6 +1062,24 @@ public class CorrespondenciaService {
         }
     }
 
+    /**
+     * Captura la instantánea institucional del firmante (puesto/unidad/asignación vigente)
+     * en el momento de la sumilla, para conservar historial aunque cambie de puesto.
+     */
+    private void capturarFirma(CorrespondenciaResponsable ra) {
+        if (ra.getUsuario() == null || ra.getUsuario().getEmpleado() == null) return;
+        asignacionPuestoRepository
+            .findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
+                ra.getUsuario().getEmpleado().getIdEmpleado(), "ACTIVA")
+            .ifPresent(asig -> {
+                ra.setAsignacionId(asig.getIdAsignacion());
+                if (asig.getPuesto() != null) ra.setPuestoFirmante(asig.getPuesto().getNombre());
+                if (asig.getUnidadOrganizacional() != null) {
+                    ra.setUnidadFirmante(asig.getUnidadOrganizacional().getNombre());
+                }
+            });
+    }
+
     private void registrarHistorial(Correspondencia entity, String estadoAnterior,
                                      String estadoNuevo, String accion, String detalle, Usuario usuario) {
         CorrespondenciaHistorial h = CorrespondenciaHistorial.builder()
@@ -940,7 +1139,9 @@ public class CorrespondenciaService {
                     .map(ra -> new ResponsableAsignadoDTO(
                         ra.getUsuario().getIdUsuario(),
                         ra.getUsuario().getNombres() + " " + ra.getUsuario().getApellidos(),
-                        ra.getSumilla()))
+                        ra.getSumilla(),
+                        ra.getPuestoFirmante(),
+                        ra.getUnidadFirmante()))
                     .collect(Collectors.toList()),
                 entity.getPrioridad(),
                 entity.getEstado(),

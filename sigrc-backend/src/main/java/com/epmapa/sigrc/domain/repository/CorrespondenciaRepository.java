@@ -120,4 +120,19 @@ public interface CorrespondenciaRepository extends JpaRepository<Correspondencia
 
     @Query("SELECT c FROM Correspondencia c WHERE c.activo = true AND c.generaTicket = true AND (c.creadoPor.idUsuario = :idUsuario OR EXISTS (SELECT 1 FROM c.responsablesAsignados ra WHERE ra.usuario.idUsuario = :idUsuario) OR EXISTS (SELECT 1 FROM c.destinatarios d WHERE d.tipo = 'USUARIO' AND d.idDestinatario = :idUsuario)) ORDER BY c.creadoEn DESC")
     List<Correspondencia> findQueGeneraronTicketPorUsuario(@Param("idUsuario") Integer idUsuario);
+
+    @Query("SELECT DISTINCT c FROM Correspondencia c WHERE c.activo = true AND (" +
+           "c.creadoPor.idUsuario IN :idsUsuarios OR " +
+           "EXISTS (SELECT 1 FROM c.responsablesAsignados ra WHERE ra.usuario.idUsuario IN :idsUsuarios) OR " +
+           "EXISTS (SELECT 1 FROM c.destinatarios d WHERE d.tipo = 'USUARIO' AND d.idDestinatario IN :idsUsuarios)) " +
+           "ORDER BY c.creadoEn DESC")
+    List<Correspondencia> findByUsuariosParticipanOrderByCreadoEnDesc(@Param("idsUsuarios") List<Integer> idsUsuarios);
+
+    @Query("SELECT c FROM Correspondencia c WHERE c.activo = true AND c.estado NOT IN ('RESPONDIDO', 'ARCHIVADO') AND " +
+           "(c.creadoPor.idUsuario = :idUsuario OR " +
+           "EXISTS (SELECT 1 FROM c.responsablesAsignados ra WHERE ra.usuario.idUsuario = :idUsuario) OR " +
+           "EXISTS (SELECT 1 FROM c.destinatarios d WHERE d.tipo = 'USUARIO' AND d.idDestinatario = :idUsuario)) " +
+           "ORDER BY CASE c.prioridad WHEN 'CRITICA' THEN 0 WHEN 'ALTA' THEN 1 WHEN 'MEDIA' THEN 2 ELSE 3 END, " +
+           "c.fechaLimiteRespuesta ASC, c.creadoEn DESC")
+    List<Correspondencia> findPendientesPorUsuario(@Param("idUsuario") Integer idUsuario);
 }

@@ -20,4 +20,8 @@ export interface Usuario {
   debeCambiarPassword: boolean;
   bloqueado: boolean;
   permisos: UsuarioPermiso[];
+  idEmpleado?: number;
+  empleadoNombre?: string;
+  puestoActual?: string;
+  unidadActual?: string;
 }

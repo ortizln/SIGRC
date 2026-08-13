@@ -30,6 +30,8 @@ export class CorrespondenciaListComponent implements OnInit {
   prioridades = PRIORIDADES;
   sentidos = SENTIDOS;
   filtrosExpandidos = false;
+  bandeja: 'mis' | 'puesto' | 'unidad' | 'pendientes' = 'mis';
+  cargandoBandeja = false;
   columnas = [
     { key: 'sentido', label: 'Tipo' },
     { key: 'numero_interno', label: 'N° Interno' },
@@ -99,13 +101,43 @@ export class CorrespondenciaListComponent implements OnInit {
     return this.filtros.sortDir === 'asc' ? 'pi pi-sort-up' : 'pi pi-sort-down';
   }
 
-  buscar() { this.filtros.pagina = 0; this.cargar(); }
+  buscar() {
+    if (this.bandeja !== 'mis') this.bandeja = 'mis';
+    this.filtros.pagina = 0;
+    this.cargar();
+  }
 
   irPagina(p: number) { this.filtros.pagina = p; this.cargar(); }
 
   cambiarTamanio() {
     this.filtros.pagina = 0;
     this.cargar();
+  }
+
+  seleccionarBandeja(b: 'mis' | 'puesto' | 'unidad' | 'pendientes') {
+    if (this.bandeja === b) return;
+    this.bandeja = b;
+    if (b === 'mis') {
+      this.filtros.pagina = 0;
+      this.cargar();
+      return;
+    }
+    this.cargandoBandeja = true;
+    const obs = b === 'unidad' ? this.svc.bandejaUnidad()
+      : b === 'puesto' ? this.svc.bandejaPuesto()
+      : this.svc.pendientes();
+    obs.subscribe({
+      next: r => {
+        this.documentos = r;
+        this.cargandoBandeja = false;
+        this.pagina = { pagina: 0, totalPaginas: 1, totalElementos: r.length, primera: true, ultima: true };
+        this.construirGrupos();
+      },
+      error: () => {
+        this.cargandoBandeja = false;
+        this.bandeja = 'mis';
+      }
+    });
   }
 
   get paginasVisibles(): number[] {

@@ -36,6 +36,56 @@
         <span *ngIf="!collapsed">Versiones</span>
       </a>
 
+      <div class="nav-section-title" *ngIf="!collapsed">Talento Humano</div>
+      <a routerLink="/talento-humano/mi-expediente" routerLinkActive="active" class="nav-item" *ngIf="usuario?.idEmpleado">
+        <i class="pi pi-id-card sidebar-icon"></i>
+        <span *ngIf="!collapsed">Mi expediente</span>
+      </a>
+      <a routerLink="/talento-humano/estructura" routerLinkActive="active" class="nav-item" *ngIf="canModulo('TALENTO_HUMANO', 'LECTURA')">
+        <i class="pi pi-sitemap sidebar-icon"></i>
+        <span *ngIf="!collapsed">Estructura</span>
+      </a>
+      <a routerLink="/talento-humano/puestos" routerLinkActive="active" class="nav-item" *ngIf="canModulo('TALENTO_HUMANO', 'LECTURA')">
+        <i class="pi pi-briefcase sidebar-icon"></i>
+        <span *ngIf="!collapsed">Puestos</span>
+      </a>
+      <a routerLink="/talento-humano/empleados" routerLinkActive="active" class="nav-item" *ngIf="canModulo('TALENTO_HUMANO', 'LECTURA')">
+        <i class="pi pi-id-card sidebar-icon"></i>
+        <span *ngIf="!collapsed">Empleados</span>
+      </a>
+      <a routerLink="/talento-humano/asignaciones" routerLinkActive="active" class="nav-item" *ngIf="canModulo('TALENTO_HUMANO', 'LECTURA')">
+        <i class="pi pi-user-check sidebar-icon"></i>
+        <span *ngIf="!collapsed">Asignaciones</span>
+      </a>
+      <a routerLink="/talento-humano/movimientos" routerLinkActive="active" class="nav-item" *ngIf="canModulo('TALENTO_HUMANO', 'LECTURA')">
+        <i class="pi pi-replay sidebar-icon"></i>
+        <span *ngIf="!collapsed">Movimientos</span>
+      </a>
+      <a routerLink="/talento-humano/acciones-personal" routerLinkActive="active" class="nav-item" *ngIf="canModulo('TALENTO_HUMANO', 'LECTURA')">
+        <i class="pi pi-file-edit sidebar-icon"></i>
+        <span *ngIf="!collapsed">Acciones de Personal</span>
+      </a>
+      <a routerLink="/talento-humano/vacaciones-permisos" routerLinkActive="active" class="nav-item" *ngIf="canModulo('TALENTO_HUMANO', 'LECTURA')">
+        <i class="pi pi-calendar sidebar-icon"></i>
+        <span *ngIf="!collapsed">Vacaciones y Permisos</span>
+      </a>
+      <a routerLink="/talento-humano/distributivo" routerLinkActive="active" class="nav-item" *ngIf="canModulo('TALENTO_HUMANO', 'LECTURA')">
+        <i class="pi pi-table sidebar-icon"></i>
+        <span *ngIf="!collapsed">Distributivo</span>
+      </a>
+      <a routerLink="/talento-humano/dashboard" routerLinkActive="active" class="nav-item" *ngIf="canModulo('TALENTO_HUMANO', 'LECTURA')">
+        <i class="pi pi-chart-bar sidebar-icon"></i>
+        <span *ngIf="!collapsed">Dashboard TH</span>
+      </a>
+      <a routerLink="/talento-humano/manual-funciones" routerLinkActive="active" class="nav-item" *ngIf="canModulo('TALENTO_HUMANO', 'LECTURA')">
+        <i class="pi pi-book sidebar-icon"></i>
+        <span *ngIf="!collapsed">Manual de Funciones</span>
+      </a>
+      <a routerLink="/talento-humano/delegaciones" routerLinkActive="active" class="nav-item" *ngIf="canModulo('TALENTO_HUMANO', 'LECTURA')">
+        <i class="pi pi-share-alt sidebar-icon"></i>
+        <span *ngIf="!collapsed">Delegaciones</span>
+      </a>
+
       <div class="nav-section-title" *ngIf="!collapsed">Administración</div>
       <a routerLink="/auditoria" routerLinkActive="active" class="nav-item" *ngIf="canModulo('AUDITORIA', 'LECTURA')">
         <i class="pi pi-clipboard sidebar-icon"></i>

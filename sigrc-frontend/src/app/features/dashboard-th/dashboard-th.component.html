@@ -1,0 +1,170 @@
+<div class="container-fluid px-0" style="max-width:1400px;">
+  <div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+      <h2>Talento Humano — Reportes</h2>
+      <p>Indicadores del personal y matriz persona-puesto</p>
+    </div>
+    <div class="btn-group btn-group-sm" role="group">
+      <button class="btn" [class.btn-primary]="tab === 'dashboard'" [class.btn-outline-secondary]="tab !== 'dashboard'" (click)="cambiarTab('dashboard')">
+        Dashboard
+      </button>
+      <button class="btn" [class.btn-primary]="tab === 'matriz'" [class.btn-outline-secondary]="tab !== 'matriz'" (click)="cambiarTab('matriz')">
+        Matriz Persona-Puesto
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="tab === 'dashboard'">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(74,124,89,0.12);color:var(--primary);"><i class="pi pi-users"></i></div>
+        <div class="kpi-body"><div class="kpi-value">{{ data?.totalEmpleados || 0 }}</div><div class="kpi-label">Total Empleados</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(34,197,94,0.12);color:var(--success);"><i class="pi pi-check-circle"></i></div>
+        <div class="kpi-body"><div class="kpi-value">{{ data?.activos || 0 }}</div><div class="kpi-label">Activos</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(239,68,68,0.12);color:var(--danger);"><i class="pi pi-user-minus"></i></div>
+        <div class="kpi-body"><div class="kpi-value">{{ data?.desvinculados || 0 }}</div><div class="kpi-label">Desvinculados</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(59,130,246,0.12);color:var(--info);"><i class="pi pi-briefcase"></i></div>
+        <div class="kpi-body"><div class="kpi-value">{{ data?.puestosOcupados || 0 }}</div><div class="kpi-label">Puestos Ocupados</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(245,158,11,0.12);color:var(--warning);"><i class="pi pi-exclamation-triangle"></i></div>
+        <div class="kpi-body"><div class="kpi-value">{{ data?.puestosVacantes || 0 }}</div><div class="kpi-label">Puestos Vacantes</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(168,85,247,0.12);color:#9333ea;"><i class="pi pi-sun"></i></div>
+        <div class="kpi-body"><div class="kpi-value">{{ data?.personalVacaciones || 0 }}</div><div class="kpi-label">En Vacaciones</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(14,165,233,0.12);color:#0ea5e9;"><i class="pi pi-calendar-times"></i></div>
+        <div class="kpi-body"><div class="kpi-value">{{ data?.personalLicencia || 0 }}</div><div class="kpi-label">En Licencia</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(34,197,94,0.12);color:var(--success);"><i class="pi pi-book"></i></div>
+        <div class="kpi-body"><div class="kpi-value">{{ data?.capacitacionesRegistradas || 0 }}</div><div class="kpi-label">Capacitaciones</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(91,164,164,0.12);color:var(--secondary);"><i class="pi pi-sync"></i></div>
+        <div class="kpi-body"><div class="kpi-value">{{ data?.movimientosDelMes || 0 }}</div><div class="kpi-label">Movimientos del Mes</div></div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+      <div class="col-lg-6">
+        <div class="card-modern p-3 h-100">
+          <h6 class="card-title-modern"><i class="pi pi-building" style="font-size:0.9rem;"></i> Personal por Unidad</h6>
+          <div class="bar-list">
+            <div class="bar-row" *ngFor="let g of data?.porUnidad || []">
+              <span class="bar-label">{{ g.label }}</span>
+              <div class="bar-track"><div class="bar-fill" [style.width.%]="pct(g.cantidad, totalGrupo(data?.porUnidad))"></div></div>
+              <span class="bar-value">{{ g.cantidad }}</span>
+            </div>
+            <div *ngIf="!(data?.porUnidad?.length)" class="small text-muted">Sin datos</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card-modern p-3 h-100">
+          <h6 class="card-title-modern"><i class="pi pi-briefcase" style="font-size:0.9rem;"></i> Personal por Puesto</h6>
+          <div class="bar-list">
+            <div class="bar-row" *ngFor="let g of data?.porPuesto || []">
+              <span class="bar-label">{{ g.label }}</span>
+              <div class="bar-track"><div class="bar-fill" [style.width.%]="pct(g.cantidad, totalGrupo(data?.porPuesto))"></div></div>
+              <span class="bar-value">{{ g.cantidad }}</span>
+            </div>
+            <div *ngIf="!(data?.porPuesto?.length)" class="small text-muted">Sin datos</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card-modern p-3 h-100">
+          <h6 class="card-title-modern"><i class="pi pi-tags" style="font-size:0.9rem;"></i> Grupo Ocupacional</h6>
+          <div class="bar-list">
+            <div class="bar-row" *ngFor="let g of data?.porGrupoOcupacional || []">
+              <span class="bar-label">{{ g.label }}</span>
+              <div class="bar-track"><div class="bar-fill" [style.width.%]="pct(g.cantidad, totalGrupo(data?.porGrupoOcupacional))"></div></div>
+              <span class="bar-value">{{ g.cantidad }}</span>
+            </div>
+            <div *ngIf="!(data?.porGrupoOcupacional?.length)" class="small text-muted">Sin datos</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card-modern p-3 h-100">
+          <h6 class="card-title-modern"><i class="pi pi-user" style="font-size:0.9rem;"></i> Tipo de Personal</h6>
+          <div class="bar-list">
+            <div class="bar-row" *ngFor="let g of data?.porTipoPersonal || []">
+              <span class="bar-label">{{ g.label }}</span>
+              <div class="bar-track"><div class="bar-fill" [style.width.%]="pct(g.cantidad, totalGrupo(data?.porTipoPersonal))"></div></div>
+              <span class="bar-value">{{ g.cantidad }}</span>
+            </div>
+            <div *ngIf="!(data?.porTipoPersonal?.length)" class="small text-muted">Sin datos</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="cargando" class="mt-3 text-center small text-muted">Cargando... <i class="pi pi-spin pi-spinner"></i></div>
+  </ng-container>
+
+  <ng-container *ngIf="tab === 'matriz'">
+    <div class="card-modern p-3 mb-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-6 col-lg-4">
+          <label class="form-label small mb-1">Empleado</label>
+          <select class="form-select form-select-sm" [(ngModel)]="idEmpleado">
+            <option [ngValue]="null">Seleccione un empleado</option>
+            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.identificacion }} — {{ e.nombreCompleto }}</option>
+          </select>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <button class="btn btn-primary btn-sm" (click)="consultarMatriz()" [disabled]="!idEmpleado || cargandoMatriz">
+            <i class="pi pi-search" style="font-size:0.7rem;"></i> Evaluar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="cargandoMatriz" class="text-center text-muted py-4">Evaluando criterios... <i class="pi pi-spin pi-spinner"></i></div>
+
+    <div *ngIf="matriz" class="card-modern p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h6 class="mb-0">{{ matriz.funcionario }}</h6>
+          <div class="small text-muted">{{ matriz.puesto || 'Sin puesto' }}<span *ngIf="matriz.unidad"> · {{ matriz.unidad }}</span><span *ngIf="matriz.grupoOcupacional"> · {{ matriz.grupoOcupacional }}</span></div>
+        </div>
+        <div class="text-end small">
+          <span class="pill pill-ok">{{ matriz.cumplidos || 0 }} cumplidos</span>
+          <span class="pill pill-parcial">{{ matriz.parciales || 0 }} parciales</span>
+          <span class="pill pill-no">{{ matriz.noCumplidos || 0 }} no cumplidos</span>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table-modern">
+          <thead>
+            <tr><th>Criterio</th><th>Requerido</th><th>Encontrado</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of matriz.criterios">
+              <td class="fw-medium">{{ c.criterio }}</td>
+              <td class="small">{{ c.requerido }}</td>
+              <td class="small">{{ c.encontrado }}</td>
+              <td>
+                <span class="matriz-chip" [class]="'chip-' + matrizEstado(c.estado)">
+                  {{ c.estado === 'CUMPLE' ? 'Cumple' : c.estado === 'PARCIAL' ? 'Parcial' : 'No cumple' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-2 small text-muted">
+        <i class="pi pi-info-circle" style="font-size:0.75rem;"></i> La matriz es referencial para gestión y control; no bloquea procesos de nombramiento.
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -5,9 +5,11 @@ import com.epmapa.sigrc.domain.dto.UsuarioActualizarRequest;
 import com.epmapa.sigrc.domain.dto.UsuarioCrearRequest;
 import com.epmapa.sigrc.domain.dto.UsuarioDTO;
 import com.epmapa.sigrc.domain.dto.UsuarioPermisoDTO;
+import com.epmapa.sigrc.domain.entity.Empleado;
 import com.epmapa.sigrc.domain.entity.Usuario;
 import com.epmapa.sigrc.domain.entity.UsuarioPermiso;
 import com.epmapa.sigrc.domain.repository.AreaRepository;
+import com.epmapa.sigrc.domain.repository.EmpleadoRepository;
 import com.epmapa.sigrc.domain.repository.RolRepository;
 import com.epmapa.sigrc.domain.repository.UsuarioPermisoRepository;
 import com.epmapa.sigrc.domain.repository.UsuarioRepository;
@@ -27,20 +29,26 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
     private final AreaRepository areaRepository;
+    private final EmpleadoRepository empleadoRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
     private final UsuarioPermisoRepository usuarioPermisoRepository;
+    private final AuditoriaEventos auditoriaEventos;
 
     public UsuarioService(UsuarioRepository usuarioRepository, RolRepository rolRepository,
-                           AreaRepository areaRepository, PasswordEncoder passwordEncoder,
+                           AreaRepository areaRepository, EmpleadoRepository empleadoRepository,
+                           PasswordEncoder passwordEncoder,
                            AuthService authService,
-                           UsuarioPermisoRepository usuarioPermisoRepository) {
+                           UsuarioPermisoRepository usuarioPermisoRepository,
+                           AuditoriaEventos auditoriaEventos) {
         this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
         this.areaRepository = areaRepository;
+        this.empleadoRepository = empleadoRepository;
         this.passwordEncoder = passwordEncoder;
         this.authService = authService;
         this.usuarioPermisoRepository = usuarioPermisoRepository;
+        this.auditoriaEventos = auditoriaEventos;
     }
 
     @Transactional(readOnly = true)
@@ -127,9 +135,14 @@ public class UsuarioService {
         if (isAdmin) {
             if (request.cargo() != null) usuario.setCargo(request.cargo());
             if (request.rolCodigo() != null) {
+                String rolAnterior = usuario.getRol() != null ? usuario.getRol().getCodigo() : null;
                 var rol = rolRepository.findByCodigo(request.rolCodigo())
                     .orElseThrow(() -> new EntityNotFoundException("Rol no encontrado: " + request.rolCodigo()));
                 usuario.setRol(rol);
+                if (!request.rolCodigo().equals(rolAnterior)) {
+                    auditoriaEventos.registrar("CAMBIAR_ROL", "MODIFICACION", "usuario", id,
+                        rolAnterior, request.rolCodigo(), "OK");
+                }
             }
         }
 
@@ -143,6 +156,8 @@ public class UsuarioService {
                     .tipoAcceso(p.tipoAcceso())
                     .build());
             }
+            auditoriaEventos.registrar("CAMBIAR_PERMISO", "MODIFICACION", "usuario_permiso", id,
+                null, request.permisos().stream().map(p -> p.modulo() + ":" + p.tipoAcceso()).toList(), "OK");
         }
 
         return authService.toUsuarioDTO(usuarioRepository.save(usuario));
@@ -176,6 +191,31 @@ public class UsuarioService {
                 .tipoAcceso(p.tipoAcceso())
                 .build());
         }
+        auditoriaEventos.registrar("CAMBIAR_PERMISO", "MODIFICACION", "usuario_permiso", idUsuario,
+            null, permisos.stream().map(p -> p.modulo() + ":" + p.tipoAcceso()).toList(), "OK");
         return obtenerPermisos(idUsuario);
+    }
+
+    // ---------- Vinculación Usuario <-> Empleado ----------
+
+    @Transactional(readOnly = true)
+    public List<UsuarioDTO> listarActivosSinEmpleado() {
+        return usuarioRepository.findByActivoTrueAndEmpleadoIsNull().stream()
+            .map(authService::toUsuarioDTO)
+            .toList();
+    }
+
+    @Transactional
+    public UsuarioDTO vincularEmpleado(Integer idUsuario, Integer idEmpleado) {
+        var usuario = usuarioRepository.findById(idUsuario)
+            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado: " + idUsuario));
+        if (idEmpleado == null) {
+            usuario.setEmpleado(null);
+        } else {
+            var empleado = empleadoRepository.findById(idEmpleado)
+                .orElseThrow(() -> new EntityNotFoundException("Empleado no encontrado: " + idEmpleado));
+            usuario.setEmpleado(empleado);
+        }
+        return authService.toUsuarioDTO(usuarioRepository.save(usuario));
     }
 }

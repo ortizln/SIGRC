@@ -1,0 +1,424 @@
+<div class="container-fluid px-0" style="max-width:1200px;">
+  <div class="page-header">
+    <h2>Empleados</h2>
+    <p>Expediente único: datos personales, información institucional, puesto actual, historial de asignaciones, formación, experiencia, capacitaciones, documentos, movimientos, acciones de personal y vacaciones/permisos</p>
+  </div>
+
+  <div class="card-modern p-0">
+    <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+      <h6 class="fw-bold mb-0">Empleados</h6>
+      <button class="btn btn-primary btn-sm" (click)="nuevo()" *ngIf="isAdmin">+ Nuevo Empleado</button>
+    </div>
+
+    <div class="p-3 border-bottom" *ngIf="formVisible">
+      <form autocomplete="off" (ngSubmit)="guardar()" #empForm="ngForm">
+        <h6 class="fw-bold mb-2">Datos personales</h6>
+        <div class="row g-2">
+          <div class="col-md-3">
+            <select autocomplete="off" [(ngModel)]="form.tipoIdentificacion" name="tipoIdentificacion" class="form-select form-select-sm">
+              <option value="CEDULA">Cédula</option>
+              <option value="RUC">RUC</option>
+              <option value="PASAPORTE">Pasaporte</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <input autocomplete="off" #idModel="ngModel" [(ngModel)]="form.identificacion" name="identificacion" required class="form-control form-control-sm" [class.is-invalid]="idModel.invalid && idModel.touched" placeholder="Nº identificación">
+            <div class="validation-feedback" *ngIf="idModel.invalid && idModel.touched">La identificación es obligatoria</div>
+          </div>
+          <div class="col-md-3">
+            <input autocomplete="off" #nomModel="ngModel" [(ngModel)]="form.nombres" name="nombres" required class="form-control form-control-sm" [class.is-invalid]="nomModel.invalid && nomModel.touched" placeholder="Nombres">
+            <div class="validation-feedback" *ngIf="nomModel.invalid && nomModel.touched">Los nombres son obligatorios</div>
+          </div>
+          <div class="col-md-3">
+            <input autocomplete="off" #apeModel="ngModel" [(ngModel)]="form.apellidos" name="apellidos" required class="form-control form-control-sm" [class.is-invalid]="apeModel.invalid && apeModel.touched" placeholder="Apellidos">
+            <div class="validation-feedback" *ngIf="apeModel.invalid && apeModel.touched">Los apellidos son obligatorios</div>
+          </div>
+          <div class="col-md-3">
+            <input autocomplete="off" [(ngModel)]="form.fechaNacimiento" name="fechaNacimiento" type="date" class="form-control form-control-sm">
+          </div>
+          <div class="col-md-2">
+            <select autocomplete="off" [(ngModel)]="form.sexo" name="sexo" class="form-select form-select-sm">
+              <option value="M">Masculino</option>
+              <option value="F">Femenino</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <select autocomplete="off" [(ngModel)]="form.estadoCivil" name="estadoCivil" class="form-select form-select-sm">
+              <option value="">— Estado civil —</option>
+              <option value="SOLTERO">Soltero</option>
+              <option value="CASADO">Casado</option>
+              <option value="DIVORCIADO">Divorciado</option>
+              <option value="VIUDO">Viudo</option>
+              <option value="UNION_LIBRE">Unión libre</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <input autocomplete="off" [(ngModel)]="form.correoPersonal" name="correoPersonal" class="form-control form-control-sm" placeholder="Correo personal">
+          </div>
+          <div class="col-md-4">
+            <input autocomplete="off" [(ngModel)]="form.correoInstitucional" name="correoInstitucional" class="form-control form-control-sm" placeholder="Correo institucional">
+          </div>
+          <div class="col-md-2">
+            <input autocomplete="off" [(ngModel)]="form.telefono" name="telefono" class="form-control form-control-sm" placeholder="Teléfono">
+          </div>
+          <div class="col-md-2">
+            <input autocomplete="off" [(ngModel)]="form.celular" name="celular" class="form-control form-control-sm" placeholder="Celular">
+          </div>
+          <div class="col-md-12">
+            <input autocomplete="off" [(ngModel)]="form.direccion" name="direccion" class="form-control form-control-sm" placeholder="Dirección">
+          </div>
+        </div>
+
+        <hr>
+        <h6 class="fw-bold mb-2">Información institucional</h6>
+        <div class="row g-2">
+          <div class="col-md-3">
+            <select autocomplete="off" [(ngModel)]="form.tipoPersonal" name="tipoPersonal" class="form-select form-select-sm">
+              <option value="SERVIDOR_PUBLICO">Servidor público</option>
+              <option value="TRABAJADOR">Trabajador</option>
+              <option value="CONTRATO">Contrato</option>
+              <option value="NOMBRAMIENTO">Nombramiento</option>
+              <option value="OCASIONAL">Ocasional</option>
+              <option value="CODIGO_TRABAJO">Código de trabajo</option>
+              <option value="OTRO">Otro</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <select autocomplete="off" [(ngModel)]="form.estadoLaboral" name="estadoLaboral" class="form-select form-select-sm">
+              <option value="ACTIVO">Activo</option>
+              <option value="VACACIONES">Vacaciones</option>
+              <option value="LICENCIA">Licencia</option>
+              <option value="COMISION">Comisión</option>
+              <option value="SUSPENDIDO">Suspendido</option>
+              <option value="DESVINCULADO">Desvinculado</option>
+              <option value="JUBILADO">Jubilado</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <input autocomplete="off" [(ngModel)]="form.fechaIngresoInstitucion" name="fechaIngreso" type="date" class="form-control form-control-sm">
+          </div>
+          <div class="col-md-3">
+            <input autocomplete="off" [(ngModel)]="form.fechaSalidaInstitucion" name="fechaSalida" type="date" class="form-control form-control-sm">
+          </div>
+          <div class="col-12">
+            <textarea autocomplete="off" [(ngModel)]="form.observaciones" name="observaciones" class="form-control form-control-sm" rows="2" placeholder="Observaciones"></textarea>
+          </div>
+        </div>
+
+        <hr>
+        <h6 class="fw-bold mb-2">Formación académica</h6>
+        <div class="perfil-row" *ngFor="let f of form.formaciones; let idx = index">
+          <select autocomplete="off" [(ngModel)]="f.nivel" name="forNivel{{idx}}" class="form-select form-select-sm perfil-sel">
+            <option value="">— Nivel —</option>
+            <option value="BACHILLERATO">Bachillerato</option>
+            <option value="TECNICO">Técnico</option>
+            <option value="TECNOLOGO">Tecnólogo</option>
+            <option value="TERCER_NIVEL">Tercer nivel</option>
+            <option value="CUARTO_NIVEL">Cuarto nivel</option>
+          </select>
+          <input autocomplete="off" [(ngModel)]="f.titulo" name="forTitulo{{idx}}" class="form-control form-control-sm" placeholder="Título">
+          <input autocomplete="off" [(ngModel)]="f.institucion" name="forInst{{idx}}" class="form-control form-control-sm" placeholder="Institución">
+          <input autocomplete="off" [(ngModel)]="f.registroSenescyt" name="forReg{{idx}}" class="form-control form-control-sm perfil-meses" placeholder="Registro Senescyt">
+          <label class="d-flex align-items-center gap-1 small perfil-check"><input type="checkbox" [(ngModel)]="f.verificado" name="forVer{{idx}}"> Verif.</label>
+          <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('formaciones', idx)">✕</button>
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm mt-1" (click)="agregar('formaciones')">+ Formación</button>
+
+        <hr>
+        <h6 class="fw-bold mb-2">Experiencia laboral</h6>
+        <div class="perfil-row" *ngFor="let e of form.experiencias; let idx = index">
+          <input autocomplete="off" [(ngModel)]="e.institucion" name="expInst{{idx}}" class="form-control form-control-sm" placeholder="Institución">
+          <input autocomplete="off" [(ngModel)]="e.cargo" name="expCargo{{idx}}" class="form-control form-control-sm" placeholder="Cargo">
+          <input autocomplete="off" [(ngModel)]="e.descripcion" name="expDesc{{idx}}" class="form-control form-control-sm" placeholder="Descripción">
+          <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('experiencias', idx)">✕</button>
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm mt-1" (click)="agregar('experiencias')">+ Experiencia</button>
+
+        <hr>
+        <h6 class="fw-bold mb-2">Capacitaciones</h6>
+        <div class="perfil-row" *ngFor="let c of form.capacitaciones; let idx = index">
+          <input autocomplete="off" [(ngModel)]="c.nombre" name="capNom{{idx}}" class="form-control form-control-sm" placeholder="Nombre">
+          <input autocomplete="off" [(ngModel)]="c.institucion" name="capInst{{idx}}" class="form-control form-control-sm" placeholder="Institución">
+          <input autocomplete="off" [(ngModel)]="c.horas" name="capHoras{{idx}}" type="number" min="0" class="form-control form-control-sm perfil-meses" placeholder="Horas">
+          <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('capacitaciones', idx)">✕</button>
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm mt-1" (click)="agregar('capacitaciones')">+ Capacitación</button>
+
+        <hr>
+        <h6 class="fw-bold mb-2">Documentos del expediente</h6>
+        <div class="perfil-row" *ngFor="let d of form.documentos; let idx = index">
+          <select autocomplete="off" [(ngModel)]="d.tipo" name="docTipo{{idx}}" class="form-select form-select-sm perfil-sel">
+            <option *ngFor="let t of ['IDENTIFICACION','CONTRATO','NOMBRAMIENTO','ACCION_PERSONAL','TITULO','CERTIFICADO','CAPACITACION','EXPERIENCIA','EVALUACION','VACACION','PERMISO','LICENCIA','INFORME','DESVINCULACION','OTRO']" [value]="t">{{ t.replace('_',' ') }}</option>
+          </select>
+          <input autocomplete="off" [(ngModel)]="d.descripcion" name="docDesc{{idx}}" class="form-control form-control-sm" placeholder="Descripción">
+          <select autocomplete="off" [(ngModel)]="d.nivelAcceso" name="docNivel{{idx}}" class="form-select form-select-sm perfil-sel"
+                  [ngClass]="{ 'text-danger fw-semibold': d.nivelAcceso === 'CONFIDENCIAL_RRHH' || d.nivelAcceso === 'RESTRINGIDO' }">
+            <option *ngFor="let n of nivelesAcceso" [value]="n.valor">{{ n.etiqueta }}</option>
+          </select>
+          <label class="d-flex align-items-center gap-1 small perfil-check"><input type="checkbox" [(ngModel)]="d.confidencial" name="docConf{{idx}}"> Confidencial</label>
+          <span class="d-inline-flex gap-1 align-items-center">
+            <label class="btn btn-outline-secondary btn-sm mb-0" [class.disabled]="!editandoId || !d.idEmpleadoDocumento">
+              <i class="pi pi-paperclip" style="font-size:0.7rem;"></i> Adjuntar<input type="file" class="d-none" (change)="subirArchivo(d, $event.target)" [disabled]="!editandoId || !d.idEmpleadoDocumento">
+            </label>
+            <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!d.nombreArchivo"
+                    title="Descargar {{ d.nombreArchivo || 'sin archivo' }} ({{ tamanoLegible(d.tamanoBytes) }})"
+                    (click)="descargarArchivo(d)">
+              <i class="pi pi-download" style="font-size:0.7rem;"></i>
+            </button>
+            <span *ngIf="d.nombreArchivo" class="small text-muted d-inline-block" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              {{ d.nombreArchivo }} {{ tamanoLegible(d.tamanoBytes) }}
+            </span>
+          </span>
+          <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('documentos', idx)">✕</button>
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm mt-1" (click)="agregar('documentos')">+ Documento</button>
+
+        <div class="col-12 d-flex gap-1 mt-3">
+          <button type="submit" class="btn btn-primary btn-sm" [disabled]="cargando || empForm.invalid">
+            <i class="pi pi-save" style="font-size:0.7rem;"></i> {{ editando ? 'Actualizar' : 'Guardar' }}
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelar()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="p-3 border-bottom" *ngIf="ver">
+      <div class="card-modern p-4 mb-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <div class="avatar-emp">{{ (expediente.nombreCompleto || 'E').charAt(0) }}</div>
+          <div class="flex-grow-1">
+            <h4 class="mb-1">{{ expediente.nombreCompleto }}</h4>
+            <div class="text-muted small">
+              {{ expediente.identificacion }}<span *ngIf="expediente.tipoPersonal"> · {{ expediente.tipoPersonal.replace('_',' ') }}</span>
+              <span class="ms-2 badge" [class.badge-inactivo]="expediente.estadoLaboral !== 'ACTIVO'">{{ (expediente.estadoLaboral || '—').replace('_',' ') }}</span>
+            </div>
+          </div>
+          <div class="d-flex gap-1">
+            <button class="btn btn-outline-secondary btn-sm" (click)="cerrarExpediente()"><i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver</button>
+            <button class="btn btn-primary btn-sm" (click)="editarDesdeExpediente()" *ngIf="isAdmin"><i class="pi pi-pencil" style="font-size:0.7rem;"></i> Editar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-lg-6">
+          <div class="card-modern p-3 h-100">
+            <h6 class="fw-bold mb-2"><i class="pi pi-user me-2"></i>Datos personales</h6>
+            <ul class="exp-lista">
+              <li><span>Cédula / identificación</span><strong>{{ expediente.tipoIdentificacion || '' }} {{ expediente.identificacion }}</strong></li>
+              <li><span>Fecha de nacimiento</span><strong>{{ expediente.fechaNacimiento || '—' }}</strong></li>
+              <li><span>Sexo</span><strong>{{ expediente.sexo || '—' }}</strong></li>
+              <li><span>Estado civil</span><strong>{{ expediente.estadoCivil || '—' }}</strong></li>
+              <li><span>Teléfono / celular</span><strong>{{ (expediente.telefono || '') + (expediente.telefono && expediente.celular ? ' / ' : '') + (expediente.celular || '') || '—' }}</strong></li>
+              <li><span>Correo institucional</span><strong>{{ expediente.correoInstitucional || '—' }}</strong></li>
+              <li><span>Correo personal</span><strong>{{ expediente.correoPersonal || '—' }}</strong></li>
+              <li><span>Dirección</span><strong>{{ expediente.direccion || '—' }}</strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card-modern p-3 h-100">
+            <h6 class="fw-bold mb-2"><i class="pi pi-building me-2"></i>Información institucional</h6>
+            <ul class="exp-lista">
+              <li><span>Puesto actual</span><strong>{{ asignacionActual?.puestoNombre || '—' }}</strong></li>
+              <li><span>Unidad</span><strong>{{ asignacionActual?.unidadNombre || '—' }}</strong></li>
+              <li><span>Tipo de asignación</span><strong>{{ (asignacionActual?.tipoAsignacion || '—').replace('_',' ') }}</strong></li>
+              <li><span>Desde</span><strong>{{ asignacionActual?.fechaInicio || '—' }}</strong></li>
+              <li><span>Jefe inmediato</span><strong>{{ jefe?.nombreJefe || '—' }}<span *ngIf="jefe?.puestoNombre" class="d-block small text-muted">{{ jefe.puestoNombre }}</span></strong></li>
+              <li><span>Tipo de personal</span><strong>{{ (expediente.tipoPersonal || '—').replace('_',' ') }}</strong></li>
+              <li><span>Ingreso institucional</span><strong>{{ expediente.fechaIngresoInstitucion || '—' }}</strong></li>
+              <li><span>Salida institucional</span><strong>{{ expediente.fechaSalidaInstitucion || '—' }}</strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="card-modern p-0">
+            <div class="p-3 border-bottom"><h6 class="fw-bold mb-0">Historial de asignaciones (puestos)</h6></div>
+            <div class="table-responsive">
+              <table class="table-modern">
+                <thead><tr><th>Puesto</th><th>Unidad</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Estado</th><th>Observación</th></tr></thead>
+                <tbody>
+                  <tr *ngFor="let a of asignaciones">
+                    <td class="fw-medium">{{ a.puestoNombre || '—' }} <span *ngIf="a.puestoCodigo" class="small text-muted">({{ a.puestoCodigo }})</span></td>
+                    <td class="small">{{ a.unidadNombre || '—' }}</td>
+                    <td class="small">{{ (a.tipoAsignacion || '—').replace('_',' ') }}</td>
+                    <td class="small">{{ a.fechaInicio || '—' }}</td>
+                    <td class="small">{{ a.fechaFin || 'Vigente' }}</td>
+                    <td><span [class]="badgeEstado(a.estado)">{{ (a.estado || '—').replace('_',' ') }}</span></td>
+                    <td class="small text-muted">{{ a.observacion || '—' }}</td>
+                  </tr>
+                  <tr *ngIf="asignaciones.length === 0"><td colspan="7" class="empty-state"><h5>Sin asignaciones registradas</h5></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card-modern p-3 h-100">
+            <h6 class="fw-bold mb-2"><i class="pi pi-graduation-cap me-2"></i>Formación académica</h6>
+            <div *ngIf="tieneDatos(expediente.formaciones)">
+              <div class="mb-2" *ngFor="let f of expediente.formaciones">
+                <div class="fw-medium">{{ f.titulo || 'Título' }}</div>
+                <div class="small text-muted">
+                  {{ f.nivel || '' }}<span *ngIf="f.nivel && f.institucion"> · </span>{{ f.institucion || '' }}
+                  <span *ngIf="f.registroSenescyt"> · Reg. {{ f.registroSenescyt }}</span>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="!tieneDatos(expediente.formaciones)" class="text-muted small">Sin formación registrada.</div>
+
+            <hr class="my-3">
+
+            <h6 class="fw-bold mb-2"><i class="pi pi-briefcase me-2"></i>Experiencia laboral</h6>
+            <div *ngIf="tieneDatos(expediente.experiencias)">
+              <div class="mb-2" *ngFor="let x of expediente.experiencias">
+                <div class="fw-medium">{{ x.cargo || 'Cargo' }}</div>
+                <div class="small text-muted">{{ x.institucion || '' }}<span *ngIf="x.fechaInicio || x.fechaFin"> · {{ x.fechaInicio || '' }} – {{ x.fechaFin || '' }}</span></div>
+                <div class="small text-muted" *ngIf="x.descripcion">{{ x.descripcion }}</div>
+              </div>
+            </div>
+            <div *ngIf="!tieneDatos(expediente.experiencias)" class="text-muted small">Sin experiencia registrada.</div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card-modern p-3 h-100">
+            <h6 class="fw-bold mb-2"><i class="pi pi-book me-2"></i>Capacitaciones</h6>
+            <div *ngIf="tieneDatos(expediente.capacitaciones)">
+              <div class="mb-2" *ngFor="let c of expediente.capacitaciones">
+                <div class="fw-medium">{{ c.nombre }}</div>
+                <div class="small text-muted">{{ c.institucion || '' }}<span *ngIf="c.horas"> · {{ c.horas }} h</span></div>
+              </div>
+            </div>
+            <div *ngIf="!tieneDatos(expediente.capacitaciones)" class="text-muted small">Sin capacitaciones registradas.</div>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="card-modern p-0">
+            <div class="p-3 border-bottom"><h6 class="fw-bold mb-0">Documentos del expediente</h6></div>
+            <div class="table-responsive">
+              <table class="table-modern">
+                <thead><tr><th>Tipo</th><th>Descripción</th><th>Fecha</th><th>Acceso</th><th>Archivo</th><th></th></tr></thead>
+                <tbody>
+                  <tr *ngFor="let d of expediente.documentos">
+                    <td>{{ (d.tipo || 'OTRO').replace('_',' ') }}</td>
+                    <td>{{ d.descripcion || '—' }}</td>
+                    <td class="small">{{ d.fechaDocumento || '—' }}</td>
+                    <td class="small" [class.text-danger]="d.confidencial">{{ d.confidencial ? 'Confidencial' : (d.nivelAcceso || 'Público').replace('_',' ') }}</td>
+                    <td class="small text-muted">{{ d.nombreArchivo || '—' }}</td>
+                    <td>
+                      <button class="btn btn-outline-secondary btn-sm" [disabled]="!d.nombreArchivo" (click)="descargarArchivo(d)">
+                        <i class="pi pi-download" style="font-size:0.7rem;"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr *ngIf="!tieneDatos(expediente.documentos)"><td colspan="6" class="empty-state"><h5>Sin documentos</h5></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card-modern p-0 h-100">
+            <div class="p-3 border-bottom"><h6 class="fw-bold mb-0">Movimientos de personal</h6></div>
+            <div class="table-responsive">
+              <table class="table-modern">
+                <thead><tr><th>Tipo</th><th>Destino</th><th>Fechas</th><th>Estado</th></tr></thead>
+                <tbody>
+                  <tr *ngFor="let m of movimientos">
+                    <td class="fw-medium">{{ (m.tipoMovimiento || '—').replace('_',' ') }}</td>
+                    <td class="small">{{ m.puestoDestinoNombre || '—' }}</td>
+                    <td class="small">{{ m.fechaDesde || '—' }}<span *ngIf="m.fechaHasta"> → {{ m.fechaHasta }}</span></td>
+                    <td><span [class]="badgeEstado(m.estado)">{{ (m.estado || '—').replace('_',' ') }}</span></td>
+                  </tr>
+                  <tr *ngIf="movimientos.length === 0"><td colspan="4" class="empty-state"><h5>Sin movimientos</h5></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card-modern p-0 h-100">
+            <div class="p-3 border-bottom"><h6 class="fw-bold mb-0">Acciones de personal</h6></div>
+            <div class="table-responsive">
+              <table class="table-modern">
+                <thead><tr><th>Nº</th><th>Tipo</th><th>Vigencia desde</th><th>Estado</th></tr></thead>
+                <tbody>
+                  <tr *ngFor="let a of acciones">
+                    <td class="small"><code>{{ a.numero }}</code></td>
+                    <td class="fw-medium">{{ (a.tipo || '—').replace('_',' ') }}</td>
+                    <td class="small">{{ a.fechaVigenciaDesde || '—' }}</td>
+                    <td><span [class]="badgeEstado(a.estado)">{{ (a.estado || '—').replace('_',' ') }}</span></td>
+                  </tr>
+                  <tr *ngIf="acciones.length === 0"><td colspan="4" class="empty-state"><h5>Sin acciones de personal</h5></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="card-modern p-0">
+            <div class="p-3 border-bottom"><h6 class="fw-bold mb-0">Vacaciones, permisos y licencias</h6></div>
+            <div class="table-responsive">
+              <table class="table-modern">
+                <thead><tr><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días / horas</th><th>Motivo</th><th>Estado</th></tr></thead>
+                <tbody>
+                  <tr *ngFor="let s of ausencias">
+                    <td class="fw-medium">{{ (s.tipo || '—').replace('_',' ') }}</td>
+                    <td class="small">{{ s.fechaDesde }}</td>
+                    <td class="small">{{ s.fechaHasta }}</td>
+                    <td class="small">{{ s.dias ? s.dias + ' días' : (s.horas ? s.horas + ' horas' : '—') }}</td>
+                    <td class="small text-muted">{{ s.motivo || '—' }}</td>
+                    <td><span [class]="badgeEstado(s.estado)">{{ (s.estado || '—').replace('_',' ') }}</span></td>
+                  </tr>
+                  <tr *ngIf="ausencias.length === 0"><td colspan="6" class="empty-state"><h5>Sin solicitudes de ausencia</h5></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table-modern">
+        <thead>
+          <tr>
+            <th>Identificación</th>
+            <th>Funcionario</th>
+            <th>Tipo personal</th>
+            <th>Estado</th>
+            <th>Ingreso</th>
+            <th style="width:60px;" *ngIf="isAdmin">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of empleados">
+            <td><code class="small">{{ e.identificacion }}</code></td>
+            <td class="fw-medium">{{ e.nombreCompleto }}</td>
+            <td class="small">{{ (e.tipoPersonal || '—').replace('_',' ') }}</td>
+            <td><span class="badge-unidad" [class.badge-inactivo]="e.estadoLaboral !== 'ACTIVO'">{{ (e.estadoLaboral || '—').replace('_',' ') }}</span></td>
+            <td class="small">{{ e.fechaIngresoInstitucion || '—' }}</td>
+            <td *ngIf="isAdmin">
+              <div class="dropdown-actions">
+                <button class="btn-dots" (click)="toggleMenu(e.idEmpleado)">•••</button>
+                <div class="dropdown-menu-custom" *ngIf="menuAbierto === e.idEmpleado">
+                  <button (click)="editar(e)"><i class="pi pi-pencil"></i> Editar</button>
+                  <button (click)="desactivar(e)"><i class="pi pi-ban"></i> Desactivar</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="empleados.length === 0"><td [attr.colspan]="isAdmin ? 6 : 5" class="empty-state"><h5>Sin empleados</h5></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

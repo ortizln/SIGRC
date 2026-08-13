@@ -32,6 +32,18 @@ export const routes: Routes = [
       { path: 'reportes', loadComponent: () => import('./features/reportes/reportes.component').then(c => c.ReportesComponent) },
       { path: 'app-movil', loadComponent: () => import('./features/app-movil/app-movil.component').then(c => c.AppMovilComponent) },
       { path: 'carrusel', loadComponent: () => import('./features/carrusel/carrusel.component').then(c => c.CarruselComponent) },
+      { path: 'talento-humano/estructura', loadComponent: () => import('./features/estructura/estructura.component').then(c => c.EstructuraComponent), canActivate: [() => roleGuard(['ADMIN'])] },
+      { path: 'talento-humano/puestos', loadComponent: () => import('./features/puestos/puestos.component').then(c => c.PuestosComponent), canActivate: [() => roleGuard(['ADMIN'])] },
+      { path: 'talento-humano/empleados', loadComponent: () => import('./features/empleados/empleados.component').then(c => c.EmpleadosComponent), canActivate: [() => roleGuard(['ADMIN'])] },
+      { path: 'talento-humano/asignaciones', loadComponent: () => import('./features/asignaciones/asignaciones.component').then(c => c.AsignacionesComponent), canActivate: [() => roleGuard(['ADMIN'])] },
+      { path: 'talento-humano/movimientos', loadComponent: () => import('./features/movimientos/movimientos.component').then(c => c.MovimientosComponent), canActivate: [() => roleGuard(['ADMIN'])] },
+      { path: 'talento-humano/acciones-personal', loadComponent: () => import('./features/acciones-personal/acciones-personal.component').then(c => c.AccionesPersonalComponent), canActivate: [() => roleGuard(['ADMIN'])] },
+      { path: 'talento-humano/vacaciones-permisos', loadComponent: () => import('./features/vacaciones-permisos/vacaciones-permisos.component').then(c => c.VacacionesPermisosComponent) },
+      { path: 'talento-humano/distributivo', loadComponent: () => import('./features/distributivo/distributivo.component').then(c => c.DistributivoComponent) },
+      { path: 'talento-humano/dashboard', loadComponent: () => import('./features/dashboard-th/dashboard-th.component').then(c => c.DashboardThComponent) },
+      { path: 'talento-humano/manual-funciones', loadComponent: () => import('./features/manual-funciones/manual-funciones.component').then(c => c.ManualFuncionesComponent) },
+      { path: 'talento-humano/delegaciones', loadComponent: () => import('./features/delegaciones/delegaciones.component').then(c => c.DelegacionesComponent) },
+      { path: 'talento-humano/mi-expediente', loadComponent: () => import('./features/mi-expediente/mi-expediente.component').then(c => c.MiExpedienteComponent) },
     ]
   },
   { path: '**', redirectTo: 'dashboard' }

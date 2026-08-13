@@ -40,6 +40,7 @@
               <th>Rol</th>
               <th>Área</th>
               <th>Cargo</th>
+              <th>Empleado</th>
               <th>Estado</th>
               <th>Acciones</th>
             </tr>
@@ -53,6 +54,13 @@
               <td class="text-muted">{{ u.areaNombre || '—' }}</td>
               <td>{{ u.cargo || '—' }}</td>
               <td>
+                <span *ngIf="u.idEmpleado" class="d-inline-flex flex-column">
+                  <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 align-self-start" style="font-size:0.7rem;font-weight:600;">{{ u.empleadoNombre }}</span>
+                  <small class="text-muted" style="font-size:0.68rem;">{{ u.puestoActual }} · {{ u.unidadActual }}</small>
+                </span>
+                <span *ngIf="!u.idEmpleado" class="text-muted" style="font-size:0.75rem;">Sin vincular</span>
+              </td>
+              <td>
                 <span class="badge rounded-pill" [class]="u.activo ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'" style="font-size:0.7rem;">
                   {{ u.activo ? 'Activo' : 'Inactivo' }}
                 </span>
@@ -60,12 +68,13 @@
               <td>
                 <div class="quick-actions">
                   <button class="btn btn-soft-primary btn-xs" (click)="editar(u)" title="Editar usuario">✎</button>
+                  <button class="btn btn-soft-primary btn-xs" (click)="abrirVinculacion(u)" title="Vincular empleado">👤</button>
                   <button class="btn btn-soft-primary btn-xs text-danger" *ngIf="u.activo" (click)="eliminar(u)" title="Desactivar usuario">✕</button>
                 </div>
               </td>
             </tr>
             <tr *ngIf="usuarios.length === 0">
-              <td colspan="8" class="empty-state">
+              <td colspan="9" class="empty-state">
                 <div class="empty-icon">👥</div>
                 <h5>No hay usuarios registrados</h5>
                 <p>Presione "+ Nuevo Usuario" para crear el primer usuario</p>
@@ -191,6 +200,39 @@
           <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
           {{ cargando ? 'Guardando...' : 'Guardar' }}
         </button>
+      </div>
+    </div>
+
+    <!-- ADMIN: Modal vincular empleado -->
+    <div class="modal fade show d-block" tabindex="-1" *ngIf="vinculoVisible" style="background:rgba(0,0,0,0.45);">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;">
+          <div class="modal-header border-0 pb-0">
+            <h5 class="fw-bold mb-0">Vincular Empleado</h5>
+            <button type="button" class="btn-close" (click)="vinculoVisible = false"></button>
+          </div>
+          <div class="modal-body">
+            <p class="small text-muted">
+              Relacione la cuenta <strong>{{ vinculoUsuario?.username }}</strong>
+              con su expediente en Talento Humano.
+            </p>
+            <div class="mb-3">
+              <label class="form-label">Empleado</label>
+              <select class="form-select" [(ngModel)]="idEmpleadoSeleccionado">
+                <option [ngValue]="null">— Sin empleado —</option>
+                <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }}</option>
+              </select>
+              <div class="form-text">Seleccione "Sin empleado" para desvincular.</div>
+            </div>
+          </div>
+          <div class="modal-footer border-0 pt-0">
+            <button class="btn btn-outline-secondary" (click)="vinculoVisible = false">Cancelar</button>
+            <button class="btn btn-primary" [disabled]="cargandoVinculo" (click)="guardarVinculacion()">
+              <span *ngIf="cargandoVinculo" class="spinner-border spinner-border-sm me-1"></span>
+              Guardar
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </ng-container>

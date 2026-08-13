@@ -77,6 +77,13 @@ export interface ResponsableAsignado {
   idUsuario: number;
   nombre: string;
   sumilla: string;
+  puestoFirmante?: string;
+  unidadFirmante?: string;
+}
+
+export interface DestinoDerivacion {
+  tipo: 'USUARIO' | 'PUESTO' | 'UNIDAD' | 'RESPONSABLE_UNIDAD' | 'JEFE_INMEDIATO';
+  idDestino?: number;
 }
 
 export interface CorrespondenciaReferencia {

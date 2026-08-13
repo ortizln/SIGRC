@@ -133,6 +133,40 @@ public class CorrespondenciaController {
         return ResponseEntity.ok(service.recepcionarYDerivar(id, sumilla, idsDerivados, idUsuario));
     }
 
+    @PostMapping("/{id}/derivar-institucional")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Derivar por destino institucional (USUARIO, PUESTO, UNIDAD, RESPONSABLE_UNIDAD, JEFE_INMEDIATO)")
+    public ResponseEntity<CorrespondenciaDTO> derivarInstitucional(@PathVariable Integer id,
+                                                                     @RequestBody CorrespondenciaDerivarRequest request,
+                                                                     Authentication auth) {
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
+        return ResponseEntity.ok(service.derivarInstitucional(id, request.sumilla(), request.destinos(), idUsuario));
+    }
+
+    @GetMapping("/bandeja-unidad")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Documentos de mi unidad (bandeja por unidad organizacional)")
+    public ResponseEntity<List<CorrespondenciaDTO>> bandejaUnidad(Authentication auth) {
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
+        return ResponseEntity.ok(service.bandejaUnidad(idUsuario));
+    }
+
+    @GetMapping("/bandeja-puesto")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Documentos de mi puesto (bandeja por puesto institucional)")
+    public ResponseEntity<List<CorrespondenciaDTO>> bandejaPuesto(Authentication auth) {
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
+        return ResponseEntity.ok(service.bandejaPuesto(idUsuario));
+    }
+
+    @GetMapping("/pendientes")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Documentos pendientes de atención del usuario")
+    public ResponseEntity<List<CorrespondenciaDTO>> pendientes(Authentication auth) {
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
+        return ResponseEntity.ok(service.pendientes(idUsuario));
+    }
+
     @PostMapping("/{id}/respuesta")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Registrar respuesta al documento")

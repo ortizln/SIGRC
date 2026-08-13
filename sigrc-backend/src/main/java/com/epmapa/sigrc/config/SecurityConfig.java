@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .accessDeniedHandler((req, res, ex) -> res.sendError(HttpServletResponse.SC_FORBIDDEN, "Acceso denegado"))
             )
             .authorizeHttpRequests(a -> a
-                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/auth/login", "/auth/refresh").permitAll()
                 .requestMatchers("/debug/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()

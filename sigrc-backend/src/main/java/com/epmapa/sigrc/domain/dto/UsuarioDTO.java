@@ -18,5 +18,9 @@ public record UsuarioDTO(
     Boolean activo,
     Boolean debeCambiarPassword,
     Boolean bloqueado,
-    List<UsuarioPermisoDTO> permisos
+    List<UsuarioPermisoDTO> permisos,
+    Integer idEmpleado,
+    String empleadoNombre,
+    String puestoActual,
+    String unidadActual
 ) {}

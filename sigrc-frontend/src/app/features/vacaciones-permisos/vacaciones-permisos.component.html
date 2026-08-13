@@ -1,0 +1,131 @@
+<div class="container-fluid px-0" style="max-width:1400px;">
+  <div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+      <h2>Vacaciones, Permisos y Licencias</h2>
+      <p>Flujo: funcionario → jefe inmediato → Talento Humano</p>
+    </div>
+    <button class="btn btn-primary btn-sm" (click)="nuevo()">
+      <i class="pi pi-plus" style="font-size:0.8rem;"></i> Nueva Solicitud
+    </button>
+  </div>
+
+  <div class="card-modern p-3 mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label small mb-1">Empleado</label>
+        <select class="form-select form-select-sm" [(ngModel)]="idEmpleado" (change)="cargar()">
+          <option [ngValue]="null">Todos</option>
+          <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }} ({{ e.identificacion }})</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small mb-1">Estado</label>
+        <select class="form-select form-select-sm" [(ngModel)]="estadoFiltro" (change)="cargar()">
+          <option value="">Todos</option>
+          <option value="PENDIENTE_JEFE">Pendiente Jefe</option>
+          <option value="PENDIENTE_TH">Pendiente Talento Humano</option>
+          <option value="APROBADA">Aprobada</option>
+          <option value="RECHAZADA">Rechazada</option>
+          <option value="ANULADA">Anulada</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-modern p-3 mb-3" *ngIf="formVisible">
+    <form autocomplete="off" (ngSubmit)="guardar()">
+      <h6 class="fw-bold mb-2">Nueva solicitud de ausencia</h6>
+      <div class="row g-2">
+        <div class="col-md-3">
+          <select class="form-select form-select-sm" [(ngModel)]="form.idEmpleado" name="idEmpleado" required *ngIf="!soloMiEmpleado">
+            <option [ngValue]="null">— Empleado —</option>
+            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }}</option>
+          </select>
+          <input *ngIf="soloMiEmpleado" class="form-control form-control-sm" [value]="usuarioLogueado?.empleadoNombre" disabled>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select form-select-sm" [(ngModel)]="form.tipo" name="tipo" required>
+            <option [ngValue]="null">— Tipo —</option>
+            <option *ngFor="let t of tipos" [value]="t.value">{{ t.label }}</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaDesde" name="fechaDesde" required>
+        </div>
+        <div class="col-md-2">
+          <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaHasta" name="fechaHasta" required>
+        </div>
+        <div class="col-md-1">
+          <input type="number" min="1" class="form-control form-control-sm" [(ngModel)]="form.dias" name="dias" placeholder="Días">
+        </div>
+        <div class="col-md-1">
+          <input type="number" min="0" class="form-control form-control-sm" [(ngModel)]="form.horas" name="horas" placeholder="Horas">
+        </div>
+        <div class="col-md-6">
+          <input class="form-control form-control-sm" [(ngModel)]="form.motivo" name="motivo" placeholder="Motivo">
+        </div>
+        <div class="col-md-3">
+          <input type="number" class="form-control form-control-sm" [(ngModel)]="form.documentoRespaldoId" name="documentoRespaldoId" placeholder="Doc. respaldo ID">
+        </div>
+        <div class="col-12 d-flex gap-1">
+          <button type="submit" class="btn btn-primary btn-sm" [disabled]="cargando">
+            <i class="pi pi-save" style="font-size:0.7rem;"></i> {{ cargando ? 'Enviando...' : 'Solicitar' }}
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelar()">Cancelar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="card-modern p-0">
+    <div class="table-responsive">
+      <table class="table-modern">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Empleado</th>
+            <th>Tipo</th>
+            <th>Desde</th>
+            <th>Hasta</th>
+            <th>Días</th>
+            <th>Estado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of solicitudes">
+            <td class="small">{{ s.idSolicitud }}</td>
+            <td class="fw-medium">{{ s.nombreEmpleado }}</td>
+            <td class="small">{{ s.tipo }}</td>
+            <td class="small">{{ s.fechaDesde }}</td>
+            <td class="small">{{ s.fechaHasta }}</td>
+            <td class="small">{{ s.dias ?? '—' }}</td>
+            <td><span class="badge-unidad" [class]="'badge-' + estadoBadge(s.estado)">{{ s.estado }}</span></td>
+            <td class="text-end">
+              <ng-container *ngIf="s.estado === 'PENDIENTE_JEFE'">
+                <button class="btn btn-success btn-xs me-1" (click)="aprobarJefe(s)" title="Aprobar como jefe">
+                  <i class="pi pi-check" style="font-size:0.65rem;"></i>
+                </button>
+                <button class="btn btn-danger btn-xs" (click)="rechazar(s)" title="Rechazar">
+                  <i class="pi pi-times" style="font-size:0.65rem;"></i>
+                </button>
+              </ng-container>
+              <ng-container *ngIf="s.estado === 'PENDIENTE_TH' && isAdmin">
+                <button class="btn btn-success btn-xs me-1" (click)="aprobarTh(s)" title="Aprobar como Talento Humano">
+                  <i class="pi pi-check-circle" style="font-size:0.65rem;"></i>
+                </button>
+                <button class="btn btn-danger btn-xs" (click)="rechazar(s)" title="Rechazar">
+                  <i class="pi pi-times" style="font-size:0.65rem;"></i>
+                </button>
+              </ng-container>
+              <button *ngIf="s.estado === 'PENDIENTE_JEFE' || s.estado === 'PENDIENTE_TH'" class="btn btn-outline-secondary btn-xs ms-1" (click)="anular(s)" title="Anular">
+                <i class="pi pi-ban" style="font-size:0.65rem;"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="solicitudes.length === 0"><td colspan="8" class="empty-state"><h5>Sin solicitudes registradas</h5></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

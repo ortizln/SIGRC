@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -88,5 +89,23 @@ public class UsuarioController {
     public ResponseEntity<List<UsuarioPermisoDTO>> guardarPermisos(@PathVariable Integer id,
                                                                      @RequestBody List<UsuarioPermisoDTO> permisos) {
         return ResponseEntity.ok(usuarioService.guardarPermisos(id, permisos));
+    }
+
+    @GetMapping("/sin-empleado")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Listar usuarios activos sin empleado vinculado")
+    public ResponseEntity<List<UsuarioDTO>> listarSinEmpleado() {
+        return ResponseEntity.ok(usuarioService.listarActivosSinEmpleado());
+    }
+
+    @PutMapping("/{id}/empleado")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Vincular (o desvincular) un empleado a un usuario",
+        description = "Enviar idEmpleado = null para desvincular")
+    public ResponseEntity<UsuarioDTO> vincularEmpleado(@PathVariable Integer id,
+                                                        @RequestBody(required = false) Map<String, Object> body) {
+        Integer idEmpleado = body != null && body.get("idEmpleado") != null
+            ? ((Number) body.get("idEmpleado")).intValue() : null;
+        return ResponseEntity.ok(usuarioService.vincularEmpleado(id, idEmpleado));
     }
 }

@@ -26,6 +26,9 @@ public class Usuario {
     @JoinColumn(name = "id_area")
     private Area area;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "empleado_id")
+    private Empleado empleado;
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
     private String telefono;

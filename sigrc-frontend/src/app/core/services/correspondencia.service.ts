@@ -58,6 +58,22 @@ export class CorrespondenciaService {
     return this.http.post<Correspondencia>(`${this.apiUrl}/${id}/recepcion`, data);
   }
 
+  derivarInstitucional(id: number, sumilla: string | undefined, destinos: any[]): Observable<Correspondencia> {
+    return this.http.post<Correspondencia>(`${this.apiUrl}/${id}/derivar-institucional`, { sumilla: sumilla || '', destinos });
+  }
+
+  bandejaUnidad(): Observable<Correspondencia[]> {
+    return this.http.get<Correspondencia[]>(`${this.apiUrl}/bandeja-unidad`);
+  }
+
+  bandejaPuesto(): Observable<Correspondencia[]> {
+    return this.http.get<Correspondencia[]>(`${this.apiUrl}/bandeja-puesto`);
+  }
+
+  pendientes(): Observable<Correspondencia[]> {
+    return this.http.get<Correspondencia[]>(`${this.apiUrl}/pendientes`);
+  }
+
   listarAdjuntos(id: number): Observable<CorrespondenciaAdjunto[]> {
     return this.http.get<CorrespondenciaAdjunto[]>(`${this.apiUrl}/${id}/adjuntos`);
   }

@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { CorrespondenciaService } from '@core/services/correspondencia.service';
 import { AuthService } from '@core/services/auth.service';
 import { UsuarioService } from '@core/services/usuario.service';
+import { TalentoHumanoService } from '@core/services/talento-humano.service';
 import { ESTADOS_CORRESPONDENCIA } from '@shared/models/correspondencia.model';
 import { SafeUrlPipe } from '@shared/pipes/safe-url.pipe';
 import Swal from 'sweetalert2';
@@ -37,6 +38,7 @@ export class CorrespondenciaDetailComponent implements OnInit {
     private router: Router,
     private svc: CorrespondenciaService,
     private usuarioSvc: UsuarioService,
+    private thSvc: TalentoHumanoService,
     public auth: AuthService
   ) {
     this.user = this.auth.getUsuario();
@@ -51,6 +53,8 @@ export class CorrespondenciaDetailComponent implements OnInit {
       });
       this.svc.getTiposDocumento().subscribe(r => this.tiposDocumento = r);
       this.usuarioSvc.listar().subscribe(r => this.usuarios = r.filter(u => u.rolCodigo !== 'ADMIN'));
+      this.thSvc.getPuestos().subscribe(r => this.puestos = r);
+      this.thSvc.getUnidades().subscribe(r => this.unidades = r);
     }
   }
 
@@ -244,6 +248,41 @@ export class CorrespondenciaDetailComponent implements OnInit {
     this.svc.asignarResponsable(this.doc.idCorrespondencia, idResponsable, this.nuevaSumilla).subscribe(r => {
       this.doc = r;
       this.nuevaSumilla = '';
+    });
+  }
+
+  puestos: any[] = [];
+  unidades: any[] = [];
+  showDerivarInstitucional = false;
+  derivarSumilla = '';
+  derivarTipo = '';
+  derivarIdDestino: number | null = null;
+  derivandoInstitucional = false;
+
+  toggleDerivarInstitucional() {
+    this.showDerivarInstitucional = !this.showDerivarInstitucional;
+  }
+
+  derivarInstitucional() {
+    if (!this.doc || !this.derivarTipo || this.derivandoInstitucional) return;
+    const destinos = [{
+      tipo: this.derivarTipo,
+      idDestino: this.derivarIdDestino
+    }];
+    this.derivandoInstitucional = true;
+    this.svc.derivarInstitucional(this.doc.idCorrespondencia, this.derivarSumilla, destinos).subscribe({
+      next: r => {
+        this.doc = r;
+        this.derivandoInstitucional = false;
+        this.derivarSumilla = '';
+        this.derivarIdDestino = null;
+        this.showDerivarInstitucional = false;
+        Swal.fire('Derivado', 'El documento fue derivado según la estructura institucional.', 'success');
+      },
+      error: () => {
+        this.derivandoInstitucional = false;
+        Swal.fire('Error', 'No se pudo derivar el documento.', 'error');
+      }
     });
   }
 

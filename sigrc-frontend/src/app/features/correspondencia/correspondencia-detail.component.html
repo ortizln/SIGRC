@@ -62,6 +62,9 @@
             <div *ngIf="doc?.responsables?.length; else sinResp">
               <div *ngFor="let r of doc?.responsables" class="mb-1">
                 <strong class="small"><i class="pi pi-user me-1" style="font-size:0.7rem;color:var(--primary);"></i>{{ r.nombre }}</strong>
+                <span *ngIf="r.puestoFirmante || r.unidadFirmante" class="firma-institucional small">
+                  {{ r.puestoFirmante || 'Puesto no disponible' }}{{ r.puestoFirmante && r.unidadFirmante ? ' · ' : '' }}{{ r.unidadFirmante || '' }}
+                </span>
                 <div *ngIf="r.sumilla" class="sumilla-box">
                   <small class="text-muted d-block" style="font-size:0.6rem;text-transform:uppercase;letter-spacing:.03em;">Sumilla</small>
                   <div class="text-muted small">{{ r.sumilla }}</div>
@@ -207,6 +210,48 @@
             <i class="pi pi-tag" style="font-size:0.7rem;"></i> Sumillar y Derivar {{ usuariosSeleccionados.length ? '(' + usuariosSeleccionados.length + ')' : '' }}
           </button>
           <div class="form-text small">Los usuarios sumillados quedan como responsables: verán el documento en su bandeja y las instrucciones en el detalle.</div>
+        </div>
+
+        <div class="mb-3" *ngIf="auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">
+          <button class="btn btn-soft-primary btn-sm w-100 mb-2" type="button"
+                  (click)="toggleDerivarInstitucional()">
+            <i class="pi pi-sitemap" style="font-size:0.7rem;"></i> Derivar por Estructura Institucional
+          </button>
+          <div *ngIf="showDerivarInstitucional">
+            <label class="form-label small">Sumilla</label>
+            <textarea autocomplete="off" class="form-control form-control-sm mb-2" rows="2"
+                      placeholder="Instrucciones para los destinatarios institucionales..."
+                      [(ngModel)]="derivarSumilla" name="sumillaInstitucional"></textarea>
+            <div class="row g-2">
+              <div class="col-8">
+                <select autocomplete="off" class="form-select form-select-sm" [(ngModel)]="derivarTipo" name="derivarTipo">
+                  <option value="">Destino...</option>
+                  <option value="JEFE_INMEDIATO">Mi jefe inmediato</option>
+                  <option value="RESPONSABLE_UNIDAD">Responsable de unidad</option>
+                  <option value="USUARIO">Usuario</option>
+                  <option value="PUESTO">Puesto</option>
+                  <option value="UNIDAD">Unidad</option>
+                </select>
+              </div>
+              <div class="col-4">
+                <select autocomplete="off" class="form-select form-select-sm" [(ngModel)]="derivarIdDestino" name="derivarIdDestino">
+                  <option [ngValue]="null">Todos</option>
+                  <option *ngFor="let u of usuariosDisponibles" [ngValue]="u.idUsuario">{{ u.nombres }} {{ u.apellidos }}</option>
+                  <option *ngFor="let pu of puestos" [ngValue]="pu.idPuesto">{{ pu.nombre }}</option>
+                  <option *ngFor="let un of unidades" [ngValue]="un.idUnidad">{{ un.nombre }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-text small mb-2">
+              <ng-container *ngIf="derivarTipo === 'JEFE_INMEDIATO'">Se resuelve automáticamente al jefe según la estructura (sin selección).</ng-container>
+              <ng-container *ngIf="derivarTipo === 'RESPONSABLE_UNIDAD'">Se resuelve el responsable de la unidad seleccionada.</ng-container>
+              <ng-container *ngIf="derivarTipo === 'PUESTO'">Se derivará a todos los ocupantes vigentes del puesto.</ng-container>
+              <ng-container *ngIf="derivarTipo === 'UNIDAD'">Se derivará a todos los integrantes vigentes de la unidad.</ng-container>
+            </div>
+            <button class="btn btn-primary btn-sm w-100" [disabled]="!derivarTipo" (click)="derivarInstitucional()">
+              <i class="pi pi-send" style="font-size:0.7rem;"></i> Derivar
+            </button>
+          </div>
         </div>
 
         <div class="mb-3" *ngIf="doc.estado !== 'ARCHIVADO' && auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">

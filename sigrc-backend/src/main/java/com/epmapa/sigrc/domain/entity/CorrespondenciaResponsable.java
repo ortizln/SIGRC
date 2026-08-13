@@ -22,6 +22,15 @@ public class CorrespondenciaResponsable {
     @Column(columnDefinition = "TEXT")
     private String sumilla;
 
+    @Column(name = "puesto_firmante", length = 200)
+    private String puestoFirmante;
+
+    @Column(name = "unidad_firmante", length = 200)
+    private String unidadFirmante;
+
+    @Column(name = "asignacion_id")
+    private Integer asignacionId;
+
     @Builder.Default
     @Column(nullable = false, updatable = false)
     private LocalDateTime creadoEn = LocalDateTime.now();

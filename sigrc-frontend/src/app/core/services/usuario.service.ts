@@ -29,4 +29,12 @@ export class UsuarioService {
   guardarPermisos(id: number, permisos: any[]): Observable<any[]> {
     return this.http.put<any[]>(`${this.apiUrl}/${id}/permisos`, permisos);
   }
+
+  listarSinEmpleado(): Observable<Usuario[]> {
+    return this.http.get<Usuario[]>(`${this.apiUrl}/sin-empleado`);
+  }
+
+  vincularEmpleado(id: number, idEmpleado: number | null): Observable<Usuario> {
+    return this.http.put<Usuario>(`${this.apiUrl}/${id}/empleado`, { idEmpleado });
+  }
 }

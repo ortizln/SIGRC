@@ -33,6 +33,14 @@ public class AuditoriaService {
     public void registrar(String username, Integer idUsuario, String accion, String tipoOperacion,
                            String tablaAfectada, Integer idRegistro, Object datosAnteriores,
                            Object datosNuevos, HttpServletRequest request, String resultado) {
+        registrarEvento(username, idUsuario, accion, tipoOperacion, tablaAfectada, idRegistro,
+            datosAnteriores, datosNuevos, request, resultado, null);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void registrarEvento(String username, Integer idUsuario, String accion, String tipoOperacion,
+                           String tablaAfectada, Integer idRegistro, Object datosAnteriores,
+                           Object datosNuevos, HttpServletRequest request, String resultado, String detalle) {
         try {
             var auditoria = Auditoria.builder()
                 .username(username)
@@ -46,6 +54,7 @@ public class AuditoriaService {
                 .direccionIp(obtenerIp(request))
                 .userAgent(request != null ? request.getHeader("User-Agent") : null)
                 .resultado(resultado)
+                .detalle(detalle)
                 .creadoEn(LocalDateTime.now())
                 .build();
             auditoriaRepository.save(auditoria);

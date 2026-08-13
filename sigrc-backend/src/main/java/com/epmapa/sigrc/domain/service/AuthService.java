@@ -4,10 +4,13 @@ import com.epmapa.sigrc.domain.dto.LoginRequest;
 import com.epmapa.sigrc.domain.dto.LoginResponse;
 import com.epmapa.sigrc.domain.dto.UsuarioDTO;
 import com.epmapa.sigrc.domain.dto.UsuarioPermisoDTO;
+import com.epmapa.sigrc.domain.entity.AsignacionPuesto;
 import com.epmapa.sigrc.domain.entity.Usuario;
+import com.epmapa.sigrc.domain.repository.AsignacionPuestoRepository;
 import com.epmapa.sigrc.domain.repository.UsuarioPermisoRepository;
 import com.epmapa.sigrc.domain.repository.UsuarioRepository;
 import com.epmapa.sigrc.security.JwtTokenProvider;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,14 +26,20 @@ public class AuthService {
     private final JwtTokenProvider tokenProvider;
     private final UsuarioRepository usuarioRepository;
     private final UsuarioPermisoRepository usuarioPermisoRepository;
+    private final AsignacionPuestoRepository asignacionPuestoRepository;
+    private final AuditoriaEventos auditoriaEventos;
 
     public AuthService(AuthenticationManager authManager, JwtTokenProvider tokenProvider,
                        UsuarioRepository usuarioRepository,
-                       UsuarioPermisoRepository usuarioPermisoRepository) {
+                       UsuarioPermisoRepository usuarioPermisoRepository,
+                       AsignacionPuestoRepository asignacionPuestoRepository,
+                       AuditoriaEventos auditoriaEventos) {
         this.authManager = authManager;
         this.tokenProvider = tokenProvider;
         this.usuarioRepository = usuarioRepository;
         this.usuarioPermisoRepository = usuarioPermisoRepository;
+        this.asignacionPuestoRepository = asignacionPuestoRepository;
+        this.auditoriaEventos = auditoriaEventos;
     }
 
     @Transactional
@@ -65,6 +74,10 @@ public class AuthService {
         );
         String refreshToken = tokenProvider.generateRefreshToken(usuario.getUsername());
 
+        auditoriaEventos.registrar(usuario.getUsername(), usuario.getIdUsuario(),
+            "LOGIN", "AUTENTICACION", "usuario", usuario.getIdUsuario(),
+            null, null, "OK");
+
         var userDTO = toUsuarioDTO(usuario);
 
         return new LoginResponse(token, refreshToken, "Bearer",
@@ -77,6 +90,14 @@ public class AuthService {
             .map(p -> new UsuarioPermisoDTO(p.getModulo(), p.getTipoAcceso()))
             .toList();
 
+        AsignacionPuesto asignacionActual = null;
+        if (u.getEmpleado() != null) {
+            asignacionActual = asignacionPuestoRepository
+                .findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
+                    u.getEmpleado().getIdEmpleado(), "ACTIVA")
+                .orElse(null);
+        }
+
         return new UsuarioDTO(
             u.getIdUsuario(), u.getUsername(), u.getEmail(),
             u.getNombres(), u.getApellidos(),
@@ -87,7 +108,20 @@ public class AuthService {
             u.getRol().getCodigo(), u.getRol().getNombre(),
             u.getTelefono(), u.getActivo(),
             u.getDebeCambiarPassword(), u.getBloqueado(),
-            permisos
+            permisos,
+            u.getEmpleado() != null ? u.getEmpleado().getIdEmpleado() : null,
+            u.getEmpleado() != null ? (u.getEmpleado().getNombres() + " " + u.getEmpleado().getApellidos()) : null,
+            asignacionActual != null && asignacionActual.getPuesto() != null
+                ? asignacionActual.getPuesto().getNombre() : null,
+            asignacionActual != null && asignacionActual.getUnidadOrganizacional() != null
+                ? asignacionActual.getUnidadOrganizacional().getNombre() : null
         );
+    }
+
+    @Transactional(readOnly = true)
+    public UsuarioDTO obtenerMe(Integer idUsuario) {
+        var usuario = usuarioRepository.findById(idUsuario)
+            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado: " + idUsuario));
+        return toUsuarioDTO(usuario);
     }
 }

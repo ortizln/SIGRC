@@ -1,0 +1,284 @@
+<div class="container-fluid px-0" style="max-width:1100px;">
+  <div class="page-header">
+    <h2>Estructura Organizacional</h2>
+    <p>Unidades organizacionales, niveles y organigrama institucional</p>
+  </div>
+
+  <div class="d-flex gap-2 mb-3">
+    <button class="btn btn-sm" [class.btn-primary]="tabActivo === 'unidades'" [class.btn-outline-secondary]="tabActivo !== 'unidades'" (click)="onTab('unidades')">Unidades</button>
+    <button class="btn btn-sm" [class.btn-primary]="tabActivo === 'niveles'" [class.btn-outline-secondary]="tabActivo !== 'niveles'" (click)="onTab('niveles')">Niveles</button>
+    <button class="btn btn-sm" [class.btn-primary]="tabActivo === 'organigrama'" [class.btn-outline-secondary]="tabActivo !== 'organigrama'" (click)="onTab('organigrama')">Organigrama</button>
+  </div>
+
+  <!-- Unidades -->
+  <div *ngIf="tabActivo === 'unidades'">
+    <div class="card-modern p-0">
+      <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+        <h6 class="fw-bold mb-0">Unidades Organizacionales</h6>
+        <button class="btn btn-primary btn-sm" (click)="nuevo()" *ngIf="isAdmin">+ Nueva Unidad</button>
+      </div>
+
+      <div class="p-3 border-bottom" *ngIf="formVisible">
+        <form autocomplete="off" (ngSubmit)="guardar()" #unidadForm="ngForm">
+          <div class="row g-2">
+            <div class="col-md-3">
+              <input autocomplete="off" #codModel="ngModel" [(ngModel)]="form.codigo" name="codigo" required class="form-control form-control-sm" [class.is-invalid]="codModel.invalid && codModel.touched" placeholder="Código">
+              <div class="validation-feedback" *ngIf="codModel.invalid && codModel.touched">El código es obligatorio</div>
+            </div>
+            <div class="col-md-5">
+              <input autocomplete="off" #nomModel="ngModel" [(ngModel)]="form.nombre" name="nombre" required class="form-control form-control-sm" [class.is-invalid]="nomModel.invalid && nomModel.touched" placeholder="Nombre de la unidad">
+              <div class="validation-feedback" *ngIf="nomModel.invalid && nomModel.touched">El nombre es obligatorio</div>
+            </div>
+            <div class="col-md-2">
+              <input autocomplete="off" [(ngModel)]="form.sigla" name="sigla" class="form-control form-control-sm" placeholder="Sigla">
+            </div>
+            <div class="col-md-2">
+              <input autocomplete="off" [(ngModel)]="form.orden" name="orden" type="number" min="0" class="form-control form-control-sm" placeholder="Orden">
+            </div>
+            <div class="col-md-4">
+              <select autocomplete="off" [(ngModel)]="form.tipoUnidad" name="tipoUnidad" class="form-select form-select-sm">
+                <option *ngFor="let t of ['DIRECTORIO','GERENCIA','DIRECCION','JEFATURA','UNIDAD','SECRETARIA','COORDINACION','PROCESO','SUBPROCESO','OTRO']" [value]="t">{{ t }}</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <select autocomplete="off" [(ngModel)]="form.idNivel" name="idNivel" class="form-select form-select-sm">
+                <option [ngValue]="null">— Sin nivel —</option>
+                <option *ngFor="let n of niveles" [ngValue]="n.idNivel">{{ n.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <select autocomplete="off" [(ngModel)]="form.idUnidadPadre" name="idUnidadPadre" class="form-select form-select-sm">
+                <option [ngValue]="null">— Unidad raíz —</option>
+                <option *ngFor="let u of unidades" [ngValue]="u.idUnidad" [hidden]="u.idUnidad === editandoId">{{ u.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-md-8">
+              <input autocomplete="off" [(ngModel)]="form.descripcion" name="descripcion" class="form-control form-control-sm" placeholder="Descripción (opcional)">
+            </div>
+            <div class="col-12 d-flex gap-1">
+              <button type="submit" class="btn btn-primary btn-sm" [disabled]="cargando || unidadForm.invalid">
+                <i class="pi pi-save" style="font-size:0.7rem;"></i> {{ editando ? 'Actualizar' : 'Guardar' }}
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelar()">Cancelar</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table-modern">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nombre</th>
+              <th>Sigla</th>
+              <th>Tipo</th>
+              <th>Nivel</th>
+              <th>Depende de</th>
+              <th style="width:60px;" *ngIf="isAdmin">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of unidades">
+              <td><code class="small">{{ u.codigo || '—' }}</code></td>
+              <td class="fw-medium">{{ u.nombre }}</td>
+              <td class="small text-muted">{{ u.sigla || '—' }}</td>
+              <td><span class="badge-unidad">{{ u.tipoUnidad || '—' }}</span></td>
+              <td class="small">{{ u.nivelNombre || '—' }}</td>
+              <td class="small">{{ u.unidadPadreNombre || '—' }}</td>
+              <td *ngIf="isAdmin">
+                <div class="dropdown-actions">
+                  <button class="btn-dots" (click)="toggleMenu(u.idUnidad)">•••</button>
+                  <div class="dropdown-menu-custom" *ngIf="menuAbierto === u.idUnidad">
+                    <button (click)="editar(u)"><i class="pi pi-pencil"></i> Editar</button>
+                    <button (click)="desactivar(u)"><i class="pi pi-ban"></i> Desactivar</button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="unidades.length === 0"><td [attr.colspan]="isAdmin ? 7 : 6" class="empty-state"><h5>Sin unidades</h5></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Niveles -->
+  <div *ngIf="tabActivo === 'niveles'">
+    <div class="card-modern p-0">
+      <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+        <h6 class="fw-bold mb-0">Niveles Organizacionales</h6>
+        <button class="btn btn-primary btn-sm" (click)="nuevoNivel()" *ngIf="isAdmin">+ Nuevo Nivel</button>
+      </div>
+
+      <div class="p-3 border-bottom" *ngIf="form.codigo !== undefined">
+        <form autocomplete="off" (ngSubmit)="guardarNivel()" #nivelForm="ngForm">
+          <div class="row g-2">
+            <div class="col-md-3">
+              <input autocomplete="off" #codModel="ngModel" [(ngModel)]="form.codigo" name="codigo" required class="form-control form-control-sm" [class.is-invalid]="codModel.invalid && codModel.touched" placeholder="Código">
+              <div class="validation-feedback" *ngIf="codModel.invalid && codModel.touched">El código es obligatorio</div>
+            </div>
+            <div class="col-md-3">
+              <input autocomplete="off" #nomModel="ngModel" [(ngModel)]="form.nombre" name="nombre" required class="form-control form-control-sm" [class.is-invalid]="nomModel.invalid && nomModel.touched" placeholder="Nombre">
+              <div class="validation-feedback" *ngIf="nomModel.invalid && nomModel.touched">El nombre es obligatorio</div>
+            </div>
+            <div class="col-md-3">
+              <input autocomplete="off" [(ngModel)]="form.orden" name="orden" type="number" min="0" class="form-control form-control-sm" placeholder="Orden">
+            </div>
+            <div class="col-md-3">
+              <input autocomplete="off" [(ngModel)]="form.descripcion" name="descripcion" class="form-control form-control-sm" placeholder="Descripción">
+            </div>
+            <div class="col-12 d-flex gap-1">
+              <button type="submit" class="btn btn-primary btn-sm" [disabled]="cargando || nivelForm.invalid">
+                <i class="pi pi-save" style="font-size:0.7rem;"></i> {{ form.idNivel ? 'Actualizar' : 'Guardar' }}
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="form = {}">Cancelar</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table-modern">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nombre</th>
+              <th>Descripción</th>
+              <th>Orden</th>
+              <th style="width:60px;" *ngIf="isAdmin">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let n of niveles">
+              <td><code class="small">{{ n.codigo }}</code></td>
+              <td class="fw-medium">{{ n.nombre }}</td>
+              <td class="small text-muted">{{ n.descripcion || '—' }}</td>
+              <td class="small">{{ n.orden ?? '—' }}</td>
+              <td *ngIf="isAdmin">
+                <div class="dropdown-actions">
+                  <button class="btn-dots" (click)="toggleMenu(n.idNivel)">•••</button>
+                  <div class="dropdown-menu-custom" *ngIf="menuAbierto === n.idNivel">
+                    <button (click)="editarNivel(n)"><i class="pi pi-pencil"></i> Editar</button>
+                    <button class="text-danger" (click)="desactivarNivel(n)"><i class="pi pi-ban"></i> Desactivar</button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="niveles.length === 0"><td [attr.colspan]="isAdmin ? 5 : 4" class="empty-state"><h5>Sin niveles</h5></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Organigrama -->
+  <div *ngIf="tabActivo === 'organigrama'">
+    <div class="card-modern p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="fw-bold mb-0">Organigrama Institucional</h6>
+        <div class="d-flex gap-1">
+          <button class="btn btn-sm btn-outline-danger" (click)="migracionVisible = !migracionVisible" *ngIf="isAdmin">
+            <i class="pi pi-arrow-right-arrow-left"></i> Migración de usuarios
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" (click)="expandirTodo()">Expandir todo</button>
+          <button class="btn btn-sm btn-outline-secondary" (click)="colapsarTodo()">Colapsar todo</button>
+        </div>
+      </div>
+
+      <div class="card-modern p-3 mb-3 border" *ngIf="migracionVisible && isAdmin">
+        <h6 class="fw-bold mb-2">Migración §35 — usuarios → empleados y asignaciones</h6>
+        <p class="small text-muted mb-2">
+          Vincula los usuarios activos sin empleado a un <code>empleado</code> y crea su asignación vigente
+          desde <code>área + cargo</code> (reutilizando unidades/puestos existentes por nombre). Es
+          <b>idempotente</b>: solo crea lo que falta, no borra ni retira los campos antiguos
+          <code>usuario.area</code> / <code>usuario.cargo</code>. Ejecuta primero el modo "previsualizar".
+        </p>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-primary btn-sm" [disabled]="migracionCargando" (click)="ejecutarMigracion(true)">
+            <i class="pi pi-eye"></i> Previsualizar (dry-run)
+          </button>
+          <button class="btn btn-danger btn-sm" [disabled]="migracionCargando" (click)="ejecutarMigracion(false)">
+            <i class="pi pi-play"></i> Ejecutar migración
+          </button>
+        </div>
+        <div class="mt-3" *ngIf="migracionResultado">
+          <div class="row g-2 mb-2">
+            <div class="col-auto"><span class="badge-unidad">Usuarios: {{ migracionResultado.usuariosProcesados }}</span></div>
+            <div class="col-auto"><span class="badge-unidad">Empleados a crear: {{ migracionResultado.empleadosCreados }}</span></div>
+            <div class="col-auto"><span class="badge-unidad">Asignaciones a crear: {{ migracionResultado.asignacionesCreadas }}</span></div>
+            <div class="col-auto"><span class="badge-unidad">Unidades a crear: {{ migracionResultado.unidadesCreadas }}</span></div>
+            <div class="col-auto"><span class="badge-unidad">Puestos a crear: {{ migracionResultado.puestosCreados }}</span></div>
+            <div class="col-auto"><span class="badge-unidad">Ya vinculados: {{ migracionResultado.yaVinculados }}</span></div>
+            <div class="col-auto"><span class="badge-unidad" [class.text-danger]="migracionResultado.conErrores > 0">Errores: {{ migracionResultado.conErrores }}</span></div>
+          </div>
+          <div class="table-responsive" style="max-height:300px;overflow:auto;">
+            <table class="table-modern table-sm">
+              <thead>
+                <tr><th>Usuario</th><th>Resultado</th><th>Detalle</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let d of migracionResultado.detalles">
+                  <td class="small">{{ d.username }}</td>
+                  <td>
+                    <span class="small" [class.text-success]="d.resultado === 'OK'" [class.text-danger]="d.resultado === 'ERROR'"
+                      [class.text-muted]="d.resultado === 'YA_ASIGNADO' || d.resultado === 'SIN_CARGO'">{{ d.resultado }}</span>
+                  </td>
+                  <td class="small text-muted">{{ d.detalle }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <ng-container *ngIf="organigrama.length > 0; else sinOrganigrama">
+        <div class="org-tree">
+          <ng-template #orgNodo let-n>
+            <div class="org-nodo">
+              <div class="org-head">
+                <button class="org-caret" [class.org-caret-vacio]="!n.hijos?.length" (click)="toggleExpandir(n.idUnidad)">
+                  <i class="pi" [ngClass]="expandidos.has(n.idUnidad) ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+                </button>
+                <div class="org-card" [class.org-inactiva]="!n.activo" (click)="verPerfil(n)">
+                  <div class="org-icon"><i class="pi pi-sitemap"></i></div>
+                  <div class="org-info">
+                    <strong>{{ n.nombre }}</strong>
+                    <small>
+                      <code>{{ n.codigo }}</code>
+                      <span *ngIf="n.sigla"> · {{ n.sigla }}</span>
+                      <span *ngIf="n.tipoUnidad"> · {{ n.tipoUnidad }}</span>
+                      <span *ngIf="n.nivelNombre"> · {{ n.nivelNombre }}</span>
+                    </small>
+                    <div class="org-meta">
+                      <span class="org-metaitem" *ngIf="n.responsable" title="Responsable de la unidad">
+                        <i class="pi pi-user"></i> {{ n.puestoResponsable || 'Responsable' }}: <b>{{ n.responsable }}</b>
+                      </span>
+                      <span class="org-metaitem" *ngIf="n.plazas > 0" title="Plazas / ocupadas">
+                        <i class="pi pi-users"></i> Plazas: <b>{{ n.plazas }}</b> · Ocupadas: <b>{{ n.plazasOcupadas }}</b>
+                      </span>
+                      <span class="org-metaitem" [class.org-vacante]="n.vacantes > 0" *ngIf="n.plazas > 0">
+                        Vacantes: <b>{{ n.vacantes }}</b>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="org-children" *ngIf="n.hijos?.length && expandidos.has(n.idUnidad)">
+                <ng-container *ngFor="let h of n.hijos">
+                  <ng-container *ngTemplateOutlet="orgNodo; context: { $implicit: h }"></ng-container>
+                </ng-container>
+              </div>
+            </div>
+          </ng-template>
+          <ng-container *ngFor="let raiz of organigrama">
+            <ng-container *ngTemplateOutlet="orgNodo; context: { $implicit: raiz }"></ng-container>
+          </ng-container>
+        </div>
+      </ng-container>
+      <ng-template #sinOrganigrama>
+        <div class="empty-state"><h5>Sin estructura definida</h5></div>
+      </ng-template>
+    </div>
+  </div>
+</div>

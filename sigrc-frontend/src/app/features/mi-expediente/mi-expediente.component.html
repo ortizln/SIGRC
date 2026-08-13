@@ -1,0 +1,131 @@
+<div class="container-fluid px-0" style="max-width:1200px;">
+  <div class="page-header">
+    <h2>Mi expediente</h2>
+    <p>Vista personal de su información laboral. Los documentos de acceso restringido o confidencial no se muestran a menos que esté autorizado (§30 LOSEP / confidencialidad RRHH).</p>
+  </div>
+
+  <div *ngIf="cargando" class="card-modern p-4 text-center text-muted">Cargando su expediente...</div>
+  <div *ngIf="!cargando && error" class="card-modern p-4">
+    <div class="alert alert-danger mb-0">{{ error }}</div>
+  </div>
+
+  <ng-container *ngIf="!cargando && !error && empleado">
+    <div class="card-modern p-4 mb-3">
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="avatar-circle">{{ (empleado.nombres + ' ' + (empleado.apellidos || '')).charAt(0) }}</div>
+        <div class="flex-grow-1">
+          <h4 class="mb-1">{{ empleado.nombreCompleto }}</h4>
+          <div class="text-muted small">
+            {{ empleado.identificacion }}<span *ngIf="empleado.tipoPersonal"> · {{ empleado.tipoPersonal }}</span>
+            <span *ngIf="empleado.estadoLaboral" class="ms-2 badge" [class.badge-success]="empleado.estadoLaboral === 'ACTIVO'" [class.badge-secondary]="empleado.estadoLaboral !== 'ACTIVO'">{{ empleado.estadoLaboral }}</span>
+          </div>
+        </div>
+        <div class="text-end small text-muted" *ngIf="empleado.fechaIngresoInstitucion">
+          Ingreso institucional: <strong>{{ empleado.fechaIngresoInstitucion }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="card-modern p-3 h-100">
+          <h6 class="fw-bold mb-2"><i class="pi pi-user me-2"></i>Datos personales</h6>
+          <ul class="detalle-lista">
+            <li><span>Cédula / identificación</span><strong>{{ empleado.tipoIdentificacion || '' }} {{ empleado.identificacion }}</strong></li>
+            <li><span>Fecha de nacimiento</span><strong>{{ empleado.fechaNacimiento || '—' }}</strong></li>
+            <li><span>Sexo</span><strong>{{ empleado.sexo || '—' }}</strong></li>
+            <li><span>Estado civil</span><strong>{{ empleado.estadoCivil || '—' }}</strong></li>
+            <li><span>Teléfono / celular</span><strong>{{ telefonos() }}</strong></li>
+            <li><span>Correo institucional</span><strong>{{ empleado.correoInstitucional || '—' }}</strong></li>
+            <li><span>Correo personal</span><strong>{{ empleado.correoPersonal || '—' }}</strong></li>
+            <li><span>Dirección</span><strong>{{ empleado.direccion || '—' }}</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card-modern p-3 h-100">
+          <h6 class="fw-bold mb-2"><i class="pi pi-graduation-cap me-2"></i>Formación académica</h6>
+          <div *ngIf="tieneDatos(empleado.formaciones)">
+            <div class="mb-2" *ngFor="let f of empleado.formaciones">
+              <div class="fw-medium">{{ f.titulo || 'Título' }}</div>
+              <div class="small text-muted">
+                {{ f.nivel || '' }}<span *ngIf="f.nivel && f.institucion"> · </span>{{ f.institucion || '' }}
+                <span *ngIf="f.fechaFin"> ({{ f.fechaInicio || '' }} – {{ f.fechaFin }})</span>
+              </div>
+              <div class="small text-muted" *ngIf="f.registroSenescyt">Registro Senescyt: {{ f.registroSenescyt }}</div>
+            </div>
+          </div>
+          <div *ngIf="!tieneDatos(empleado.formaciones)" class="text-muted small">Sin formación registrada.</div>
+
+          <hr class="my-3">
+
+          <h6 class="fw-bold mb-2"><i class="pi pi-briefcase me-2"></i>Experiencia laboral</h6>
+          <div *ngIf="tieneDatos(empleado.experiencias)">
+            <div class="mb-2" *ngFor="let x of empleado.experiencias">
+              <div class="fw-medium">{{ x.cargo || 'Cargo' }}</div>
+              <div class="small text-muted">
+                {{ x.institucion || '' }}<span *ngIf="x.fechaInicio || x.fechaFin"> · {{ x.fechaInicio || '' }} – {{ x.fechaFin || '' }}</span>
+              </div>
+              <div class="small text-muted" *ngIf="x.descripcion">{{ x.descripcion }}</div>
+            </div>
+          </div>
+          <div *ngIf="!tieneDatos(empleado.experiencias)" class="text-muted small">Sin experiencia registrada.</div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card-modern p-3">
+          <h6 class="fw-bold mb-2"><i class="pi pi-book me-2"></i>Capacitaciones</h6>
+          <div *ngIf="tieneDatos(empleado.capacitaciones)" class="row g-2">
+            <div class="col-md-6" *ngFor="let c of empleado.capacitaciones">
+              <div class="capacitacion-item">
+                <div class="fw-medium">{{ c.nombre }}</div>
+                <div class="small text-muted">
+                  {{ c.institucion || '' }}<span *ngIf="c.fechaFin"> · {{ c.fechaInicio || '' }} – {{ c.fechaFin }}</span>
+                  <span *ngIf="c.horas" class="ms-2">· {{ c.horas }} h</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="!tieneDatos(empleado.capacitaciones)" class="text-muted small">Sin capacitaciones registradas.</div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card-modern p-3">
+          <h6 class="fw-bold mb-2"><i class="pi pi-folder-open me-2"></i>Documentos del expediente</h6>
+          <div *ngIf="tieneDatos(empleado.documentos)" class="table-responsive">
+            <table class="table-modern">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Descripción</th>
+                  <th>Fecha</th>
+                  <th>Archivo</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let d of empleado.documentos">
+                  <td>{{ (d.tipo || 'OTRO').replace('_', ' ') }}</td>
+                  <td>{{ d.descripcion || '—' }}</td>
+                  <td class="small">{{ d.fechaDocumento || '—' }}</td>
+                  <td class="small text-muted">{{ d.nombreArchivo || '—' }}</td>
+                  <td>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!d.nombreArchivo"
+                            title="Descargar {{ d.nombreArchivo || 'sin archivo' }}"
+                            (click)="descargarDocumento(d)">
+                      <i class="pi pi-download" style="font-size:0.7rem;"></i> Descargar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div *ngIf="!tieneDatos(empleado.documentos)" class="text-muted small">Sin documentos disponibles en su expediente.</div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

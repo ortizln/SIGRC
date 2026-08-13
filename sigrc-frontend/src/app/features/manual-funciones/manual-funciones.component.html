@@ -1,0 +1,246 @@
+<div class="container-fluid px-0" style="max-width:1500px;">
+  <div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+      <h2>Manual de Funciones</h2>
+      <p>Manual Orgánico Funcional digital: consulta por estructura y control de versiones</p>
+    </div>
+    <button *ngIf="isAdmin" class="btn btn-primary btn-sm" (click)="abrirNuevaVersion()">
+      <i class="pi pi-plus" style="font-size:0.7rem;"></i> Nueva versión
+    </button>
+  </div>
+
+  <div class="card-modern p-3 mb-3 d-flex flex-wrap gap-2 align-items-center">
+    <i class="pi pi-book text-primary" style="font-size:1.1rem;"></i>
+    <div>
+      <div class="fw-medium small">{{ versionVigente ? versionVigente.nombre : 'Sin versión vigente' }}
+        <span *ngIf="versionVigente" class="ms-1">v{{ versionVigente.version }}</span>
+      </div>
+      <div class="small text-muted">
+        <ng-container *ngIf="versionVigente">
+          Vigente desde {{ versionVigente.fechaVigencia || '—' }}
+          <span *ngIf="versionVigente.observaciones"> · {{ versionVigente.observaciones }}</span>
+        </ng-container>
+        <ng-container *ngIf="!versionVigente">Registre una versión y apruébela para fijar el manual vigente.</ng-container>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="text-center text-muted py-4">Cargando manual... <i class="pi pi-spin pi-spinner"></i></div>
+
+  <div class="row g-3" *ngIf="!cargando && manual">
+    <!-- Direcciones -->
+    <div class="col-lg-3 col-xl-2">
+      <div class="card-modern p-2 h-100">
+        <div class="panel-title">Direcciones</div>
+        <button class="nav-row" [class.active]="direccionSel?.idUnidad === d.idUnidad" *ngFor="let d of manual.direcciones"
+                (click)="seleccionarDireccion(d)">
+          <span class="nav-dot" [class.dot-ok]="d.unidades?.length || d.puestos?.length"></span>
+          <span class="nav-label">{{ d.nombre }}</span>
+        </button>
+        <div *ngIf="manual.direcciones.length === 0" class="small text-muted px-2">Sin direcciones registradas</div>
+      </div>
+    </div>
+
+    <!-- Unidades -->
+    <div class="col-lg-3 col-xl-2">
+      <div class="card-modern p-2 h-100">
+        <div class="panel-title">Unidades</div>
+        <button class="nav-row" [class.active]="unidadSel?.idUnidad === u.idUnidad" *ngFor="let u of direccionSel?.unidades"
+                (click)="seleccionarUnidad(u)">
+          <span class="nav-dot" [class.dot-ok]="u.puestos?.length"></span>
+          <span class="nav-label">{{ u.nombre }}</span>
+        </button>
+        <div *ngIf="!(direccionSel?.unidades?.length)" class="small text-muted px-2">Sin unidades hijas</div>
+      </div>
+    </div>
+
+    <!-- Puestos -->
+    <div class="col-lg-3 col-xl-3">
+      <div class="card-modern p-2 h-100">
+        <div class="panel-title">Puestos ({{ puestosActuales().length }})</div>
+        <button class="nav-row" [class.active]="puestoSel?.idPuesto === p.idPuesto" *ngFor="let p of puestosActuales()"
+                (click)="seleccionarPuesto(p)">
+          <span class="nav-dot" [class.dot-ok]="!p.esJefatura && !p.esResponsableUnidad"></span>
+          <span class="nav-label">{{ p.nombre }}</span>
+          <span class="nav-code">{{ p.codigo }}</span>
+        </button>
+        <div *ngIf="puestosActuales().length === 0" class="small text-muted px-2">Sin puestos</div>
+      </div>
+    </div>
+
+    <!-- Ficha -->
+    <div class="col-lg-3 col-xl-5">
+      <div class="card-modern p-3 h-100" *ngIf="puestoSel; else sinPuesto">
+        <div class="ficha-head">
+          <div>
+            <h5 class="mb-0">{{ puestoSel.nombre }}</h5>
+            <div class="small text-muted">{{ puestoSel.codigo }} · {{ unidadSel?.nombre || direccionSel?.nombre || '—' }}</div>
+          </div>
+          <div class="text-end small">
+            <span *ngIf="puestoSel.esJefatura" class="chip chip-jefatura">Jefatura</span>
+            <span *ngIf="puestoSel.esResponsableUnidad" class="chip chip-resp">Responsable de unidad</span>
+          </div>
+        </div>
+
+        <div class="ficha-grid">
+          <div><span class="k">Nivel organizacional</span><span class="v">{{ direccionSel?.nivelOrganizacional || '—' }}</span></div>
+          <div><span class="k">Rol funcional</span><span class="v">{{ puestoSel.rolFuncional || '—' }}</span></div>
+          <div><span class="k">Eje</span><span class="v">{{ puestoSel.eje || '—' }}</span></div>
+          <div><span class="k">Grupo ocupacional</span><span class="v">{{ puestoSel.grupoOcupacional || '—' }}</span></div>
+          <div><span class="k">Nivel de instrucción</span><span class="v">{{ puestoSel.nivelInstruccion || '—' }}</span></div>
+          <div><span class="k">Experiencia</span><span class="v">{{ puestoSel.experienciaMeses ? puestoSel.experienciaMeses + ' meses' : '—' }}</span></div>
+          <div><span class="k">Número de plazas</span><span class="v">{{ puestoSel.numeroPlazas ?? '—' }}</span></div>
+          <div><span class="k">Versión del puesto</span><span class="v">{{ puestoSel.versionPuesto ?? '—' }}</span></div>
+          <div><span class="k">Vigencia</span><span class="v">{{ puestoSel.vigenteDesde || '—' }} <span *ngIf="puestoSel.vigenteDesde">→ {{ puestoSel.vigenteHasta || 'vigente' }}</span></span></div>
+        </div>
+
+        <div class="ficha-seccion" *ngIf="puestoSel.objetivo">
+          <h6 class="ficha-titulo">Objetivo</h6>
+          <p class="ficha-texto">{{ puestoSel.objetivo }}</p>
+        </div>
+
+        <div class="ficha-seccion" *ngIf="puestoSel.funciones?.length">
+          <h6 class="ficha-titulo">Funciones</h6>
+          <ng-container *ngFor="let grupo of [['ESENCIAL','COMPLEMENTARIA','CONTROL']]">
+            <div *ngFor="let tipo of grupo">
+              <div *ngIf="funcionesPorTipo(puestoSel, tipo).length" class="ficha-subtitulo">{{ etiquetaTipo(tipo) }}</div>
+              <ul class="ficha-lista">
+                <li *ngFor="let f of funcionesPorTipo(puestoSel, tipo)">{{ f.descripcion }}</li>
+              </ul>
+            </div>
+          </ng-container>
+        </div>
+
+        <div class="ficha-seccion" *ngIf="puestoSel.formaciones?.length">
+          <h6 class="ficha-titulo">Formación requerida</h6>
+          <ul class="ficha-lista">
+            <li *ngFor="let f of puestoSel.formaciones">
+              {{ f.nivelInstruccion || '' }}<span *ngIf="f.tituloArea"> — {{ f.tituloArea }}</span><span *ngIf="f.detalle"> · {{ f.detalle }}</span>
+              <span *ngIf="!f.obligatorio" class="text-muted"> (no obligatorio)</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="ficha-seccion" *ngIf="puestoSel.experiencias?.length">
+          <h6 class="ficha-titulo">Experiencia requerida</h6>
+          <ul class="ficha-lista">
+            <li *ngFor="let e of puestoSel.experiencias">
+              {{ e.tiempoMeses ? e.tiempoMeses + ' meses' : '—' }}<span *ngIf="e.especificidad"> · {{ e.especificidad }}</span>
+              <span *ngIf="!e.obligatorio" class="text-muted"> (no obligatorio)</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="ficha-seccion" *ngIf="puestoSel.capacitaciones?.length">
+          <h6 class="ficha-titulo">Capacitación requerida</h6>
+          <ul class="ficha-lista">
+            <li *ngFor="let c of puestoSel.capacitaciones">
+              {{ c.nombre }}<span *ngIf="c.horasRequeridas"> · {{ c.horasRequeridas }} h</span><span *ngIf="c.descripcion"> — {{ c.descripcion }}</span>
+              <span *ngIf="!c.obligatorio" class="text-muted"> (no obligatorio)</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="ficha-seccion" *ngIf="puestoSel.interfaces?.length">
+          <h6 class="ficha-titulo">Interfaces</h6>
+          <ul class="ficha-lista">
+            <li *ngFor="let i of puestoSel.interfaces">
+              <span *ngIf="i.tipoInterfaz" class="me-1"><span class="chip chip-int">{{ i.tipoInterfaz }}</span></span>{{ i.descripcion || '—' }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="ficha-seccion" *ngIf="puestoSel.productos?.length">
+          <h6 class="ficha-titulo">Productos esperados</h6>
+          <ul class="ficha-lista">
+            <li *ngFor="let p of puestoSel.productos">{{ p.descripcion }}</li>
+          </ul>
+        </div>
+      </div>
+      <ng-template #sinPuesto>
+        <div class="card-modern p-4 h-100 text-center text-muted">
+          <i class="pi pi-book" style="font-size:2rem;opacity:.4;"></i>
+          <p class="mt-2 mb-0">Seleccione un puesto para ver su ficha</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- Gestión de versiones -->
+  <div class="card-modern p-3 mt-3" *ngIf="isAdmin">
+    <h6 class="card-title-modern"><i class="pi pi-history" style="font-size:0.9rem;"></i> Versiones del Manual</h6>
+    <div class="table-responsive">
+      <table class="table-modern">
+        <thead>
+          <tr><th>Versión</th><th>Nombre</th><th>Aprobación</th><th>Vigencia</th><th>Estado</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let v of versiones">
+            <td class="fw-medium">v{{ v.version }}</td>
+            <td>{{ v.nombre }}</td>
+            <td class="small">{{ v.fechaAprobacion || '—' }}</td>
+            <td class="small">{{ v.fechaVigencia || '—' }}</td>
+            <td><span class="badge-unidad" [class]="estadoBadge(v.estado)">{{ v.estado }}</span></td>
+            <td>
+              <div class="d-flex gap-1">
+                <button class="btn btn-sm btn-outline-secondary" title="Aprobar (vigente)" (click)="aprobar(v)" [disabled]="v.estado === 'VIGENTE'">
+                  <i class="pi pi-check" style="font-size:0.7rem;"></i> Aprobar
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" title="Derogar" (click)="derogar(v)" [disabled]="v.estado !== 'VIGENTE'">
+                  <i class="pi pi-times" style="font-size:0.7rem;"></i> Derogar
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="versiones.length === 0"><td colspan="6" class="empty-state"><h5>Sin versiones registradas</h5></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal nueva versión -->
+<div class="modal fade show" *ngIf="versModal" style="display:block;background:rgba(0,0,0,.5);" (click.self)="versModal = false">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Nueva versión del Manual</h5>
+        <button class="btn-close" (click)="versModal = false"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label small">Nombre *</label>
+            <input class="form-control form-control-sm" [(ngModel)]="versForm.nombre">
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Versión *</label>
+            <input class="form-control form-control-sm" placeholder="1.0" [(ngModel)]="versForm.version">
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Documento fuente (id)</label>
+            <input type="number" class="form-control form-control-sm" [(ngModel)]="versForm.documentoId">
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Fecha aprobación</label>
+            <input type="date" class="form-control form-control-sm" [(ngModel)]="versForm.fechaAprobacion">
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Fecha vigencia</label>
+            <input type="date" class="form-control form-control-sm" [(ngModel)]="versForm.fechaVigencia">
+          </div>
+          <div class="col-12">
+            <label class="form-label small">Observaciones</label>
+            <textarea class="form-control form-control-sm" rows="2" [(ngModel)]="versForm.observaciones"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary btn-sm" (click)="versModal = false">Cancelar</button>
+        <button class="btn btn-primary btn-sm" (click)="guardarVersion()" [disabled]="guardandoVersion">
+          {{ guardandoVersion ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

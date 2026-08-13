@@ -1,0 +1,141 @@
+<div class="container-fluid px-0" style="max-width:1200px;">
+  <div class="page-header">
+    <h2>Asignaciones de Puesto</h2>
+    <p>Puesto actual, historial, jefatura automática y responsables de unidad</p>
+  </div>
+
+  <div class="card-modern p-3 mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label small mb-1">Empleado</label>
+        <select class="form-select form-select-sm" [(ngModel)]="idEmpleado" (change)="onEmpleadoChange()">
+          <option [ngValue]="null">— Seleccione empleado —</option>
+          <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }} ({{ e.identificacion }})</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small mb-1">Jefe inmediato</label>
+        <div class="jefe-box" *ngIf="jefe; else sinJefe">
+          <strong>{{ jefe.nombreJefe }}</strong>
+          <small>{{ jefe.puestoNombre }} · {{ jefe.unidadNombre }}</small>
+        </div>
+        <ng-template #sinJefe><div class="text-muted small">—</div></ng-template>
+      </div>
+      <div class="col-md-4 text-end">
+        <button class="btn btn-outline-secondary btn-sm me-1" (click)="mostrarResponsables()" *ngIf="isAdmin">Responsables de unidad</button>
+        <button class="btn btn-primary btn-sm" (click)="nuevo()" *ngIf="isAdmin && idEmpleado">+ Asignar Puesto</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-modern p-3 mb-3" *ngIf="respVisible && isAdmin">
+    <h6 class="fw-bold mb-2">Asignar responsable de unidad</h6>
+    <div class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <select class="form-select form-select-sm" [(ngModel)]="respForm.idUnidad">
+          <option [ngValue]="null">— Unidad —</option>
+          <option *ngFor="let u of unidades" [ngValue]="u.idUnidad">{{ u.nombre }}</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <select class="form-select form-select-sm" [(ngModel)]="respForm.idEmpleado">
+          <option [ngValue]="null">— Responsable (empleado) —</option>
+          <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }}</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <button class="btn btn-primary btn-sm" (click)="guardarResponsable()" [disabled]="cargandoResp">
+          {{ cargandoResp ? 'Guardando...' : 'Guardar responsable' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="idEmpleado">
+    <div class="card-modern p-3 mb-3">
+      <h6 class="fw-bold mb-2">Puesto actual</h6>
+      <div class="row g-2" *ngIf="asignacionActual; else sinAsignacion">
+        <div class="col-md-4"><strong>Puesto:</strong> {{ asignacionActual.puestoNombre }}</div>
+        <div class="col-md-4"><strong>Unidad:</strong> {{ asignacionActual.unidadNombre }}</div>
+        <div class="col-md-4"><strong>Tipo:</strong> {{ asignacionActual.tipoAsignacion }}</div>
+        <div class="col-md-4"><strong>Desde:</strong> {{ asignacionActual.fechaInicio }}</div>
+        <div class="col-md-4"><strong>Estado:</strong> <span class="badge-unidad">{{ asignacionActual.estado }}</span></div>
+      </div>
+      <ng-template #sinAsignacion><div class="empty-state"><h5>Sin asignación vigente</h5></div></ng-template>
+    </div>
+
+    <div class="card-modern p-3 mb-3" *ngIf="formVisible && isAdmin">
+      <form autocomplete="off" (ngSubmit)="guardar()" #asigForm="ngForm">
+        <h6 class="fw-bold mb-2">Nueva asignación</h6>
+        <div class="row g-2">
+          <div class="col-md-4">
+            <select class="form-select form-select-sm" [(ngModel)]="form.idPuesto" name="idPuesto" required (change)="onPuestoChange()">
+              <option [ngValue]="null">— Puesto —</option>
+              <option *ngFor="let p of puestos" [ngValue]="p.idPuesto">{{ p.nombre }}</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <select class="form-select form-select-sm" [(ngModel)]="form.idUnidad" name="idUnidad">
+              <option [ngValue]="null">— Unidad (usa la del puesto) —</option>
+              <option *ngFor="let u of unidades" [ngValue]="u.idUnidad">{{ u.nombre }}</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <select class="form-select form-select-sm" [(ngModel)]="form.tipoAsignacion" name="tipoAsignacion">
+              <option *ngFor="let t of ['TITULAR','ENCARGO','SUBROGACION','TEMPORAL','COMISION','TRASLADO']" [value]="t">{{ t }}</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaInicio" name="fechaInicio">
+          </div>
+          <div class="col-md-3">
+            <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaFin" name="fechaFin">
+          </div>
+          <div class="col-md-6">
+            <input class="form-control form-control-sm" [(ngModel)]="form.observacion" name="observacion" placeholder="Observación (opcional)">
+          </div>
+          <div class="col-12 d-flex gap-1">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="cargando || asigForm.invalid">
+              <i class="pi pi-save" style="font-size:0.7rem;"></i> {{ cargando ? 'Guardando...' : 'Asignar' }}
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelar()">Cancelar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="card-modern p-0">
+      <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+        <h6 class="fw-bold mb-0">Historial de asignaciones</h6>
+        <button class="btn btn-danger btn-sm" (click)="finalizar(asignacionActual)" *ngIf="asignacionActual && isAdmin">Finalizar asignación actual</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table-modern">
+          <thead>
+            <tr>
+              <th>Puesto</th>
+              <th>Unidad</th>
+              <th>Tipo</th>
+              <th>Desde</th>
+              <th>Hasta</th>
+              <th>Principal</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let a of historial">
+              <td class="fw-medium">{{ a.puestoNombre || '—' }}</td>
+              <td class="small">{{ a.unidadNombre || '—' }}</td>
+              <td class="small">{{ a.tipoAsignacion || '—' }}</td>
+              <td class="small">{{ a.fechaInicio || '—' }}</td>
+              <td class="small">{{ a.fechaFin || '—' }}</td>
+              <td><span class="badge-unidad" *ngIf="a.esPrincipal">Principal</span></td>
+              <td><span class="badge-unidad" [class.badge-inactivo]="a.estado !== 'ACTIVA'">{{ a.estado }}</span></td>
+            </tr>
+            <tr *ngIf="historial.length === 0"><td colspan="7" class="empty-state"><h5>Sin asignaciones registradas</h5></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+</div>
