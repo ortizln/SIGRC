@@ -1,0 +1,258 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1000px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>{{ editando ? 'Editar Empleado' : 'Nuevo Empleado' }}</h2>
+        <p>Expediente único: datos personales, información laboral, formación, experiencia, capacitaciones y documentos</p>
+      </div>
+      <a routerLink="/talento-humano/empleados" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <form autocomplete="off" (ngSubmit)="guardar()" #empForm="ngForm">
+
+    <!-- 1. Datos Personales -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-user" style="color:var(--primary);"></i>
+        <div>
+          <strong>Datos Personales</strong>
+          <small>Identificación, nombres y datos de contacto</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Tipo de identificación</label>
+          <select autocomplete="off" [(ngModel)]="form.tipoIdentificacion" name="tipoIdentificacion" class="form-select">
+            <option value="CEDULA">Cédula</option>
+            <option value="RUC">RUC</option>
+            <option value="PASAPORTE">Pasaporte</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Nº identificación <span class="text-danger">*</span></label>
+          <input autocomplete="off" #idModel="ngModel" [(ngModel)]="form.identificacion" name="identificacion" required class="form-control" [class.is-invalid]="idModel.invalid && idModel.touched" placeholder="Nº identificación">
+          <div class="validation-feedback" *ngIf="idModel.invalid && idModel.touched">La identificación es obligatoria</div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Nombres <span class="text-danger">*</span></label>
+          <input autocomplete="off" #nomModel="ngModel" [(ngModel)]="form.nombres" name="nombres" required class="form-control" [class.is-invalid]="nomModel.invalid && nomModel.touched" placeholder="Nombres">
+          <div class="validation-feedback" *ngIf="nomModel.invalid && nomModel.touched">Los nombres son obligatorios</div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Apellidos <span class="text-danger">*</span></label>
+          <input autocomplete="off" #apeModel="ngModel" [(ngModel)]="form.apellidos" name="apellidos" required class="form-control" [class.is-invalid]="apeModel.invalid && apeModel.touched" placeholder="Apellidos">
+          <div class="validation-feedback" *ngIf="apeModel.invalid && apeModel.touched">Los apellidos son obligatorios</div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Fecha de nacimiento</label>
+          <input autocomplete="off" [(ngModel)]="form.fechaNacimiento" name="fechaNacimiento" type="date" class="form-control">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Sexo</label>
+          <select autocomplete="off" [(ngModel)]="form.sexo" name="sexo" class="form-select">
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Estado civil</label>
+          <select autocomplete="off" [(ngModel)]="form.estadoCivil" name="estadoCivil" class="form-select">
+            <option value="">— Estado civil —</option>
+            <option value="SOLTERO">Soltero</option>
+            <option value="CASADO">Casado</option>
+            <option value="DIVORCIADO">Divorciado</option>
+            <option value="VIUDO">Viudo</option>
+            <option value="UNION_LIBRE">Unión libre</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Correo personal</label>
+          <input autocomplete="off" [(ngModel)]="form.correoPersonal" name="correoPersonal" class="form-control" placeholder="Correo personal">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Correo institucional</label>
+          <input autocomplete="off" [(ngModel)]="form.correoInstitucional" name="correoInstitucional" class="form-control" placeholder="Correo institucional">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Teléfono</label>
+          <input autocomplete="off" [(ngModel)]="form.telefono" name="telefono" class="form-control" placeholder="Teléfono">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Celular</label>
+          <input autocomplete="off" [(ngModel)]="form.celular" name="celular" class="form-control" placeholder="Celular">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Dirección</label>
+          <input autocomplete="off" [(ngModel)]="form.direccion" name="direccion" class="form-control" placeholder="Dirección">
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Información Laboral -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-building" style="color:var(--secondary);"></i>
+        <div>
+          <strong>Información Laboral</strong>
+          <small>Tipo de personal, estado laboral e ingreso institucional</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Tipo de personal</label>
+          <select autocomplete="off" [(ngModel)]="form.tipoPersonal" name="tipoPersonal" class="form-select">
+            <option value="SERVIDOR_PUBLICO">Servidor público</option>
+            <option value="TRABAJADOR">Trabajador</option>
+            <option value="CONTRATO">Contrato</option>
+            <option value="NOMBRAMIENTO">Nombramiento</option>
+            <option value="OCASIONAL">Ocasional</option>
+            <option value="CODIGO_TRABAJO">Código de trabajo</option>
+            <option value="OTRO">Otro</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Estado laboral</label>
+          <select autocomplete="off" [(ngModel)]="form.estadoLaboral" name="estadoLaboral" class="form-select">
+            <option value="ACTIVO">Activo</option>
+            <option value="VACACIONES">Vacaciones</option>
+            <option value="LICENCIA">Licencia</option>
+            <option value="COMISION">Comisión</option>
+            <option value="SUSPENDIDO">Suspendido</option>
+            <option value="DESVINCULADO">Desvinculado</option>
+            <option value="JUBILADO">Jubilado</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Ingreso institucional</label>
+          <input autocomplete="off" [(ngModel)]="form.fechaIngresoInstitucion" name="fechaIngreso" type="date" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Salida institucional</label>
+          <input autocomplete="off" [(ngModel)]="form.fechaSalidaInstitucion" name="fechaSalida" type="date" class="form-control">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Observaciones</label>
+          <textarea autocomplete="off" [(ngModel)]="form.observaciones" name="observaciones" class="form-control" rows="2" placeholder="Observaciones"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Formación Académica -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-graduation-cap" style="color:var(--primary);"></i>
+        <div>
+          <strong>Formación Académica</strong>
+          <small>Nivel, título, institución y verificación</small>
+        </div>
+      </div>
+      <div class="perfil-row" *ngFor="let f of form.formaciones; let idx = index">
+        <select autocomplete="off" [(ngModel)]="f.nivel" name="forNivel{{idx}}" class="form-select perfil-sel">
+          <option value="">— Nivel —</option>
+          <option value="BACHILLERATO">Bachillerato</option>
+          <option value="TECNICO">Técnico</option>
+          <option value="TECNOLOGO">Tecnólogo</option>
+          <option value="TERCER_NIVEL">Tercer nivel</option>
+          <option value="CUARTO_NIVEL">Cuarto nivel</option>
+        </select>
+        <input autocomplete="off" [(ngModel)]="f.titulo" name="forTitulo{{idx}}" class="form-control" placeholder="Título">
+        <input autocomplete="off" [(ngModel)]="f.institucion" name="forInst{{idx}}" class="form-control" placeholder="Institución">
+        <input autocomplete="off" [(ngModel)]="f.fechaInicio" name="forIni{{idx}}" type="date" class="form-control perfil-fecha" title="Desde">
+        <input autocomplete="off" [(ngModel)]="f.fechaFin" name="forFin{{idx}}" type="date" class="form-control perfil-fecha" title="Hasta">
+        <input autocomplete="off" [(ngModel)]="f.registroSenescyt" name="forReg{{idx}}" class="form-control perfil-meses" placeholder="Reg. Senescyt">
+        <label class="d-flex align-items-center gap-1 small perfil-check"><input type="checkbox" [(ngModel)]="f.verificado" name="forVer{{idx}}"> Verif.</label>
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('formaciones', idx)">✕</button>
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm mt-1" (click)="agregar('formaciones')">+ Formación</button>
+    </div>
+
+    <!-- 4. Experiencia Laboral -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-briefcase" style="color:var(--secondary);"></i>
+        <div>
+          <strong>Experiencia Laboral</strong>
+          <small>Trayectoria profesional previa</small>
+        </div>
+      </div>
+      <div class="perfil-row" *ngFor="let e of form.experiencias; let idx = index">
+        <input autocomplete="off" [(ngModel)]="e.institucion" name="expInst{{idx}}" class="form-control" placeholder="Institución">
+        <input autocomplete="off" [(ngModel)]="e.cargo" name="expCargo{{idx}}" class="form-control" placeholder="Cargo">
+        <input autocomplete="off" [(ngModel)]="e.fechaInicio" name="expIni{{idx}}" type="date" class="form-control perfil-fecha" title="Desde">
+        <input autocomplete="off" [(ngModel)]="e.fechaFin" name="expFin{{idx}}" type="date" class="form-control perfil-fecha" title="Hasta" *ngIf="!e.actualmenteTrabajando">
+        <label class="d-flex align-items-center gap-1 small perfil-check"><input type="checkbox" [(ngModel)]="e.actualmenteTrabajando" name="expAct{{idx}}"> Actualmente</label>
+        <input autocomplete="off" [(ngModel)]="e.descripcion" name="expDesc{{idx}}" class="form-control" placeholder="Descripción">
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('experiencias', idx)">✕</button>
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm mt-1" (click)="agregar('experiencias')">+ Experiencia</button>
+    </div>
+
+    <!-- 5. Capacitaciones -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-book" style="color:var(--primary);"></i>
+        <div>
+          <strong>Capacitaciones</strong>
+          <small>Formación continua y cursos</small>
+        </div>
+      </div>
+      <div class="perfil-row" *ngFor="let c of form.capacitaciones; let idx = index">
+        <input autocomplete="off" [(ngModel)]="c.nombre" name="capNom{{idx}}" class="form-control" placeholder="Nombre">
+        <input autocomplete="off" [(ngModel)]="c.institucion" name="capInst{{idx}}" class="form-control" placeholder="Institución">
+        <input autocomplete="off" [(ngModel)]="c.fechaInicio" name="capIni{{idx}}" type="date" class="form-control perfil-fecha" title="Desde">
+        <input autocomplete="off" [(ngModel)]="c.fechaFin" name="capFin{{idx}}" type="date" class="form-control perfil-fecha" title="Hasta">
+        <input autocomplete="off" [(ngModel)]="c.horas" name="capHoras{{idx}}" type="number" min="0" class="form-control perfil-meses" placeholder="Horas">
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('capacitaciones', idx)">✕</button>
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm mt-1" (click)="agregar('capacitaciones')">+ Capacitación</button>
+    </div>
+
+    <!-- 6. Documentos del Expediente -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-folder" style="color:var(--primary);"></i>
+        <div>
+          <strong>Documentos del Expediente</strong>
+          <small>Adjuntos, nivel de acceso y confidencialidad</small>
+        </div>
+      </div>
+      <div class="perfil-row" *ngFor="let d of form.documentos; let idx = index">
+        <select autocomplete="off" [(ngModel)]="d.tipo" name="docTipo{{idx}}" class="form-select perfil-sel">
+          <option *ngFor="let t of ['IDENTIFICACION','CONTRATO','NOMBRAMIENTO','ACCION_PERSONAL','TITULO','CERTIFICADO','CAPACITACION','EXPERIENCIA','EVALUACION','VACACION','PERMISO','LICENCIA','INFORME','DESVINCULACION','OTRO']" [value]="t">{{ t.replace('_',' ') }}</option>
+        </select>
+        <input autocomplete="off" [(ngModel)]="d.descripcion" name="docDesc{{idx}}" class="form-control" placeholder="Descripción">
+        <select autocomplete="off" [(ngModel)]="d.nivelAcceso" name="docNivel{{idx}}" class="form-select perfil-sel"
+                [ngClass]="{ 'text-danger fw-semibold': d.nivelAcceso === 'CONFIDENCIAL_RRHH' || d.nivelAcceso === 'RESTRINGIDO' }">
+          <option *ngFor="let n of nivelesAcceso" [value]="n.valor">{{ n.etiqueta }}</option>
+        </select>
+        <label class="d-flex align-items-center gap-1 small perfil-check"><input type="checkbox" [(ngModel)]="d.confidencial" name="docConf{{idx}}"> Confidencial</label>
+        <span class="d-inline-flex gap-1 align-items-center">
+          <label class="btn btn-outline-secondary btn-sm mb-0" [class.disabled]="!editandoId || !d.idEmpleadoDocumento">
+            <i class="pi pi-paperclip" style="font-size:0.7rem;"></i> Adjuntar<input type="file" class="d-none" (change)="subirArchivo(d, $event.target)" [disabled]="!editandoId || !d.idEmpleadoDocumento">
+          </label>
+          <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!d.nombreArchivo"
+                  title="Descargar {{ d.nombreArchivo || 'sin archivo' }} ({{ tamanoLegible(d.tamanoBytes) }})"
+                  (click)="descargarArchivo(d)">
+            <i class="pi pi-download" style="font-size:0.7rem;"></i>
+          </button>
+          <span *ngIf="d.nombreArchivo" class="small text-muted d-inline-block" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            {{ d.nombreArchivo }} {{ tamanoLegible(d.tamanoBytes) }}
+          </span>
+        </span>
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('documentos', idx)">✕</button>
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm mt-1" (click)="agregar('documentos')">+ Documento</button>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/talento-humano/empleados" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary px-4" [disabled]="cargando || empForm.invalid">
+        <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ cargando ? 'Guardando...' : (editando ? 'Actualizar Empleado' : 'Crear Empleado') }}
+      </button>
+    </div>
+  </form>
+</div>

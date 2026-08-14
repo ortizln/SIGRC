@@ -1,0 +1,79 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1000px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>{{ editando ? 'Editar Unidad' : 'Nueva Unidad' }}</h2>
+        <p>Unidades organizacionales de la estructura institucional</p>
+      </div>
+      <a routerLink="/talento-humano/estructura" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <form autocomplete="off" (ngSubmit)="guardar()" #unidadForm="ngForm">
+
+    <!-- Datos de la unidad -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-sitemap" style="color:var(--primary);"></i>
+        <div>
+          <strong>Datos de la Unidad</strong>
+          <small>Identificación y ubicación en la estructura</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Código <span class="text-danger">*</span></label>
+          <input autocomplete="off" #codModel="ngModel" [(ngModel)]="form.codigo" name="codigo" required class="form-control" [class.is-invalid]="codModel.invalid && codModel.touched" placeholder="Código (U-001)">
+          <div class="validation-feedback" *ngIf="codModel.invalid && codModel.touched">El código es obligatorio</div>
+        </div>
+        <div class="col-md-8">
+          <label class="form-label">Nombre <span class="text-danger">*</span></label>
+          <input autocomplete="off" #nomModel="ngModel" [(ngModel)]="form.nombre" name="nombre" required class="form-control" [class.is-invalid]="nomModel.invalid && nomModel.touched" placeholder="Nombre de la unidad">
+          <div class="validation-feedback" *ngIf="nomModel.invalid && nomModel.touched">El nombre es obligatorio</div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Sigla</label>
+          <input autocomplete="off" [(ngModel)]="form.sigla" name="sigla" class="form-control" placeholder="Sigla">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Tipo de unidad</label>
+          <select autocomplete="off" [(ngModel)]="form.tipoUnidad" name="tipoUnidad" class="form-select">
+            <option *ngFor="let t of ['DIRECTORIO','GERENCIA','DIRECCION','JEFATURA','UNIDAD','SECRETARIA','COORDINACION','PROCESO','SUBPROCESO','OTRO']" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Nivel organizacional</label>
+          <select autocomplete="off" [(ngModel)]="form.idNivel" name="idNivel" class="form-select">
+            <option [ngValue]="null">— Sin nivel —</option>
+            <option *ngFor="let n of niveles" [ngValue]="n.idNivel">{{ n.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Depende de</label>
+          <select autocomplete="off" [(ngModel)]="form.idUnidadPadre" name="idUnidadPadre" class="form-select">
+            <option [ngValue]="null">— Unidad raíz —</option>
+            <option *ngFor="let u of unidades" [ngValue]="u.idUnidad" [hidden]="u.idUnidad === editandoId">{{ u.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Orden</label>
+          <input autocomplete="off" [(ngModel)]="form.orden" name="orden" type="number" min="0" class="form-control" placeholder="Orden">
+        </div>
+        <div class="col-md-9">
+          <label class="form-label">Descripción</label>
+          <input autocomplete="off" [(ngModel)]="form.descripcion" name="descripcion" class="form-control" placeholder="Descripción (opcional)">
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/talento-humano/estructura" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary px-4" [disabled]="cargando">
+        <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ cargando ? 'Guardando...' : (editando ? 'Actualizar Unidad' : 'Crear Unidad') }}
+      </button>
+    </div>
+  </form>
+</div>

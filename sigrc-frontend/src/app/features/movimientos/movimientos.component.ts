@@ -1,34 +1,26 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { GestionPersonalService } from '@core/services/gestion-personal.service';
 import { TalentoHumanoService } from '@core/services/talento-humano.service';
-import { TIPOS_MOVIMIENTO } from '@shared/models/gestion-personal.model';
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-movimientos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './movimientos.component.html',
   styleUrl: './movimientos.component.css'
 })
 export class MovimientosComponent implements OnInit {
   empleados: any[] = [];
-  puestos: any[] = [];
-  unidades: any[] = [];
   asignaciones: any[] = [];
 
   idEmpleado: number | null = null;
   estadoFiltro = '';
   movimientos: any[] = [];
-  tipos = TIPOS_MOVIMIENTO;
-
-  form: any = {};
-  formVisible = false;
-  editandoId: number | null = null;
-  cargando = false;
 
   constructor(
     private svc: GestionPersonalService,
@@ -40,8 +32,6 @@ export class MovimientosComponent implements OnInit {
 
   ngOnInit() {
     this.thSvc.getEmpleados().subscribe(r => this.empleados = r);
-    this.thSvc.getPuestos().subscribe(r => this.puestos = r);
-    this.thSvc.getUnidades().subscribe(r => this.unidades = r);
     this.cargar();
   }
 
@@ -63,60 +53,6 @@ export class MovimientosComponent implements OnInit {
       'BORRADOR': 'borde', 'PENDIENTE': 'info', 'APROBADA': 'ok', 'RECHAZADA': 'no', 'ANULADA': 'no'
     };
     return map[estado] || 'info';
-  }
-
-  nuevo() {
-    this.editandoId = null;
-    this.form = { tipoMovimiento: 'TRASLADO', fechaSolicitud: new Date().toISOString().split('T')[0] };
-    this.formVisible = true;
-  }
-
-  editar(m: any) {
-    this.editandoId = m.idMovimiento;
-    this.form = {
-      idEmpleado: m.idEmpleado,
-      tipoMovimiento: m.tipoMovimiento,
-      idAsignacionOrigen: m.idAsignacionOrigen,
-      idPuestoDestino: m.idPuestoDestino,
-      idUnidadDestino: m.idUnidadDestino,
-      fechaSolicitud: m.fechaSolicitud,
-      fechaDesde: m.fechaDesde,
-      fechaHasta: m.fechaHasta,
-      motivo: m.motivo,
-      documentoRespaldoId: m.documentoRespaldoId
-    };
-    this.idEmpleado = m.idEmpleado;
-    this.onEmpleadoChange();
-    this.formVisible = true;
-  }
-
-  cancelar() {
-    this.formVisible = false;
-    this.editandoId = null;
-    this.form = {};
-  }
-
-  guardar() {
-    if (!this.form.idEmpleado || !this.form.tipoMovimiento) {
-      Swal.fire('Faltan datos', 'Empleado y tipo de movimiento son obligatorios.', 'warning');
-      return;
-    }
-    this.cargando = true;
-    const obs = this.editandoId
-      ? this.svc.actualizarMovimiento(this.editandoId, this.form)
-      : this.svc.crearMovimiento(this.form);
-    obs.subscribe({
-      next: () => {
-        this.cargando = false;
-        this.cancelar();
-        Swal.fire('Guardado', 'Movimiento registrado correctamente.', 'success');
-        this.cargar();
-      },
-      error: (e) => {
-        this.cargando = false;
-        Swal.fire('Error', e.error?.error || 'No se pudo guardar el movimiento.', 'error');
-      }
-    });
   }
 
   enviar(m: any) {

@@ -1,0 +1,54 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:950px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>Permisos del Rol: <code>{{ rol?.nombre }}</code></h2>
+        <p>Asigne los permisos de acceso que tendrá este rol</p>
+      </div>
+      <a routerLink="/roles" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <div class="form-section" *ngIf="rol">
+    <div class="form-section-header">
+      <i class="pi pi-shield" style="color:var(--primary);"></i>
+      <div>
+        <strong>Permisos por Módulo</strong>
+        <small>Marque los permisos que desea asignar a {{ rol.nombre }}</small>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-6 col-lg-4" *ngFor="let grupo of permisosAgrupados">
+        <div class="border rounded-3 p-3 bg-light h-100">
+          <h6 class="fw-bold small text-uppercase mb-3 pb-2 border-bottom d-flex align-items-center gap-1" style="letter-spacing:0.04em;color:var(--text-color-secondary);">
+            <span>📁</span> {{ grupo.modulo }}
+          </h6>
+          <label class="d-flex align-items-center gap-2 py-1 px-1 rounded" style="cursor:pointer;font-size:0.82rem;transition:background 0.15s;" *ngFor="let p of grupo.permisos">
+            <input autocomplete="off" type="checkbox" class="form-check-input" [checked]="permisoSeleccionado.has(p.idPermiso)" (change)="togglePermiso(p.idPermiso)" style="accent-color:var(--primary);">
+            <span>{{ p.nombre }}</span>
+            <small class="text-muted ms-auto" style="font-size:0.65rem;">{{ p.tipoAcceso }}</small>
+          </label>
+        </div>
+      </div>
+      <div *ngIf="permisos.length === 0" class="col-12 text-center py-4 text-muted">
+        <div class="empty-icon">📋</div>
+        <p class="mb-0">No hay permisos definidos. Cree permisos desde el listado de roles y permisos.</p>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/roles" class="btn btn-outline-secondary">Cancelar</a>
+      <button class="btn btn-primary px-4" (click)="guardarPermisos()" [disabled]="cargando">
+        <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ cargando ? 'Guardando...' : 'Guardar Permisos' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="text-center py-5 text-muted" *ngIf="!rol">
+    <p>Cargando rol...</p>
+  </div>
+</div>

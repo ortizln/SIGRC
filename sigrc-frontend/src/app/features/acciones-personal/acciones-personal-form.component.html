@@ -1,0 +1,93 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1000px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>{{ editando ? 'Editar Acción' : 'Nueva Acción' }}</h2>
+        <p>Informes técnicos y acciones de personal elaboradas por Talento Humano</p>
+      </div>
+      <a routerLink="/talento-humano/acciones-personal" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <form autocomplete="off" (ngSubmit)="guardar()" #accionForm="ngForm">
+
+    <!-- 1. Datos de la acción -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-id-card" style="color:var(--primary);"></i>
+        <div>
+          <strong>Datos de la Acción</strong>
+          <small>Empleado, tipo y fechas de vigencia</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Empleado <span class="text-danger">*</span></label>
+          <select #empModel="ngModel" [(ngModel)]="form.idEmpleado" name="idEmpleado" required class="form-select" [class.is-invalid]="empModel.invalid && empModel.touched">
+            <option [ngValue]="null">— Empleado —</option>
+            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="empModel.invalid && empModel.touched">Seleccione el empleado</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Tipo <span class="text-danger">*</span></label>
+          <select #tipoModel="ngModel" [(ngModel)]="form.tipo" name="tipo" required class="form-select" [class.is-invalid]="tipoModel.invalid && tipoModel.touched">
+            <option *ngFor="let t of tipos" [value]="t.value">{{ t.label }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="tipoModel.invalid && tipoModel.touched">Seleccione el tipo de acción</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Fecha de emisión</label>
+          <input autocomplete="off" [(ngModel)]="form.fechaEmision" name="fechaEmision" type="date" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Vigencia desde</label>
+          <input autocomplete="off" [(ngModel)]="form.fechaVigenciaDesde" name="fechaVigenciaDesde" type="date" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Vigencia hasta</label>
+          <input autocomplete="off" [(ngModel)]="form.fechaVigenciaHasta" name="fechaVigenciaHasta" type="date" class="form-control">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Motivo</label>
+          <input autocomplete="off" [(ngModel)]="form.motivo" name="motivo" class="form-control" placeholder="Motivo de la acción">
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Situación -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-briefcase" style="color:var(--secondary);"></i>
+        <div>
+          <strong>Situación</strong>
+          <small>Situación actual y propuesta del servidor</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Situación actual</label>
+          <input autocomplete="off" [(ngModel)]="form.situacionActual" name="situacionActual" class="form-control" placeholder="Situación actual">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Situación propuesta</label>
+          <input autocomplete="off" [(ngModel)]="form.situacionPropuesta" name="situacionPropuesta" class="form-control" placeholder="Situación propuesta">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Documento ID</label>
+          <input autocomplete="off" [(ngModel)]="form.documentoId" name="documentoId" type="number" min="0" class="form-control" placeholder="Documento ID">
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/talento-humano/acciones-personal" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary px-4" [disabled]="cargando">
+        <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ cargando ? 'Guardando...' : (editando ? 'Actualizar Acción' : 'Crear Acción') }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,97 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:900px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>Nueva Delegación</h2>
+        <p>Delegación de funciones para cubrir vacaciones, encargos y ausencias</p>
+      </div>
+      <a routerLink="/talento-humano/delegaciones" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <form autocomplete="off" (ngSubmit)="guardar()" #delegacionForm="ngForm">
+
+    <!-- 1. Funcionarios -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-users" style="color:var(--primary);"></i>
+        <div>
+          <strong>Funcionarios</strong>
+          <small>Funcionario a cubrir y funcionario delegado</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Funcionario a cubrir <span class="text-danger">*</span></label>
+          <select autocomplete="off" #origenModel="ngModel" [(ngModel)]="form.idEmpleadoOrigen" name="idEmpleadoOrigen" required class="form-select" [class.is-invalid]="origenModel.invalid && origenModel.touched" (ngModelChange)="onEmpleadoOrigenChange()">
+            <option [ngValue]="null">— Seleccione —</option>
+            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }} · {{ e.identificacion }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="origenModel.invalid && origenModel.touched">Seleccione el funcionario a cubrir</div>
+          <div class="small text-muted mt-1">Asignación actual: {{ form.origenInfo || '—' }}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Funcionario delegado <span class="text-danger">*</span></label>
+          <select autocomplete="off" #delegadoModel="ngModel" [(ngModel)]="form.idEmpleadoDelegado" name="idEmpleadoDelegado" required class="form-select" [class.is-invalid]="delegadoModel.invalid && delegadoModel.touched" (ngModelChange)="onEmpleadoDelegadoChange()">
+            <option [ngValue]="null">— Seleccione —</option>
+            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }} · {{ e.identificacion }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="delegadoModel.invalid && delegadoModel.touched">Seleccione el funcionario delegado</div>
+          <div class="small text-muted mt-1">Asignación actual: {{ form.delegadoInfo || '—' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Período y condiciones -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-calendar" style="color:var(--secondary);"></i>
+        <div>
+          <strong>Período y condiciones</strong>
+          <small>Fechas, tipo, alcance y documento de respaldo</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Fecha inicio <span class="text-danger">*</span></label>
+          <input autocomplete="off" #iniModel="ngModel" [(ngModel)]="form.fechaInicio" name="fechaInicio" type="date" required class="form-control" [class.is-invalid]="iniModel.invalid && iniModel.touched">
+          <div class="validation-feedback" *ngIf="iniModel.invalid && iniModel.touched">La fecha de inicio es obligatoria</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Fecha fin</label>
+          <input autocomplete="off" [(ngModel)]="form.fechaFin" name="fechaFin" type="date" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Tipo</label>
+          <select autocomplete="off" [(ngModel)]="form.tipo" name="tipo" class="form-select">
+            <option *ngFor="let t of tipos" [value]="t.valor">{{ t.etiqueta }}</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Alcance</label>
+          <select autocomplete="off" [(ngModel)]="form.alcance" name="alcance" class="form-select">
+            <option *ngFor="let a of alcances" [value]="a.valor">{{ a.etiqueta }}</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Documento respaldo (id)</label>
+          <input autocomplete="off" [(ngModel)]="form.documentoRespaldoId" name="documentoRespaldoId" type="number" min="0" class="form-control" placeholder="Documento de respaldo">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Observación</label>
+          <textarea autocomplete="off" [(ngModel)]="form.observacion" name="observacion" class="form-control" rows="2" placeholder="Observaciones"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/talento-humano/delegaciones" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary px-4" [disabled]="cargando">
+        <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ cargando ? 'Guardando...' : 'Guardar Delegación' }}
+      </button>
+    </div>
+  </form>
+</div>

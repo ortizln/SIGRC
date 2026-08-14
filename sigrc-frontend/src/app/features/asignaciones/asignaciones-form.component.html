@@ -1,0 +1,80 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1000px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>Nueva Asignación</h2>
+        <p>Asigne un puesto a un empleado del catálogo</p>
+      </div>
+      <a routerLink="/talento-humano/asignaciones" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <form autocomplete="off" (ngSubmit)="guardar()" #asigForm="ngForm">
+
+    <!-- 1. Datos de la asignación -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-user-plus" style="color:var(--primary);"></i>
+        <div>
+          <strong>Datos de la asignación</strong>
+          <small>Empleado, puesto y condiciones de la asignación</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Empleado <span class="text-danger">*</span></label>
+          <select autocomplete="off" #empModel="ngModel" [(ngModel)]="form.idEmpleado" name="idEmpleado" required class="form-select" [class.is-invalid]="empModel.invalid && empModel.touched">
+            <option [ngValue]="null">— Seleccione empleado —</option>
+            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }} ({{ e.identificacion }})</option>
+          </select>
+          <div class="validation-feedback" *ngIf="empModel.invalid && empModel.touched">Seleccione el empleado</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Puesto <span class="text-danger">*</span></label>
+          <select autocomplete="off" #puestoModel="ngModel" [(ngModel)]="form.idPuesto" name="idPuesto" required class="form-select" [class.is-invalid]="puestoModel.invalid && puestoModel.touched" (change)="onPuestoChange()">
+            <option [ngValue]="null">— Seleccione puesto —</option>
+            <option *ngFor="let p of puestos" [ngValue]="p.idPuesto">{{ p.nombre }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="puestoModel.invalid && puestoModel.touched">Seleccione el puesto a asignar</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Unidad</label>
+          <select autocomplete="off" [(ngModel)]="form.idUnidad" name="idUnidad" class="form-select">
+            <option [ngValue]="null">— Unidad (usa la del puesto) —</option>
+            <option *ngFor="let u of unidades" [ngValue]="u.idUnidad">{{ u.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Tipo de asignación <span class="text-danger">*</span></label>
+          <select autocomplete="off" #tipoModel="ngModel" [(ngModel)]="form.tipoAsignacion" name="tipoAsignacion" required class="form-select" [class.is-invalid]="tipoModel.invalid && tipoModel.touched">
+            <option *ngFor="let t of ['TITULAR','ENCARGO','SUBROGACION','TEMPORAL','COMISION','TRASLADO']" [value]="t">{{ t }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="tipoModel.invalid && tipoModel.touched">Seleccione el tipo de asignación</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Fecha inicio <span class="text-danger">*</span></label>
+          <input autocomplete="off" #iniModel="ngModel" type="date" [(ngModel)]="form.fechaInicio" name="fechaInicio" required class="form-control" [class.is-invalid]="iniModel.invalid && iniModel.touched">
+          <div class="validation-feedback" *ngIf="iniModel.invalid && iniModel.touched">Indique la fecha de inicio</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Fecha fin</label>
+          <input autocomplete="off" type="date" [(ngModel)]="form.fechaFin" name="fechaFin" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Observación</label>
+          <input autocomplete="off" [(ngModel)]="form.observacion" name="observacion" class="form-control" placeholder="Observación (opcional)">
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/talento-humano/asignaciones" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary px-4" [disabled]="cargando">
+        <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ cargando ? 'Guardando...' : 'Asignar Puesto' }}
+      </button>
+    </div>
+  </form>
+</div>

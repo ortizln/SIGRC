@@ -22,31 +22,7 @@
         <ng-template #sinJefe><div class="text-muted small">—</div></ng-template>
       </div>
       <div class="col-md-4 text-end">
-        <button class="btn btn-outline-secondary btn-sm me-1" (click)="mostrarResponsables()" *ngIf="isAdmin">Responsables de unidad</button>
-        <button class="btn btn-primary btn-sm" (click)="nuevo()" *ngIf="isAdmin && idEmpleado">+ Asignar Puesto</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="card-modern p-3 mb-3" *ngIf="respVisible && isAdmin">
-    <h6 class="fw-bold mb-2">Asignar responsable de unidad</h6>
-    <div class="row g-2 align-items-end">
-      <div class="col-md-4">
-        <select class="form-select form-select-sm" [(ngModel)]="respForm.idUnidad">
-          <option [ngValue]="null">— Unidad —</option>
-          <option *ngFor="let u of unidades" [ngValue]="u.idUnidad">{{ u.nombre }}</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <select class="form-select form-select-sm" [(ngModel)]="respForm.idEmpleado">
-          <option [ngValue]="null">— Responsable (empleado) —</option>
-          <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }}</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <button class="btn btn-primary btn-sm" (click)="guardarResponsable()" [disabled]="cargandoResp">
-          {{ cargandoResp ? 'Guardando...' : 'Guardar responsable' }}
-        </button>
+        <a routerLink="/talento-humano/asignaciones/nuevo" class="btn btn-primary btn-sm" *ngIf="isAdmin">+ Asignar Puesto</a>
       </div>
     </div>
   </div>
@@ -62,46 +38,6 @@
         <div class="col-md-4"><strong>Estado:</strong> <span class="badge-unidad">{{ asignacionActual.estado }}</span></div>
       </div>
       <ng-template #sinAsignacion><div class="empty-state"><h5>Sin asignación vigente</h5></div></ng-template>
-    </div>
-
-    <div class="card-modern p-3 mb-3" *ngIf="formVisible && isAdmin">
-      <form autocomplete="off" (ngSubmit)="guardar()" #asigForm="ngForm">
-        <h6 class="fw-bold mb-2">Nueva asignación</h6>
-        <div class="row g-2">
-          <div class="col-md-4">
-            <select class="form-select form-select-sm" [(ngModel)]="form.idPuesto" name="idPuesto" required (change)="onPuestoChange()">
-              <option [ngValue]="null">— Puesto —</option>
-              <option *ngFor="let p of puestos" [ngValue]="p.idPuesto">{{ p.nombre }}</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <select class="form-select form-select-sm" [(ngModel)]="form.idUnidad" name="idUnidad">
-              <option [ngValue]="null">— Unidad (usa la del puesto) —</option>
-              <option *ngFor="let u of unidades" [ngValue]="u.idUnidad">{{ u.nombre }}</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <select class="form-select form-select-sm" [(ngModel)]="form.tipoAsignacion" name="tipoAsignacion">
-              <option *ngFor="let t of ['TITULAR','ENCARGO','SUBROGACION','TEMPORAL','COMISION','TRASLADO']" [value]="t">{{ t }}</option>
-            </select>
-          </div>
-          <div class="col-md-3">
-            <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaInicio" name="fechaInicio">
-          </div>
-          <div class="col-md-3">
-            <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaFin" name="fechaFin">
-          </div>
-          <div class="col-md-6">
-            <input class="form-control form-control-sm" [(ngModel)]="form.observacion" name="observacion" placeholder="Observación (opcional)">
-          </div>
-          <div class="col-12 d-flex gap-1">
-            <button type="submit" class="btn btn-primary btn-sm" [disabled]="cargando || asigForm.invalid">
-              <i class="pi pi-save" style="font-size:0.7rem;"></i> {{ cargando ? 'Guardando...' : 'Asignar' }}
-            </button>
-            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelar()">Cancelar</button>
-          </div>
-        </div>
-      </form>
     </div>
 
     <div class="card-modern p-0">
@@ -120,6 +56,7 @@
               <th>Hasta</th>
               <th>Principal</th>
               <th>Estado</th>
+              <th style="width:150px;" *ngIf="isAdmin">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -131,8 +68,13 @@
               <td class="small">{{ a.fechaFin || '—' }}</td>
               <td><span class="badge-unidad" *ngIf="a.esPrincipal">Principal</span></td>
               <td><span class="badge-unidad" [class.badge-inactivo]="a.estado !== 'ACTIVA'">{{ a.estado }}</span></td>
+              <td *ngIf="isAdmin">
+                <a class="btn btn-outline-secondary btn-sm"
+                   [routerLink]="['/talento-humano/asignaciones/responsable', a.idAsignacion]"
+                   [queryParams]="{ empId: a.idEmpleado }">Cambiar responsable</a>
+              </td>
             </tr>
-            <tr *ngIf="historial.length === 0"><td colspan="7" class="empty-state"><h5>Sin asignaciones registradas</h5></td></tr>
+            <tr *ngIf="historial.length === 0"><td [attr.colspan]="isAdmin ? 8 : 7" class="empty-state"><h5>Sin asignaciones registradas</h5></td></tr>
           </tbody>
         </table>
       </div>

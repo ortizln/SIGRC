@@ -1,0 +1,94 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1000px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>Nueva Solicitud</h2>
+        <p>Vacaciones, permisos y licencias · flujo: funcionario → jefe inmediato → Talento Humano</p>
+      </div>
+      <a routerLink="/talento-humano/vacaciones-permisos" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <form autocomplete="off" (ngSubmit)="guardar()" #vacacionesForm="ngForm">
+
+    <!-- 1. Datos de la solicitud -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-id-card" style="color:var(--primary);"></i>
+        <div>
+          <strong>Datos de la solicitud</strong>
+          <small>Empleado, tipo y período de la ausencia</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Empleado <span class="text-danger">*</span></label>
+          <select *ngIf="!soloMiEmpleado" #empModel="ngModel" [(ngModel)]="form.idEmpleado" name="idEmpleado" required class="form-select" [class.is-invalid]="empModel.invalid && empModel.touched">
+            <option [ngValue]="null">— Empleado —</option>
+            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }}</option>
+          </select>
+          <input *ngIf="soloMiEmpleado" class="form-control" [value]="usuarioLogueado?.empleadoNombre" disabled>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Tipo <span class="text-danger">*</span></label>
+          <select #tipoModel="ngModel" [(ngModel)]="form.tipo" name="tipo" required class="form-select" [class.is-invalid]="tipoModel.invalid && tipoModel.touched">
+            <option [ngValue]="null">— Tipo —</option>
+            <option *ngFor="let t of tipos" [value]="t.value">{{ t.label }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="tipoModel.invalid && tipoModel.touched">Seleccione el tipo de ausencia</div>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Desde <span class="text-danger">*</span></label>
+          <input #desdeModel="ngModel" type="date" [(ngModel)]="form.fechaDesde" name="fechaDesde" required class="form-control" [class.is-invalid]="desdeModel.invalid && desdeModel.touched">
+          <div class="validation-feedback" *ngIf="desdeModel.invalid && desdeModel.touched">Indique la fecha de inicio</div>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Hasta <span class="text-danger">*</span></label>
+          <input #hastaModel="ngModel" type="date" [(ngModel)]="form.fechaHasta" name="fechaHasta" required class="form-control" [class.is-invalid]="hastaModel.invalid && hastaModel.touched">
+          <div class="validation-feedback" *ngIf="hastaModel.invalid && hastaModel.touched">Indique la fecha de fin</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Detalles -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-list" style="color:var(--secondary);"></i>
+        <div>
+          <strong>Detalles</strong>
+          <small>Días, horas, motivo y documento de respaldo</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-2">
+          <label class="form-label">Días</label>
+          <input #diasModel="ngModel" type="number" min="1" [(ngModel)]="form.dias" name="dias" class="form-control" [class.is-invalid]="diasModel.invalid && diasModel.touched" placeholder="Días">
+          <div class="validation-feedback" *ngIf="diasModel.invalid && diasModel.touched">Mínimo 1 día</div>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Horas</label>
+          <input #horasModel="ngModel" type="number" min="0" [(ngModel)]="form.horas" name="horas" class="form-control" [class.is-invalid]="horasModel.invalid && horasModel.touched" placeholder="Horas">
+          <div class="validation-feedback" *ngIf="horasModel.invalid && horasModel.touched">El valor no puede ser negativo</div>
+        </div>
+        <div class="col-md-8">
+          <label class="form-label">Motivo</label>
+          <input #motivoModel="ngModel" [(ngModel)]="form.motivo" name="motivo" class="form-control" placeholder="Motivo de la solicitud">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Documento de respaldo ID</label>
+          <input type="number" [(ngModel)]="form.documentoRespaldoId" name="documentoRespaldoId" class="form-control" placeholder="Doc. respaldo ID">
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/talento-humano/vacaciones-permisos" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary px-4" [disabled]="cargando">
+        <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ cargando ? 'Enviando...' : 'Crear Solicitud' }}
+      </button>
+    </div>
+  </form>
+</div>

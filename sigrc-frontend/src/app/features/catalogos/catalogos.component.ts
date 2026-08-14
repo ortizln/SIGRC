@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { CatalogoService } from '@core/services/catalogo.service';
 import Swal from 'sweetalert2';
@@ -8,7 +8,7 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-catalogos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './catalogos.component.html',
   styleUrl: './catalogos.component.css'
 })
@@ -18,17 +18,20 @@ export class CatalogosComponent implements OnInit {
   sistemas: any[] = [];
   categorias: any[] = [];
   subcategorias: any[] = [];
-  form: any = {};
-  formVisible = false;
-  editando = false;
-  editandoId: number | null = null;
-  cargando = false;
-
   menuAbierto: number | null = null;
 
   constructor(private svc: CatalogoService, private auth: AuthService) {}
 
   get isAdmin(): boolean { return this.auth.hasRole('ADMIN'); }
+
+  get tipoRuta(): string {
+    switch (this.tabActivo) {
+      case 'areas': return 'area';
+      case 'sistemas': return 'sistema';
+      case 'categorias': return 'categoria';
+      default: return 'subcategoria';
+    }
+  }
 
   ngOnInit() {
     this.cargarAreas();
@@ -40,96 +43,13 @@ export class CatalogosComponent implements OnInit {
   cargarSistemas() { this.svc.getSistemas().subscribe(r => this.sistemas = r); }
   cargarCategorias() { this.svc.getCategorias().subscribe(r => this.categorias = r); }
 
-  cargarSubcategorias() {
-    if (this.form.idCategoria) {
-      this.svc.getSubcategorias(this.form.idCategoria).subscribe(r => this.subcategorias = r);
-    } else {
-      this.subcategorias = [];
-    }
-  }
-
   onTab(tab: string) {
     this.tabActivo = tab;
-    this.formVisible = false;
     this.menuAbierto = null;
-    this.cancelar();
-    if (tab === 'subcategorias') this.cargarSubcategorias();
   }
 
   toggleMenu(id: number) {
     this.menuAbierto = this.menuAbierto === id ? null : id;
-  }
-
-  nuevo() {
-    this.form = {};
-    this.editando = false;
-    this.editandoId = null;
-    this.formVisible = true;
-  }
-
-  editar(item: any, tipo: string) {
-    this.form = { ...item };
-    this.editando = true;
-    this.editandoId = item.idArea || item.idSistema || item.idCategoria || item.idSubcategoria;
-    this.formVisible = true;
-    this.menuAbierto = null;
-    if (tipo === 'subcategoria') this.form.idCategoria = item.categoria?.idCategoria;
-  }
-
-  cancelar() {
-    this.form = {};
-    this.editando = false;
-    this.editandoId = null;
-    this.formVisible = false;
-  }
-
-  guardar() {
-    this.cargando = true;
-    const tab = this.tabActivo;
-    const esEdicion = this.editando && this.editandoId;
-
-    let payload = { ...this.form };
-    if (tab === 'subcategorias') {
-      if (payload.idCategoria) {
-        payload.categoria = { idCategoria: payload.idCategoria };
-      }
-      delete payload.idCategoria;
-    }
-
-    let obs;
-    if (tab === 'areas') {
-      obs = esEdicion
-        ? this.svc.actualizarArea(this.editandoId!, payload)
-        : this.svc.crearArea(payload);
-    } else if (tab === 'sistemas') {
-      obs = esEdicion
-        ? this.svc.actualizarSistema(this.editandoId!, payload)
-        : this.svc.crearSistema(payload);
-    } else if (tab === 'categorias') {
-      obs = esEdicion
-        ? this.svc.actualizarCategoria(this.editandoId!, payload)
-        : this.svc.crearCategoria(payload);
-    } else {
-      obs = esEdicion
-        ? this.svc.actualizarSubcategoria(this.editandoId!, payload)
-        : this.svc.crearSubcategoria(payload);
-    }
-
-    obs.subscribe({
-      next: () => {
-        this.cargando = false;
-        this.cancelar();
-        if (tab === 'areas') this.cargarAreas();
-        else if (tab === 'sistemas') this.cargarSistemas();
-        else if (tab === 'categorias') this.cargarCategorias();
-        else this.cargarSubcategorias();
-      },
-      error: (err) => {
-        this.cargando = false;
-        const msg = err.error?.error || 'Error al guardar. Verifique que el código no esté duplicado.';
-        Swal.fire({ icon: 'error', title: 'Error', text: msg });
-      }
-    });
   }
 
   desactivar(item: any, tipo: string) {
@@ -152,7 +72,6 @@ export class CatalogosComponent implements OnInit {
         if (tipo === 'area') this.cargarAreas();
         else if (tipo === 'sistema') this.cargarSistemas();
         else if (tipo === 'categoria') this.cargarCategorias();
-        else this.cargarSubcategorias();
       });
     });
   }
@@ -180,7 +99,6 @@ export class CatalogosComponent implements OnInit {
           if (tipo === 'area') this.cargarAreas();
           else if (tipo === 'sistema') this.cargarSistemas();
           else if (tipo === 'categoria') this.cargarCategorias();
-          else this.cargarSubcategorias();
         } else {
           Swal.fire('No se puede eliminar', res.message || 'Este registro está siendo usado por otros datos.', 'warning');
         }

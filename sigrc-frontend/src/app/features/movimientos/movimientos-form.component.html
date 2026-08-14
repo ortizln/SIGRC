@@ -1,0 +1,107 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1000px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>{{ editando ? 'Editar Movimiento' : 'Nuevo Movimiento' }}</h2>
+        <p>Ingreso, nombramiento, traslado, encargo, reintegro, desvinculación y más</p>
+      </div>
+      <a routerLink="/talento-humano/movimientos" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <form autocomplete="off" (ngSubmit)="guardar()" #movForm="ngForm">
+
+    <!-- 1. Datos del movimiento -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-users" style="color:var(--primary);"></i>
+        <div>
+          <strong>Identificación del Movimiento</strong>
+          <small>Empleado, tipo de movimiento y datos generales</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Empleado <span class="text-danger">*</span></label>
+          <select autocomplete="off" #empModel="ngModel" [(ngModel)]="form.idEmpleado" name="idEmpleado" required class="form-select" [class.is-invalid]="empModel.invalid && empModel.touched" (ngModelChange)="onEmpleadoChange()">
+            <option [ngValue]="null">— Seleccione —</option>
+            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="empModel.invalid && empModel.touched">El empleado es obligatorio</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Tipo de movimiento <span class="text-danger">*</span></label>
+          <select autocomplete="off" #tipoModel="ngModel" [(ngModel)]="form.tipoMovimiento" name="tipoMovimiento" required class="form-select" [class.is-invalid]="tipoModel.invalid && tipoModel.touched">
+            <option [ngValue]="null">— Seleccione —</option>
+            <option *ngFor="let t of tipos" [value]="t.value">{{ t.label }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="tipoModel.invalid && tipoModel.touched">El tipo de movimiento es obligatorio</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Asignación origen</label>
+          <select autocomplete="off" [(ngModel)]="form.idAsignacionOrigen" name="idAsignacionOrigen" class="form-select">
+            <option [ngValue]="null">— Asignación origen —</option>
+            <option *ngFor="let a of asignaciones" [ngValue]="a.idAsignacion">{{ a.puestoNombre || '—' }} · {{ a.unidadNombre || '—' }}</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Puesto destino</label>
+          <select autocomplete="off" [(ngModel)]="form.idPuestoDestino" name="idPuestoDestino" class="form-select">
+            <option [ngValue]="null">— Puesto destino —</option>
+            <option *ngFor="let p of puestos" [ngValue]="p.idPuesto">{{ p.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Unidad destino</label>
+          <select autocomplete="off" [(ngModel)]="form.idUnidadDestino" name="idUnidadDestino" class="form-select">
+            <option [ngValue]="null">— Unidad destino —</option>
+            <option *ngFor="let u of unidades" [ngValue]="u.idUnidad">{{ u.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Fecha de solicitud</label>
+          <input autocomplete="off" [(ngModel)]="form.fechaSolicitud" name="fechaSolicitud" type="date" class="form-control">
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Detalles -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-calendar" style="color:var(--secondary);"></i>
+        <div>
+          <strong>Detalles del Movimiento</strong>
+          <small>Vigencia, motivo y documento de respaldo</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Desde</label>
+          <input autocomplete="off" [(ngModel)]="form.fechaDesde" name="fechaDesde" type="date" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Hasta</label>
+          <input autocomplete="off" [(ngModel)]="form.fechaHasta" name="fechaHasta" type="date" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Documento de respaldo (ID)</label>
+          <input autocomplete="off" [(ngModel)]="form.documentoRespaldoId" name="documentoRespaldoId" type="number" min="1" class="form-control" placeholder="Doc. respaldo ID">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Motivo</label>
+          <textarea autocomplete="off" [(ngModel)]="form.motivo" name="motivo" class="form-control" rows="2" placeholder="Motivo del movimiento"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/talento-humano/movimientos" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary px-4" [disabled]="cargando">
+        <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ cargando ? 'Guardando...' : (editando ? 'Actualizar Movimiento' : 'Crear Movimiento') }}
+      </button>
+    </div>
+  </form>
+</div>

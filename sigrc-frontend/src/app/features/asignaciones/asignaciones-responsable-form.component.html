@@ -1,0 +1,74 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1000px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>Cambiar Responsable</h2>
+        <p>Asigne la asignación seleccionada como responsable de una unidad</p>
+      </div>
+      <a routerLink="/talento-humano/asignaciones" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <form autocomplete="off" (ngSubmit)="guardar()" #respFormNg="ngForm">
+
+    <!-- 1. Asignación seleccionada -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-user" style="color:var(--secondary);"></i>
+        <div>
+          <strong>Asignación seleccionada</strong>
+          <small>Empleado y puesto que asumirá la responsabilidad</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Asignación</label>
+          <div class="asig-info">Nº {{ idAsignacion }}</div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Empleado</label>
+          <div class="asig-info">{{ empleadoActual || '—' }}</div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Puesto</label>
+          <div class="asig-info">{{ puestoActual || '—' }}</div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Fecha inicio</label>
+          <div class="asig-info">{{ fechaInicio || '—' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Unidad a cargo -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-building" style="color:var(--primary);"></i>
+        <div>
+          <strong>Unidad a cargo</strong>
+          <small>La asignación pasará a ser responsable de esta unidad</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Unidad <span class="text-danger">*</span></label>
+          <select autocomplete="off" #unidadModel="ngModel" [(ngModel)]="respForm.idUnidad" name="idUnidad" required class="form-select" [class.is-invalid]="unidadModel.invalid && unidadModel.touched">
+            <option [ngValue]="null">— Seleccione unidad —</option>
+            <option *ngFor="let u of unidades" [ngValue]="u.idUnidad">{{ u.nombre }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="unidadModel.invalid && unidadModel.touched">Seleccione la unidad</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/talento-humano/asignaciones" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary px-4" [disabled]="cargando">
+        <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ cargando ? 'Guardando...' : 'Guardar Responsable' }}
+      </button>
+    </div>
+  </form>
+</div>

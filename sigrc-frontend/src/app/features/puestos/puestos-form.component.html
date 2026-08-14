@@ -1,0 +1,224 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1000px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>{{ editando ? 'Editar Puesto' : 'Nuevo Puesto' }}</h2>
+        <p>Catálogo de puestos y perfiles según el Manual Orgánico Funcional</p>
+      </div>
+      <a routerLink="/talento-humano/puestos" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <form autocomplete="off" (ngSubmit)="guardar()" #puestoForm="ngForm">
+
+    <!-- 1. Identificación -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-id-card" style="color:var(--primary);"></i>
+        <div>
+          <strong>Identificación del Puesto</strong>
+          <small>Código, nombre y datos generales</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Código <span class="text-danger">*</span></label>
+          <input autocomplete="off" #codModel="ngModel" [(ngModel)]="form.codigo" name="codigo" required class="form-control" [class.is-invalid]="codModel.invalid && codModel.touched" placeholder="Código (TH-JTH-001)">
+          <div class="validation-feedback" *ngIf="codModel.invalid && codModel.touched">El código es obligatorio</div>
+        </div>
+        <div class="col-md-8">
+          <label class="form-label">Nombre <span class="text-danger">*</span></label>
+          <input autocomplete="off" #nomModel="ngModel" [(ngModel)]="form.nombre" name="nombre" required class="form-control" [class.is-invalid]="nomModel.invalid && nomModel.touched" placeholder="Nombre del puesto">
+          <div class="validation-feedback" *ngIf="nomModel.invalid && nomModel.touched">El nombre es obligatorio</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Unidad</label>
+          <select autocomplete="off" [(ngModel)]="form.idUnidad" name="idUnidad" class="form-select">
+            <option [ngValue]="null">— Seleccione —</option>
+            <option *ngFor="let u of unidades" [ngValue]="u.idUnidad">{{ u.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Rol funcional</label>
+          <input autocomplete="off" [(ngModel)]="form.rolFuncional" name="rolFuncional" class="form-control" placeholder="Rol funcional">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Grupo ocupacional</label>
+          <input autocomplete="off" [(ngModel)]="form.grupoOcupacional" name="grupoOcupacional" class="form-control" placeholder="Grupo ocupacional">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Eje</label>
+          <input autocomplete="off" [(ngModel)]="form.eje" name="eje" class="form-control" placeholder="Eje">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Manual (versión)</label>
+          <select autocomplete="off" [(ngModel)]="form.idVersionManual" name="idVersionManual" class="form-select">
+            <option [ngValue]="null">— Seleccione —</option>
+            <option *ngFor="let v of versiones" [ngValue]="v.idVersionManual">v{{ v.version }} · {{ v.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Versión del puesto</label>
+          <input autocomplete="off" [(ngModel)]="form.version" name="version" type="number" min="1" class="form-control" placeholder="Versión">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Nivel de instrucción</label>
+          <input autocomplete="off" [(ngModel)]="form.nivelInstruccion" name="nivelInstruccion" class="form-control" placeholder="Nivel de instrucción">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Experiencia (meses)</label>
+          <input autocomplete="off" [(ngModel)]="form.experienciaMeses" name="experienciaMeses" type="number" min="0" class="form-control" placeholder="Experiencia (meses)">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Nº plazas <span class="text-danger">*</span></label>
+          <input autocomplete="off" #plazasModel="ngModel" [(ngModel)]="form.numeroPlazas" name="numeroPlazas" type="number" min="1" required class="form-control" [class.is-invalid]="plazasModel.invalid && plazasModel.touched" placeholder="Nº plazas">
+          <div class="validation-feedback" *ngIf="plazasModel.invalid && plazasModel.touched">Indique el número de plazas (mínimo 1)</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Vigente desde</label>
+          <input autocomplete="off" [(ngModel)]="form.vigenteDesde" name="vigenteDesde" type="date" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Vigente hasta</label>
+          <input autocomplete="off" [(ngModel)]="form.vigenteHasta" name="vigenteHasta" type="date" class="form-control">
+        </div>
+        <div class="col-md-4 d-flex align-items-end gap-3 pb-1">
+          <label class="d-flex align-items-center gap-1 small"><input type="checkbox" [(ngModel)]="form.esJefatura" name="esJefatura"> Jefatura</label>
+          <label class="d-flex align-items-center gap-1 small"><input type="checkbox" [(ngModel)]="form.esResponsableUnidad" name="esResponsableUnidad"> Resp. unidad</label>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Objetivo del puesto</label>
+          <textarea autocomplete="off" [(ngModel)]="form.objetivo" name="objetivo" class="form-control" rows="2" placeholder="Objetivo del puesto"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Funciones -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-list" style="color:var(--secondary);"></i>
+        <div>
+          <strong>Funciones</strong>
+          <small>Funciones esenciales, complementarias y de control</small>
+        </div>
+      </div>
+      <div class="perfil-row" *ngFor="let f of form.funciones; let i = index">
+        <input autocomplete="off" [(ngModel)]="f.descripcion" name="funcDesc{{i}}" class="form-control" placeholder="Descripción de la función">
+        <select autocomplete="off" [(ngModel)]="f.tipo" name="funcTipo{{i}}" class="form-select perfil-sel">
+          <option value="ESENCIAL">Esencial</option>
+          <option value="COMPLEMENTARIA">Complementaria</option>
+          <option value="CONTROL">Control</option>
+        </select>
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('funciones', i)">✕</button>
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm mt-1" (click)="agregar('funciones')">+ Función</button>
+    </div>
+
+    <!-- 3. Formación -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-graduation-cap" style="color:var(--primary);"></i>
+        <div>
+          <strong>Formación requerida</strong>
+          <small>Nivel de instrucción y títulos requeridos</small>
+        </div>
+      </div>
+      <div class="perfil-row" *ngFor="let f of form.formaciones; let i = index">
+        <select autocomplete="off" [(ngModel)]="f.nivelInstruccion" name="forNivel{{i}}" class="form-select perfil-sel">
+          <option value="">— Nivel —</option>
+          <option value="BACHILLERATO">Bachillerato</option>
+          <option value="TECNICO">Técnico</option>
+          <option value="TECNOLOGO">Tecnólogo</option>
+          <option value="TERCER_NIVEL">Tercer nivel</option>
+          <option value="CUARTO_NIVEL">Cuarto nivel</option>
+        </select>
+        <input autocomplete="off" [(ngModel)]="f.tituloArea" name="forTitulo{{i}}" class="form-control" placeholder="Título / área">
+        <label class="d-flex align-items-center gap-1 small perfil-check"><input type="checkbox" [(ngModel)]="f.obligatorio" name="forObl{{i}}"> Obligatorio</label>
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('formaciones', i)">✕</button>
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm mt-1" (click)="agregar('formaciones')">+ Formación</button>
+    </div>
+
+    <!-- 4. Experiencia -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-briefcase" style="color:var(--secondary);"></i>
+        <div>
+          <strong>Experiencia requerida</strong>
+          <small>Tiempo y especificidad de la experiencia</small>
+        </div>
+      </div>
+      <div class="perfil-row" *ngFor="let e of form.experiencias; let i = index">
+        <input autocomplete="off" [(ngModel)]="e.tiempoMeses" name="expMeses{{i}}" type="number" min="0" class="form-control perfil-meses" placeholder="Meses">
+        <input autocomplete="off" [(ngModel)]="e.especificidad" name="expEsp{{i}}" class="form-control" placeholder="Especificidad (ej. sector público)">
+        <label class="d-flex align-items-center gap-1 small perfil-check"><input type="checkbox" [(ngModel)]="e.obligatorio" name="expObl{{i}}"> Obligatorio</label>
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('experiencias', i)">✕</button>
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm mt-1" (click)="agregar('experiencias')">+ Experiencia</button>
+    </div>
+
+    <!-- 5. Capacitación -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-book" style="color:var(--primary);"></i>
+        <div>
+          <strong>Capacitación requerida</strong>
+          <small>Formación continua y horas requeridas</small>
+        </div>
+      </div>
+      <div class="perfil-row" *ngFor="let c of form.capacitaciones; let i = index">
+        <input autocomplete="off" [(ngModel)]="c.nombre" name="capNom{{i}}" class="form-control" placeholder="Nombre de la capacitación">
+        <input autocomplete="off" [(ngModel)]="c.horasRequeridas" name="capHoras{{i}}" type="number" min="0" class="form-control perfil-meses" placeholder="Horas">
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('capacitaciones', i)">✕</button>
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm mt-1" (click)="agregar('capacitaciones')">+ Capacitación</button>
+    </div>
+
+    <!-- 6. Productos -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-box" style="color:var(--secondary);"></i>
+        <div>
+          <strong>Productos esperados</strong>
+          <small>Resultados que se esperan del puesto</small>
+        </div>
+      </div>
+      <div class="perfil-row" *ngFor="let p of form.productos; let i = index">
+        <input autocomplete="off" [(ngModel)]="p.descripcion" name="prodDesc{{i}}" class="form-control" placeholder="Producto / resultado esperado">
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('productos', i)">✕</button>
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm mt-1" (click)="agregar('productos')">+ Producto</button>
+    </div>
+
+    <!-- 7. Interfaces -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-sitemap" style="color:var(--primary);"></i>
+        <div>
+          <strong>Interfaces</strong>
+          <small>Relación con otras unidades</small>
+        </div>
+      </div>
+      <div class="perfil-row" *ngFor="let inf of form.interfaces; let idx = index">
+        <select autocomplete="off" [(ngModel)]="inf.unidadRelacionadaId" name="intUnidad{{idx}}" class="form-select perfil-sel">
+          <option [ngValue]="null">— Unidad relacionada —</option>
+          <option *ngFor="let u of unidades" [ngValue]="u.idUnidad">{{ u.nombre }}</option>
+        </select>
+        <input autocomplete="off" [(ngModel)]="inf.tipoInterfaz" name="intTipo{{idx}}" class="form-control perfil-sel" placeholder="Tipo (INTERNA/EXTERNA)">
+        <input autocomplete="off" [(ngModel)]="inf.descripcion" name="intDesc{{idx}}" class="form-control" placeholder="Descripción">
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('interfaces', idx)">✕</button>
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm mt-1" (click)="agregar('interfaces')">+ Interfaz</button>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/talento-humano/puestos" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary px-4" [disabled]="cargando">
+        <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ cargando ? 'Guardando...' : (editando ? 'Actualizar Puesto' : 'Crear Puesto') }}
+      </button>
+    </div>
+  </form>
+</div>

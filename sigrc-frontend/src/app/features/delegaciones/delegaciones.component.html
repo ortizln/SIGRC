@@ -4,9 +4,9 @@
       <h2>Delegaciones de Funciones</h2>
       <p>Coordenación de funciones para cubrir vacaciones, encargos y ausencias. Las delegaciones activas se aplican automáticamente en la derivación de documentos.</p>
     </div>
-    <button class="btn btn-primary btn-sm" (click)="abrirNueva()">
+    <a routerLink="/talento-humano/delegaciones/nuevo" class="btn btn-primary btn-sm">
       <i class="pi pi-plus" style="font-size:0.7rem;"></i> Nueva delegación
-    </button>
+    </a>
   </div>
 
   <div class="card-modern p-0">
@@ -56,72 +56,6 @@
           <tr *ngIf="delegaciones.length === 0"><td colspan="8" class="empty-state"><h5>{{ cargando ? 'Cargando...' : 'Sin delegaciones registradas' }}</h5></td></tr>
         </tbody>
       </table>
-    </div>
-  </div>
-</div>
-
-<!-- Modal nueva delegación -->
-<div class="modal fade show" *ngIf="modal" style="display:block;background:rgba(0,0,0,.5);" (click.self)="modal = false">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Nueva delegación de funciones</h5>
-        <button class="btn-close" (click)="modal = false"></button>
-      </div>
-      <div class="modal-body">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label small">Funcionario a cubrir *</label>
-            <select class="form-select form-select-sm" [(ngModel)]="form.idEmpleadoOrigen" (change)="onEmpleadoOrigenChange()">
-              <option [ngValue]="null">— Seleccione —</option>
-              <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }} · {{ e.identificacion }}</option>
-            </select>
-            <div class="small text-muted mt-1">Asignación actual: {{ form.origenInfo || '—' }}</div>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label small">Funcionario delegado *</label>
-            <select class="form-select form-select-sm" [(ngModel)]="form.idEmpleadoDelegado" (change)="onEmpleadoDelegadoChange()">
-              <option [ngValue]="null">— Seleccione —</option>
-              <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }} · {{ e.identificacion }}</option>
-            </select>
-            <div class="small text-muted mt-1">Asignación actual: {{ form.delegadoInfo || '—' }}</div>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label small">Fecha inicio *</label>
-            <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaInicio">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label small">Fecha fin</label>
-            <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaFin">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label small">Tipo</label>
-            <select class="form-select form-select-sm" [(ngModel)]="form.tipo">
-              <option *ngFor="let t of tipos" [value]="t.valor">{{ t.etiqueta }}</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label small">Alcance</label>
-            <select class="form-select form-select-sm" [(ngModel)]="form.alcance">
-              <option *ngFor="let a of alcances" [value]="a.valor">{{ a.etiqueta }}</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label small">Documento respaldo (id)</label>
-            <input type="number" class="form-control form-control-sm" [(ngModel)]="form.documentoRespaldoId">
-          </div>
-          <div class="col-12">
-            <label class="form-label small">Observación</label>
-            <textarea class="form-control form-control-sm" rows="2" [(ngModel)]="form.observacion"></textarea>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline-secondary btn-sm" (click)="modal = false">Cancelar</button>
-        <button class="btn btn-primary btn-sm" (click)="guardar()" [disabled]="guardando">
-          {{ guardando ? 'Guardando...' : 'Guardar' }}
-        </button>
-      </div>
     </div>
   </div>
 </div>

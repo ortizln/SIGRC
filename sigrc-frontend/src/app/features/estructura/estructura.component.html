@@ -15,54 +15,7 @@
     <div class="card-modern p-0">
       <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
         <h6 class="fw-bold mb-0">Unidades Organizacionales</h6>
-        <button class="btn btn-primary btn-sm" (click)="nuevo()" *ngIf="isAdmin">+ Nueva Unidad</button>
-      </div>
-
-      <div class="p-3 border-bottom" *ngIf="formVisible">
-        <form autocomplete="off" (ngSubmit)="guardar()" #unidadForm="ngForm">
-          <div class="row g-2">
-            <div class="col-md-3">
-              <input autocomplete="off" #codModel="ngModel" [(ngModel)]="form.codigo" name="codigo" required class="form-control form-control-sm" [class.is-invalid]="codModel.invalid && codModel.touched" placeholder="Código">
-              <div class="validation-feedback" *ngIf="codModel.invalid && codModel.touched">El código es obligatorio</div>
-            </div>
-            <div class="col-md-5">
-              <input autocomplete="off" #nomModel="ngModel" [(ngModel)]="form.nombre" name="nombre" required class="form-control form-control-sm" [class.is-invalid]="nomModel.invalid && nomModel.touched" placeholder="Nombre de la unidad">
-              <div class="validation-feedback" *ngIf="nomModel.invalid && nomModel.touched">El nombre es obligatorio</div>
-            </div>
-            <div class="col-md-2">
-              <input autocomplete="off" [(ngModel)]="form.sigla" name="sigla" class="form-control form-control-sm" placeholder="Sigla">
-            </div>
-            <div class="col-md-2">
-              <input autocomplete="off" [(ngModel)]="form.orden" name="orden" type="number" min="0" class="form-control form-control-sm" placeholder="Orden">
-            </div>
-            <div class="col-md-4">
-              <select autocomplete="off" [(ngModel)]="form.tipoUnidad" name="tipoUnidad" class="form-select form-select-sm">
-                <option *ngFor="let t of ['DIRECTORIO','GERENCIA','DIRECCION','JEFATURA','UNIDAD','SECRETARIA','COORDINACION','PROCESO','SUBPROCESO','OTRO']" [value]="t">{{ t }}</option>
-              </select>
-            </div>
-            <div class="col-md-4">
-              <select autocomplete="off" [(ngModel)]="form.idNivel" name="idNivel" class="form-select form-select-sm">
-                <option [ngValue]="null">— Sin nivel —</option>
-                <option *ngFor="let n of niveles" [ngValue]="n.idNivel">{{ n.nombre }}</option>
-              </select>
-            </div>
-            <div class="col-md-4">
-              <select autocomplete="off" [(ngModel)]="form.idUnidadPadre" name="idUnidadPadre" class="form-select form-select-sm">
-                <option [ngValue]="null">— Unidad raíz —</option>
-                <option *ngFor="let u of unidades" [ngValue]="u.idUnidad" [hidden]="u.idUnidad === editandoId">{{ u.nombre }}</option>
-              </select>
-            </div>
-            <div class="col-md-8">
-              <input autocomplete="off" [(ngModel)]="form.descripcion" name="descripcion" class="form-control form-control-sm" placeholder="Descripción (opcional)">
-            </div>
-            <div class="col-12 d-flex gap-1">
-              <button type="submit" class="btn btn-primary btn-sm" [disabled]="cargando || unidadForm.invalid">
-                <i class="pi pi-save" style="font-size:0.7rem;"></i> {{ editando ? 'Actualizar' : 'Guardar' }}
-              </button>
-              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelar()">Cancelar</button>
-            </div>
-          </div>
-        </form>
+        <a routerLink="/talento-humano/estructura/unidad/nuevo" class="btn btn-primary btn-sm" *ngIf="isAdmin">+ Nueva Unidad</a>
       </div>
 
       <div class="table-responsive">
@@ -90,7 +43,7 @@
                 <div class="dropdown-actions">
                   <button class="btn-dots" (click)="toggleMenu(u.idUnidad)">•••</button>
                   <div class="dropdown-menu-custom" *ngIf="menuAbierto === u.idUnidad">
-                    <button (click)="editar(u)"><i class="pi pi-pencil"></i> Editar</button>
+                    <a routerLink="/talento-humano/estructura/unidad/editar/{{u.idUnidad}}"><i class="pi pi-pencil"></i> Editar</a>
                     <button (click)="desactivar(u)"><i class="pi pi-ban"></i> Desactivar</button>
                   </div>
                 </div>
@@ -108,34 +61,7 @@
     <div class="card-modern p-0">
       <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
         <h6 class="fw-bold mb-0">Niveles Organizacionales</h6>
-        <button class="btn btn-primary btn-sm" (click)="nuevoNivel()" *ngIf="isAdmin">+ Nuevo Nivel</button>
-      </div>
-
-      <div class="p-3 border-bottom" *ngIf="form.codigo !== undefined">
-        <form autocomplete="off" (ngSubmit)="guardarNivel()" #nivelForm="ngForm">
-          <div class="row g-2">
-            <div class="col-md-3">
-              <input autocomplete="off" #codModel="ngModel" [(ngModel)]="form.codigo" name="codigo" required class="form-control form-control-sm" [class.is-invalid]="codModel.invalid && codModel.touched" placeholder="Código">
-              <div class="validation-feedback" *ngIf="codModel.invalid && codModel.touched">El código es obligatorio</div>
-            </div>
-            <div class="col-md-3">
-              <input autocomplete="off" #nomModel="ngModel" [(ngModel)]="form.nombre" name="nombre" required class="form-control form-control-sm" [class.is-invalid]="nomModel.invalid && nomModel.touched" placeholder="Nombre">
-              <div class="validation-feedback" *ngIf="nomModel.invalid && nomModel.touched">El nombre es obligatorio</div>
-            </div>
-            <div class="col-md-3">
-              <input autocomplete="off" [(ngModel)]="form.orden" name="orden" type="number" min="0" class="form-control form-control-sm" placeholder="Orden">
-            </div>
-            <div class="col-md-3">
-              <input autocomplete="off" [(ngModel)]="form.descripcion" name="descripcion" class="form-control form-control-sm" placeholder="Descripción">
-            </div>
-            <div class="col-12 d-flex gap-1">
-              <button type="submit" class="btn btn-primary btn-sm" [disabled]="cargando || nivelForm.invalid">
-                <i class="pi pi-save" style="font-size:0.7rem;"></i> {{ form.idNivel ? 'Actualizar' : 'Guardar' }}
-              </button>
-              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="form = {}">Cancelar</button>
-            </div>
-          </div>
-        </form>
+        <a routerLink="/talento-humano/estructura/nivel/nuevo" class="btn btn-primary btn-sm" *ngIf="isAdmin">+ Nuevo Nivel</a>
       </div>
 
       <div class="table-responsive">
@@ -159,7 +85,7 @@
                 <div class="dropdown-actions">
                   <button class="btn-dots" (click)="toggleMenu(n.idNivel)">•••</button>
                   <div class="dropdown-menu-custom" *ngIf="menuAbierto === n.idNivel">
-                    <button (click)="editarNivel(n)"><i class="pi pi-pencil"></i> Editar</button>
+                    <a routerLink="/talento-humano/estructura/nivel/editar/{{n.idNivel}}"><i class="pi pi-pencil"></i> Editar</a>
                     <button class="text-danger" (click)="desactivarNivel(n)"><i class="pi pi-ban"></i> Desactivar</button>
                   </div>
                 </div>

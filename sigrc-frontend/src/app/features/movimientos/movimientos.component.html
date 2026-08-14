@@ -4,9 +4,9 @@
       <h2>Movimientos de Personal</h2>
       <p>Ingreso, nombramiento, traslado, encargo, reintegro, desvinculación y más</p>
     </div>
-    <button *ngIf="isAdmin" class="btn btn-primary btn-sm" (click)="nuevo()">
+    <a *ngIf="isAdmin" routerLink="/talento-humano/movimientos/nuevo" class="btn btn-primary btn-sm">
       <i class="pi pi-plus" style="font-size:0.8rem;"></i> Nuevo Movimiento
-    </button>
+    </a>
   </div>
 
   <div class="card-modern p-3 mb-3">
@@ -30,65 +30,6 @@
         </select>
       </div>
     </div>
-  </div>
-
-  <div class="card-modern p-3 mb-3" *ngIf="formVisible && isAdmin">
-    <form autocomplete="off" (ngSubmit)="guardar()">
-      <h6 class="fw-bold mb-2">{{ editandoId ? 'Editar movimiento' : 'Nuevo movimiento' }}</h6>
-      <div class="row g-2">
-        <div class="col-md-3">
-          <select class="form-select form-select-sm" [(ngModel)]="form.idEmpleado" name="idEmpleado" required>
-            <option [ngValue]="null">— Empleado —</option>
-            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }}</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <select class="form-select form-select-sm" [(ngModel)]="form.tipoMovimiento" name="tipoMovimiento" required>
-            <option [ngValue]="null">— Tipo de movimiento —</option>
-            <option *ngFor="let t of tipos" [value]="t.value">{{ t.label }}</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <select class="form-select form-select-sm" [(ngModel)]="form.idAsignacionOrigen" name="idAsignacionOrigen">
-            <option [ngValue]="null">— Asignación origen —</option>
-            <option *ngFor="let a of asignaciones" [ngValue]="a.idAsignacion">{{ a.puestoNombre || '—' }} · {{ a.unidadNombre || '—' }}</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <select class="form-select form-select-sm" [(ngModel)]="form.idPuestoDestino" name="idPuestoDestino">
-            <option [ngValue]="null">— Puesto destino —</option>
-            <option *ngFor="let p of puestos" [ngValue]="p.idPuesto">{{ p.nombre }}</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <select class="form-select form-select-sm" [(ngModel)]="form.idUnidadDestino" name="idUnidadDestino">
-            <option [ngValue]="null">— Unidad destino —</option>
-            <option *ngFor="let u of unidades" [ngValue]="u.idUnidad">{{ u.nombre }}</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaSolicitud" name="fechaSolicitud">
-        </div>
-        <div class="col-md-3">
-          <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaDesde" name="fechaDesde" placeholder="Fecha desde">
-        </div>
-        <div class="col-md-3">
-          <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaHasta" name="fechaHasta" placeholder="Fecha hasta">
-        </div>
-        <div class="col-md-4">
-          <input class="form-control form-control-sm" [(ngModel)]="form.motivo" name="motivo" placeholder="Motivo">
-        </div>
-        <div class="col-md-2">
-          <input type="number" class="form-control form-control-sm" [(ngModel)]="form.documentoRespaldoId" name="documentoRespaldoId" placeholder="Doc. respaldo ID">
-        </div>
-        <div class="col-12 d-flex gap-1">
-          <button type="submit" class="btn btn-primary btn-sm" [disabled]="cargando">
-            <i class="pi pi-save" style="font-size:0.7rem;"></i> {{ cargando ? 'Guardando...' : 'Guardar' }}
-          </button>
-          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelar()">Cancelar</button>
-        </div>
-      </div>
-    </form>
   </div>
 
   <div class="card-modern p-0">
@@ -119,9 +60,9 @@
             <td><span class="badge-unidad" [class]="'badge-' + estadoBadge(m.estado)">{{ m.estado }}</span></td>
             <td class="text-end">
               <ng-container *ngIf="isAdmin">
-                <button *ngIf="m.estado === 'BORRADOR' || m.estado === 'RECHAZADA'" class="btn btn-soft-primary btn-xs me-1" (click)="editar(m)" title="Editar">
+                <a *ngIf="m.estado === 'BORRADOR' || m.estado === 'RECHAZADA'" class="btn btn-soft-primary btn-xs me-1" routerLink="/talento-humano/movimientos/editar/{{m.idMovimiento}}" title="Editar">
                   <i class="pi pi-pencil" style="font-size:0.65rem;"></i>
-                </button>
+                </a>
                 <button *ngIf="m.estado === 'BORRADOR'" class="btn btn-soft-primary btn-xs me-1" (click)="enviar(m)" title="Enviar a aprobación">
                   <i class="pi pi-send" style="font-size:0.65rem;"></i>
                 </button>

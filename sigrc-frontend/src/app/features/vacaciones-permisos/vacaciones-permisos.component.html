@@ -4,9 +4,9 @@
       <h2>Vacaciones, Permisos y Licencias</h2>
       <p>Flujo: funcionario → jefe inmediato → Talento Humano</p>
     </div>
-    <button class="btn btn-primary btn-sm" (click)="nuevo()">
+    <a routerLink="/talento-humano/vacaciones-permisos/nuevo" class="btn btn-primary btn-sm">
       <i class="pi pi-plus" style="font-size:0.8rem;"></i> Nueva Solicitud
-    </button>
+    </a>
   </div>
 
   <div class="card-modern p-3 mb-3">
@@ -30,51 +30,6 @@
         </select>
       </div>
     </div>
-  </div>
-
-  <div class="card-modern p-3 mb-3" *ngIf="formVisible">
-    <form autocomplete="off" (ngSubmit)="guardar()">
-      <h6 class="fw-bold mb-2">Nueva solicitud de ausencia</h6>
-      <div class="row g-2">
-        <div class="col-md-3">
-          <select class="form-select form-select-sm" [(ngModel)]="form.idEmpleado" name="idEmpleado" required *ngIf="!soloMiEmpleado">
-            <option [ngValue]="null">— Empleado —</option>
-            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }}</option>
-          </select>
-          <input *ngIf="soloMiEmpleado" class="form-control form-control-sm" [value]="usuarioLogueado?.empleadoNombre" disabled>
-        </div>
-        <div class="col-md-3">
-          <select class="form-select form-select-sm" [(ngModel)]="form.tipo" name="tipo" required>
-            <option [ngValue]="null">— Tipo —</option>
-            <option *ngFor="let t of tipos" [value]="t.value">{{ t.label }}</option>
-          </select>
-        </div>
-        <div class="col-md-2">
-          <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaDesde" name="fechaDesde" required>
-        </div>
-        <div class="col-md-2">
-          <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaHasta" name="fechaHasta" required>
-        </div>
-        <div class="col-md-1">
-          <input type="number" min="1" class="form-control form-control-sm" [(ngModel)]="form.dias" name="dias" placeholder="Días">
-        </div>
-        <div class="col-md-1">
-          <input type="number" min="0" class="form-control form-control-sm" [(ngModel)]="form.horas" name="horas" placeholder="Horas">
-        </div>
-        <div class="col-md-6">
-          <input class="form-control form-control-sm" [(ngModel)]="form.motivo" name="motivo" placeholder="Motivo">
-        </div>
-        <div class="col-md-3">
-          <input type="number" class="form-control form-control-sm" [(ngModel)]="form.documentoRespaldoId" name="documentoRespaldoId" placeholder="Doc. respaldo ID">
-        </div>
-        <div class="col-12 d-flex gap-1">
-          <button type="submit" class="btn btn-primary btn-sm" [disabled]="cargando">
-            <i class="pi pi-save" style="font-size:0.7rem;"></i> {{ cargando ? 'Enviando...' : 'Solicitar' }}
-          </button>
-          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelar()">Cancelar</button>
-        </div>
-      </div>
-    </form>
   </div>
 
   <div class="card-modern p-0">

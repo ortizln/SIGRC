@@ -4,9 +4,9 @@
       <h2>Acciones de Personal</h2>
       <p>Informes técnicos y acciones de personal elaboradas por Talento Humano</p>
     </div>
-    <button *ngIf="isAdmin" class="btn btn-primary btn-sm" (click)="nuevo()">
+    <a *ngIf="isAdmin" routerLink="/talento-humano/acciones-personal/nuevo" class="btn btn-primary btn-sm">
       <i class="pi pi-plus" style="font-size:0.8rem;"></i> Nueva Acción
-    </button>
+    </a>
   </div>
 
   <div class="card-modern p-3 mb-3">
@@ -30,53 +30,6 @@
         </select>
       </div>
     </div>
-  </div>
-
-  <div class="card-modern p-3 mb-3" *ngIf="formVisible && isAdmin">
-    <form autocomplete="off" (ngSubmit)="guardar()">
-      <h6 class="fw-bold mb-2">{{ editandoId ? 'Editar acción de personal' : 'Nueva acción de personal' }}</h6>
-      <div class="row g-2">
-        <div class="col-md-4">
-          <select class="form-select form-select-sm" [(ngModel)]="form.idEmpleado" name="idEmpleado" required>
-            <option [ngValue]="null">— Empleado —</option>
-            <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }}</option>
-          </select>
-        </div>
-        <div class="col-md-4">
-          <select class="form-select form-select-sm" [(ngModel)]="form.tipo" name="tipo" required>
-            <option [ngValue]="null">— Tipo —</option>
-            <option *ngFor="let t of tipos" [value]="t.value">{{ t.label }}</option>
-          </select>
-        </div>
-        <div class="col-md-4">
-          <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaEmision" name="fechaEmision">
-        </div>
-        <div class="col-md-3">
-          <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaVigenciaDesde" name="fechaVigenciaDesde" placeholder="Vigencia desde">
-        </div>
-        <div class="col-md-3">
-          <input type="date" class="form-control form-control-sm" [(ngModel)]="form.fechaVigenciaHasta" name="fechaVigenciaHasta" placeholder="Vigencia hasta">
-        </div>
-        <div class="col-md-6">
-          <input class="form-control form-control-sm" [(ngModel)]="form.motivo" name="motivo" placeholder="Motivo">
-        </div>
-        <div class="col-md-6">
-          <input class="form-control form-control-sm" [(ngModel)]="form.situacionActual" name="situacionActual" placeholder="Situación actual">
-        </div>
-        <div class="col-md-6">
-          <input class="form-control form-control-sm" [(ngModel)]="form.situacionPropuesta" name="situacionPropuesta" placeholder="Situación propuesta">
-        </div>
-        <div class="col-md-6">
-          <input type="number" class="form-control form-control-sm" [(ngModel)]="form.documentoId" name="documentoId" placeholder="Documento ID">
-        </div>
-        <div class="col-12 d-flex gap-1">
-          <button type="submit" class="btn btn-primary btn-sm" [disabled]="cargando">
-            <i class="pi pi-save" style="font-size:0.7rem;"></i> {{ cargando ? 'Guardando...' : 'Guardar' }}
-          </button>
-          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelar()">Cancelar</button>
-        </div>
-      </div>
-    </form>
   </div>
 
   <div class="card-modern p-0">
@@ -103,9 +56,9 @@
             <td><span class="badge-unidad" [class]="'badge-' + estadoBadge(a.estado)">{{ a.estado }}</span></td>
             <td class="text-end">
               <ng-container *ngIf="isAdmin">
-                <button *ngIf="a.estado === 'BORRADOR' || a.estado === 'RECHAZADA'" class="btn btn-soft-primary btn-xs me-1" (click)="editar(a)" title="Editar">
+                <a *ngIf="a.estado === 'BORRADOR' || a.estado === 'RECHAZADA'" routerLink="/talento-humano/acciones-personal/editar/{{a.idAccion}}" class="btn btn-soft-primary btn-xs me-1" title="Editar">
                   <i class="pi pi-pencil" style="font-size:0.65rem;"></i>
-                </button>
+                </a>
                 <button *ngIf="a.estado === 'BORRADOR'" class="btn btn-soft-primary btn-xs me-1" (click)="enviarRevision(a)" title="Enviar a revisión">
                   <i class="pi pi-send" style="font-size:0.65rem;"></i>
                 </button>

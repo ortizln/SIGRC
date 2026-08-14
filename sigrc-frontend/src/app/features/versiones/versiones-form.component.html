@@ -1,0 +1,129 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1000px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>{{ editando ? 'Editar Versión' : 'Nueva Versión' }}</h2>
+        <p>Registro y control de versiones de los sistemas institucionales</p>
+      </div>
+      <a routerLink="/versiones" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <form autocomplete="off" (ngSubmit)="guardar()" #versionForm="ngForm">
+
+    <!-- 1. Identificación -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-tag" style="color:var(--primary);"></i>
+        <div>
+          <strong>Identificación de la Versión</strong>
+          <small>Número de versión, sistema y tipo de cambio</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Versión <span class="text-danger">*</span><span class="help-tip ms-1" title="Identificador semántico de la versión (ej: 2.1.0)">?</span></label>
+          <input autocomplete="off" #verModel="ngModel" [(ngModel)]="form.version" name="version" [readonly]="editando" required class="form-control" [class.is-invalid]="verModel.invalid && verModel.touched" placeholder="1.0.0">
+          <div class="validation-feedback" *ngIf="verModel.invalid && verModel.touched">La versión es obligatoria</div>
+          <div class="form-text">Formato: <code>MAYOR.MENOR.PARCHE</code> (ej: 2.1.0)</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Sistema <span class="text-danger">*</span><span class="help-tip ms-1" title="Sistema al que pertenece esta versión">?</span></label>
+          <select autocomplete="off" #sisModel="ngModel" [(ngModel)]="form.idSistema" name="sistema" required class="form-select" [class.is-invalid]="sisModel.invalid && sisModel.touched">
+            <option value="">Seleccionar...</option>
+            <option *ngFor="let s of sistemas" [value]="s.idSistema">{{ s.nombre }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="sisModel.invalid && sisModel.touched">Seleccione el sistema</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Tipo <span class="text-danger">*</span><span class="help-tip ms-1" title="Tipo de versión según el impacto del cambio">?</span></label>
+          <select autocomplete="off" #tipoVerModel="ngModel" [(ngModel)]="form.tipo" name="tipo" required class="form-select" [class.is-invalid]="tipoVerModel.invalid && tipoVerModel.touched">
+            <option value="">Seleccionar...</option>
+            <option value="MAYOR">Mayor</option>
+            <option value="MENOR">Menor</option>
+            <option value="PARCHE">Parche</option>
+            <option value="HOTFIX">Hotfix</option>
+          </select>
+          <div class="validation-feedback" *ngIf="tipoVerModel.invalid && tipoVerModel.touched">Seleccione el tipo</div>
+          <div class="form-text"><code>MAYOR</code> cambios grandes · <code>MENOR</code> nuevas funciones · <code>PARCHE</code> correcciones · <code>HOTFIX</code> urgente</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Estado y Despliegue -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-send" style="color:var(--secondary);"></i>
+        <div>
+          <strong>Estado y Despliegue</strong>
+          <small>Ciclo de vida, ambiente, responsable y fecha de despliegue</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Estado</label>
+          <select autocomplete="off" [(ngModel)]="form.estado" name="estado" class="form-select">
+            <option value="PENDIENTE">Pendiente</option>
+            <option value="EN_DESARROLLO">En Desarrollo</option>
+            <option value="EN_PRUEBAS">En Pruebas</option>
+            <option value="DESPLEGADO">Desplegado</option>
+            <option value="REVERTIDO">Revertido</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Ambiente</label>
+          <select autocomplete="off" [(ngModel)]="form.ambiente" name="ambiente" class="form-select">
+            <option value="PRODUCCION">Producción</option>
+            <option value="PRUEBAS">Pruebas</option>
+            <option value="DESARROLLO">Desarrollo</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Responsable <span class="text-danger">*</span><span class="help-tip ms-1" title="Persona responsable de esta versión">?</span></label>
+          <select autocomplete="off" #respModel="ngModel" [(ngModel)]="form.idResponsable" name="responsable" required class="form-select" [class.is-invalid]="respModel.invalid && respModel.touched">
+            <option value="">Seleccionar...</option>
+            <option *ngFor="let u of usuarios" [value]="u.idUsuario">{{ u.nombreCompleto }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="respModel.invalid && respModel.touched">Seleccione el responsable</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Fecha de Despliegue<span class="help-tip ms-1" title="Fecha y hora programada para el despliegue">?</span></label>
+          <input autocomplete="off" [(ngModel)]="form.fechaDespliegue" name="fechaDespliegue" type="datetime-local" class="form-control">
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Descripción -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-file-edit" style="color:var(--primary);"></i>
+        <div>
+          <strong>Descripción</strong>
+          <small>Detalle de los cambios y notas técnicas de la liberación</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Descripción <span class="text-danger">*</span><span class="help-tip ms-1" title="Descripción de los cambios incluidos en esta versión">?</span></label>
+          <textarea autocomplete="off" #descVerModel="ngModel" [(ngModel)]="form.descripcion" name="descripcion" required class="form-control" [class.is-invalid]="descVerModel.invalid && descVerModel.touched" style="min-height:90px;resize:vertical;"></textarea>
+          <div class="validation-feedback" *ngIf="descVerModel.invalid && descVerModel.touched">La descripción es obligatoria</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Notas de Liberación<span class="help-tip ms-1" title="Notas técnicas detalladas de la liberación">?</span></label>
+          <textarea autocomplete="off" [(ngModel)]="form.notasLiberacion" name="notasLiberacion" class="form-control" style="min-height:90px;resize:vertical;" placeholder="Cambios incluidos, instrucciones de actualización, dependencias..."></textarea>
+          <div class="form-text">Información técnica relevante para el despliegue</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/versiones" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary px-4" [disabled]="cargando">
+        <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ cargando ? 'Guardando...' : (editando ? 'Actualizar Versión' : 'Crear Versión') }}
+      </button>
+    </div>
+  </form>
+</div>

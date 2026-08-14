@@ -43,9 +43,11 @@
       <div class="row g-3">
         <div class="col-md-3">
           <label class="form-label">Sentido <span class="text-danger">*</span></label>
-          <select autocomplete="off" [(ngModel)]="form.sentido" name="sentido" class="form-select" (change)="onSentidoChange()">
+          <select autocomplete="off" #sentidoModel="ngModel" [(ngModel)]="form.sentido" name="sentido" required class="form-select"
+                  [class.is-invalid]="sentidoModel.invalid && sentidoModel.touched" (change)="onSentidoChange()">
             <option *ngFor="let s of sentidos" [value]="s.value">{{ s.label }}</option>
           </select>
+          <div class="validation-feedback" *ngIf="sentidoModel.invalid && sentidoModel.touched">Campo obligatorio</div>
         </div>
         <div class="col-md-3">
           <label class="form-label">Tipo Documento <span class="text-danger">*</span></label>
@@ -66,9 +68,11 @@
         </div>
         <div class="col-md-3">
           <label class="form-label">Prioridad <span class="text-danger">*</span></label>
-          <select autocomplete="off" [(ngModel)]="form.prioridad" name="prioridad" class="form-select">
+          <select autocomplete="off" #prioModel="ngModel" [(ngModel)]="form.prioridad" name="prioridad" required class="form-select"
+                  [class.is-invalid]="prioModel.invalid && prioModel.touched">
             <option *ngFor="let p of prioridades" [value]="p.value">{{ p.label }}</option>
           </select>
+          <div class="validation-feedback" *ngIf="prioModel.invalid && prioModel.touched">Campo obligatorio</div>
         </div>
         <div class="col-12">
           <label class="form-label">Asunto <span class="text-danger">*</span></label>
@@ -309,8 +313,10 @@
         </div>
         <div class="col-md-4">
           <label class="form-label" [for]="'fechaLimiteRespuesta'">Fecha Límite</label>
-          <input autocomplete="off" id="fechaLimiteRespuesta" [(ngModel)]="form.fechaLimiteRespuesta" name="fechaLimiteRespuesta" type="date"
-                 class="form-control" [disabled]="!form.requiereRespuesta">
+          <input autocomplete="off" id="fechaLimiteRespuesta" #fechaLimModel="ngModel" [(ngModel)]="form.fechaLimiteRespuesta" name="fechaLimiteRespuesta" type="date"
+                 class="form-control" [disabled]="!form.requiereRespuesta" [required]="form.requiereRespuesta"
+                 [class.is-invalid]="fechaLimModel.invalid && fechaLimModel.touched">
+          <div class="validation-feedback" *ngIf="fechaLimModel.invalid && fechaLimModel.touched">Indique la fecha límite para la respuesta</div>
           <div class="form-text" *ngIf="!form.requiereRespuesta">Se usará al activar la opción anterior</div>
         </div>
         <div class="col-md-4">

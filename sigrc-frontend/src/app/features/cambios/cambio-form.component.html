@@ -86,27 +86,36 @@
       <div class="row g-3">
         <div class="col-md-4">
           <label class="form-label">Tipo <span class="text-danger">*</span></label>
-          <select autocomplete="off" [(ngModel)]="form.tipo" name="tipo" class="form-select">
+          <select autocomplete="off" #tipoCambioModel="ngModel" [(ngModel)]="form.tipo" name="tipo" required class="form-select"
+                  [class.is-invalid]="tipoCambioModel.invalid && tipoCambioModel.touched">
+            <option value="">Seleccione...</option>
             <option value="NORMAL">Normal</option>
             <option value="EMERGENTE">Emergente</option>
             <option value="ESTANDAR">Estándar</option>
           </select>
+          <div class="validation-feedback" *ngIf="tipoCambioModel.invalid && tipoCambioModel.touched">Seleccione el tipo de cambio</div>
         </div>
         <div class="col-md-4">
           <label class="form-label">Impacto <span class="text-danger">*</span></label>
-          <select autocomplete="off" [(ngModel)]="form.impacto" name="impacto" class="form-select">
+          <select autocomplete="off" #impactoModel="ngModel" [(ngModel)]="form.impacto" name="impacto" required class="form-select"
+                  [class.is-invalid]="impactoModel.invalid && impactoModel.touched">
+            <option value="">Seleccione...</option>
             <option value="BAJO">Bajo</option>
             <option value="MEDIO">Medio</option>
             <option value="ALTO">Alto</option>
           </select>
+          <div class="validation-feedback" *ngIf="impactoModel.invalid && impactoModel.touched">Seleccione el impacto</div>
         </div>
         <div class="col-md-4">
           <label class="form-label">Riesgo <span class="text-danger">*</span></label>
-          <select autocomplete="off" [(ngModel)]="form.riesgo" name="riesgo" class="form-select">
+          <select autocomplete="off" #riesgoModel="ngModel" [(ngModel)]="form.riesgo" name="riesgo" required class="form-select"
+                  [class.is-invalid]="riesgoModel.invalid && riesgoModel.touched">
+            <option value="">Seleccione...</option>
             <option value="BAJO">Bajo</option>
             <option value="MEDIO">Medio</option>
             <option value="ALTO">Alto</option>
           </select>
+          <div class="validation-feedback" *ngIf="riesgoModel.invalid && riesgoModel.touched">Seleccione el riesgo</div>
         </div>
         <div class="col-md-6">
           <label class="form-label">Sistema Afectado</label>

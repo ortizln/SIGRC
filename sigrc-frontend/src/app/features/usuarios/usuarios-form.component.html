@@ -1,0 +1,158 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:1000px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>{{ editando ? 'Editar Usuario' : 'Nuevo Usuario' }}</h2>
+        <p>Gestión de usuarios, roles y permisos del sistema SIGRC</p>
+      </div>
+      <a routerLink="/usuarios" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <form autocomplete="off" (ngSubmit)="guardar()" #usuarioForm="ngForm">
+
+    <!-- 1. Datos del Usuario (ADMIN) -->
+    <div class="form-section" *ngIf="esAdmin">
+      <div class="form-section-header">
+        <i class="pi pi-user" style="color:var(--primary);"></i>
+        <div>
+          <strong>Datos del Usuario</strong>
+          <small>Cuenta de acceso, datos personales y asignación de rol</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Username <span class="text-danger">*</span></label>
+          <input autocomplete="off" #unModel="ngModel" [(ngModel)]="form.username" name="username" required class="form-control" [class.is-invalid]="unModel.invalid && unModel.touched" placeholder="ej: jperez">
+          <div class="validation-feedback" *ngIf="unModel.invalid && unModel.touched">El username es obligatorio</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email <span class="text-danger">*</span></label>
+          <input autocomplete="off" #emailModel="ngModel" [(ngModel)]="form.email" name="email" type="email" required class="form-control" [class.is-invalid]="emailModel.invalid && emailModel.touched" placeholder="juan.perez@epmapa.gob.ec">
+          <div class="validation-feedback" *ngIf="emailModel.invalid && emailModel.touched">
+            <span *ngIf="emailModel.errors?.['required']">El email es obligatorio</span>
+            <span *ngIf="emailModel.errors?.['email']">Ingrese un correo válido</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Nombres <span class="text-danger">*</span></label>
+          <input autocomplete="off" #nomModel="ngModel" [(ngModel)]="form.nombres" name="nombres" required class="form-control" [class.is-invalid]="nomModel.invalid && nomModel.touched" placeholder="Juan Alberto">
+          <div class="validation-feedback" *ngIf="nomModel.invalid && nomModel.touched">Los nombres son obligatorios</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Apellidos <span class="text-danger">*</span></label>
+          <input autocomplete="off" #apeModel="ngModel" [(ngModel)]="form.apellidos" name="apellidos" required class="form-control" [class.is-invalid]="apeModel.invalid && apeModel.touched" placeholder="Pérez García">
+          <div class="validation-feedback" *ngIf="apeModel.invalid && apeModel.touched">Los apellidos son obligatorios</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Contraseña {{ editando ? '(dejar vacío)' : '*' }}</label>
+          <input autocomplete="off" #passModel="ngModel" [(ngModel)]="form.password" name="password" type="password" [required]="!editando" minlength="6" class="form-control" [class.is-invalid]="passModel.invalid && passModel.touched && !editando" placeholder="••••••••">
+          <div class="validation-feedback" *ngIf="passModel.invalid && passModel.touched && !editando">
+            <span *ngIf="passModel.errors?.['required']">La contraseña es obligatoria</span>
+            <span *ngIf="passModel.errors?.['minlength']">Mínimo 6 caracteres</span>
+          </div>
+          <div class="form-text">{{ editando ? 'Solo si desea cambiar la contraseña' : 'Mínimo 6 caracteres' }}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Teléfono</label>
+          <input autocomplete="off" [(ngModel)]="form.telefono" name="telefono" class="form-control" placeholder="0999999999">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Rol <span class="text-danger">*</span></label>
+          <select autocomplete="off" #rolModel="ngModel" [(ngModel)]="form.rolCodigo" name="rol" required class="form-select" [class.is-invalid]="rolModel.invalid && rolModel.touched">
+            <option value="">Seleccionar...</option>
+            <option *ngFor="let r of roles" [value]="r.codigo">{{ r.nombre }}</option>
+          </select>
+          <div class="validation-feedback" *ngIf="rolModel.invalid && rolModel.touched">Seleccione un rol</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Área</label>
+          <select autocomplete="off" [(ngModel)]="form.idArea" name="area" class="form-select">
+            <option [ngValue]="null">Sin área</option>
+            <option *ngFor="let a of areas" [value]="a.idArea">{{ a.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Cargo</label>
+          <input autocomplete="off" [(ngModel)]="form.cargo" name="cargo" class="form-control" placeholder="Ej: Analista TI">
+        </div>
+      </div>
+    </div>
+
+    <!-- 1b. Datos Personales (perfil no-admin) -->
+    <div class="form-section" *ngIf="!esAdmin">
+      <div class="form-section-header">
+        <i class="pi pi-user" style="color:var(--primary);"></i>
+        <div>
+          <strong>Datos Personales</strong>
+          <small>Actualice sus datos personales</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Nombres <span class="text-danger">*</span></label>
+          <input autocomplete="off" #nomModelP="ngModel" [(ngModel)]="form.nombres" name="nombresPerfil" required class="form-control" [class.is-invalid]="nomModelP.invalid && nomModelP.touched" placeholder="Juan Alberto">
+          <div class="validation-feedback" *ngIf="nomModelP.invalid && nomModelP.touched">Los nombres son obligatorios</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Apellidos <span class="text-danger">*</span></label>
+          <input autocomplete="off" #apeModelP="ngModel" [(ngModel)]="form.apellidos" name="apellidosPerfil" required class="form-control" [class.is-invalid]="apeModelP.invalid && apeModelP.touched" placeholder="Pérez García">
+          <div class="validation-feedback" *ngIf="apeModelP.invalid && apeModelP.touched">Los apellidos son obligatorios</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email <span class="text-danger">*</span></label>
+          <input autocomplete="off" #emailModelP="ngModel" [(ngModel)]="form.email" name="emailPerfil" type="email" required class="form-control" [class.is-invalid]="emailModelP.invalid && emailModelP.touched" placeholder="juan.perez@epmapa.gob.ec">
+          <div class="validation-feedback" *ngIf="emailModelP.invalid && emailModelP.touched">
+            <span *ngIf="emailModelP.errors?.['required']">El email es obligatorio</span>
+            <span *ngIf="emailModelP.errors?.['email']">Ingrese un correo válido</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Teléfono</label>
+          <input autocomplete="off" [(ngModel)]="form.telefono" name="telefonoPerfil" class="form-control" placeholder="0999999999">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Nueva Contraseña <span class="text-muted fw-normal">(dejar vacío para mantener)</span></label>
+          <input autocomplete="off" [(ngModel)]="form.password" name="passwordPerfil" type="password" class="form-control" placeholder="Nueva contraseña" minlength="6">
+          <div class="form-text">Mínimo 6 caracteres. Solo si desea cambiarla.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Permisos por Módulo (ADMIN) -->
+    <div class="form-section" *ngIf="esAdmin">
+      <div class="form-section-header">
+        <i class="pi pi-shield" style="color:var(--secondary);"></i>
+        <div>
+          <strong>Permisos por Módulo</strong>
+          <small>Seleccione los módulos a los que el usuario tendrá acceso</small>
+        </div>
+      </div>
+      <div class="d-flex flex-column gap-2">
+        <div *ngFor="let m of modulos" class="modulo-permiso d-flex align-items-center justify-content-between p-2 rounded">
+          <span class="fw-medium small">{{ m.nombre }}</span>
+          <div class="d-flex gap-2">
+            <label class="permiso-check" [class.active]="permisosModulo[m.clave]?.lectura">
+              <input autocomplete="off" type="checkbox" [checked]="permisosModulo[m.clave]?.lectura" (change)="toggleLectura(m.clave)">
+              <i class="pi pi-eye"></i> Ver
+            </label>
+            <label class="permiso-check" [class.active]="permisosModulo[m.clave]?.escritura" [class.disabled]="!permisosModulo[m.clave]?.lectura">
+              <input autocomplete="off" type="checkbox" [checked]="permisosModulo[m.clave]?.escritura" [disabled]="!permisosModulo[m.clave]?.lectura" (change)="permisosModulo[m.clave].escritura = !permisosModulo[m.clave].escritura">
+              <i class="pi pi-pencil"></i> Crear
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/usuarios" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary px-4" [disabled]="cargando || usuarioForm.invalid">
+        <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ cargando ? 'Guardando...' : (editando ? 'Actualizar Usuario' : 'Crear Usuario') }}
+      </button>
+    </div>
+  </form>
+</div>
