@@ -1,0 +1,50 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:750px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>Subir Nueva Versión</h2>
+        <p>Registre una nueva versión de la aplicación móvil institucional</p>
+      </div>
+      <a routerLink="/app-movil" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <form autocomplete="off" (ngSubmit)="subir()" #apkForm="ngForm">
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-mobile" style="color:var(--primary);"></i>
+        <div>
+          <strong>Archivo APK</strong>
+          <small>Versión, archivo y novedades</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Versión <span class="text-danger">*</span></label>
+          <input autocomplete="off" #verModel="ngModel" [(ngModel)]="formVersion" name="version" required class="form-control" placeholder="ej: 1.0.0"
+                 [class.is-invalid]="verModel.invalid && verModel.touched">
+          <div class="validation-feedback" *ngIf="verModel.invalid && verModel.touched">La versión es obligatoria</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Archivo APK <span class="text-danger">*</span></label>
+          <input autocomplete="off" #fileInput type="file" accept=".apk,.aab" class="form-control" (change)="onArchivoSeleccionado($event)">
+          <div class="validation-feedback" *ngIf="formArchivo === null && intentado">Seleccione el archivo APK</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Descripción (opcional)</label>
+          <input autocomplete="off" class="form-control" placeholder="Novedades de esta versión" [(ngModel)]="formDescripcion" name="descripcion">
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/app-movil" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary px-4" [disabled]="subiendo">
+        <span *ngIf="subiendo" class="spinner-border spinner-border-sm me-1"></span>
+        {{ subiendo ? 'Subiendo...' : 'Subir APK' }}
+      </button>
+    </div>
+  </form>
+</div>

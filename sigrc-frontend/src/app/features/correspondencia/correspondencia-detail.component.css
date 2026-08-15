@@ -243,3 +243,32 @@
 .cursor-pointer {
   cursor: pointer;
 }
+
+.doc-modal {
+  background: var(--surface-card);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+
+.doc-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--surface-border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.doc-modal-body {
+  flex: 1;
+  overflow: auto;
+  padding: 1.25rem;
+}

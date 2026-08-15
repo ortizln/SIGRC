@@ -1,0 +1,39 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:650px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>Vincular Empleado</h2>
+        <p *ngIf="usuario">Relacione la cuenta <strong>{{ usuario.username }}</strong> con su expediente en Talento Humano</p>
+      </div>
+      <a routerLink="/usuarios" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <div class="form-section" *ngIf="usuario">
+    <div class="form-section-header">
+      <i class="pi pi-user" style="color:var(--primary);"></i>
+      <div>
+        <strong>Cuenta y Expediente</strong>
+        <small>{{ usuario.nombreCompleto }} · {{ usuario.rolNombre }}</small>
+      </div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Empleado</label>
+      <select autocomplete="off" class="form-select" [(ngModel)]="idEmpleadoSeleccionado">
+        <option [ngValue]="null">— Sin empleado —</option>
+        <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }}</option>
+      </select>
+      <div class="form-text">Seleccione "Sin empleado" para desvincular.</div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/usuarios" class="btn btn-outline-secondary">Cancelar</a>
+      <button class="btn btn-primary px-4" [disabled]="cargando" (click)="guardar()">
+        <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ cargando ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+</div>

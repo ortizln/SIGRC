@@ -69,6 +69,32 @@ export class CorrespondenciaDetailComponent implements OnInit, OnDestroy {
     });
   }
 
+  docModal: any = null;
+
+  verDocumento(ref: any) {
+    this.svc.obtener(ref.idCorrespondencia).subscribe(r => {
+      this.docModal = r;
+    });
+  }
+
+  cerrarDocModal() {
+    this.docModal = null;
+  }
+
+  irADocumento() {
+    if (!this.docModal) return;
+    this.router.navigate(['/correspondencia', this.docModal.idCorrespondencia]);
+    this.docModal = null;
+  }
+
+  docDestinatariosNombres(): string {
+    return this.docModal?.destinatarios?.map((d: any) => d.nombre).join(', ') || '—';
+  }
+
+  docResponsablesNombres(): string {
+    return this.docModal?.responsables?.map((r: any) => r.nombre).join(', ') || 'Sin asignar';
+  }
+
   private aplicarDTO(r: any) {
     this.doc = r;
     this.adjuntos = r.adjuntos || [];

@@ -66,10 +66,22 @@
                 </span>
               </td>
               <td>
-                <div class="quick-actions">
-                  <a class="btn btn-soft-primary btn-xs" routerLink="/usuarios/editar/{{u.idUsuario}}" title="Editar usuario">✎</a>
-                  <button class="btn btn-soft-primary btn-xs" (click)="abrirVinculacion(u)" title="Vincular empleado">👤</button>
-                  <button class="btn btn-soft-primary btn-xs text-danger" *ngIf="u.activo" (click)="eliminar(u)" title="Desactivar usuario">✕</button>
+                <div class="dropdown" [class.show]="menuAbierto === u.idUsuario">
+                  <button class="btn btn-soft-primary btn-sm btn-dropdown-toggle" (click)="toggleMenu(u.idUsuario)" title="Acciones">
+                    <i class="pi pi-ellipsis-v" style="font-size:0.8rem;"></i>
+                  </button>
+                  <div class="dropdown-menu dropdown-menu-end dropdown-menu-bs5" [class.show]="menuAbierto === u.idUsuario">
+                    <a class="dropdown-item" routerLink="/usuarios/editar/{{u.idUsuario}}">
+                      <i class="pi pi-pencil me-2" style="font-size:0.7rem;"></i> Editar
+                    </a>
+                    <a class="dropdown-item" routerLink="/usuarios/vincular/{{u.idUsuario}}">
+                      <i class="pi pi-user me-2" style="font-size:0.7rem;"></i> Vincular empleado
+                    </a>
+                    <div class="dropdown-divider" *ngIf="u.activo"></div>
+                    <button class="dropdown-item text-danger" *ngIf="u.activo" (click)="eliminar(u)">
+                      <i class="pi pi-ban me-2" style="font-size:0.7rem;"></i> Desactivar
+                    </button>
+                  </div>
                 </div>
               </td>
             </tr>
@@ -98,39 +110,6 @@
             </li>
           </ul>
         </nav>
-      </div>
-    </div>
-
-    <!-- ADMIN: Modal vincular empleado -->
-    <div class="modal fade show d-block" tabindex="-1" *ngIf="vinculoVisible" style="background:rgba(0,0,0,0.45);">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;">
-          <div class="modal-header border-0 pb-0">
-            <h5 class="fw-bold mb-0">Vincular Empleado</h5>
-            <button type="button" class="btn-close" (click)="vinculoVisible = false"></button>
-          </div>
-          <div class="modal-body">
-            <p class="small text-muted">
-              Relacione la cuenta <strong>{{ vinculoUsuario?.username }}</strong>
-              con su expediente en Talento Humano.
-            </p>
-            <div class="mb-3">
-              <label class="form-label">Empleado</label>
-              <select class="form-select" [(ngModel)]="idEmpleadoSeleccionado">
-                <option [ngValue]="null">— Sin empleado —</option>
-                <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }}</option>
-              </select>
-              <div class="form-text">Seleccione "Sin empleado" para desvincular.</div>
-            </div>
-          </div>
-          <div class="modal-footer border-0 pt-0">
-            <button class="btn btn-outline-secondary" (click)="vinculoVisible = false">Cancelar</button>
-            <button class="btn btn-primary" [disabled]="cargandoVinculo" (click)="guardarVinculacion()">
-              <span *ngIf="cargandoVinculo" class="spinner-border spinner-border-sm me-1"></span>
-              Guardar
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   </ng-container>

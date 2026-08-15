@@ -1,31 +1,10 @@
 <div class="container-fluid px-0" style="max-width:900px;">
-  <div class="page-header">
-    <h2>App Móvil (APK)</h2>
-    <p>Administración de versiones de la aplicación móvil institucional</p>
-  </div>
-
-  <div class="card-modern p-4 mb-3" *ngIf="puedeCrear">
-    <h6 class="fw-bold mb-3">Subir Nueva Versión</h6>
-    <div class="row g-3 align-items-end">
-      <div class="col-md-3">
-        <label class="form-label">Versión <span class="text-danger">*</span></label>
-        <input autocomplete="off" class="form-control form-control-sm" placeholder="ej: 1.0.0" [(ngModel)]="formVersion">
-      </div>
-      <div class="col-md-5">
-        <label class="form-label">Archivo APK <span class="text-danger">*</span></label>
-        <input autocomplete="off" type="file" accept=".apk,.aab" class="form-control form-control-sm" (change)="onArchivoSeleccionado($event)">
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Descripción (opcional)</label>
-        <input autocomplete="off" class="form-control form-control-sm" placeholder="Novedades de esta versión" [(ngModel)]="formDescripcion">
-      </div>
-      <div class="col-12 d-flex gap-2">
-        <button class="btn btn-primary btn-sm" (click)="subir()" [disabled]="subiendo || !formVersion || !formArchivo">
-          <span *ngIf="subiendo" class="spinner-border spinner-border-sm me-1"></span>
-          Subir APK
-        </button>
-      </div>
+  <div class="page-header d-flex justify-content-between align-items-end">
+    <div>
+      <h2>App Móvil (APK)</h2>
+      <p>Administración de versiones de la aplicación móvil institucional</p>
     </div>
+    <a routerLink="/app-movil/nuevo" class="btn btn-primary btn-sm" *ngIf="puedeCrear">+ Subir Nueva Versión</a>
   </div>
 
   <div class="card-modern p-0">
@@ -62,7 +41,7 @@
             <td [attr.colspan]="puedeCrear ? 6 : 5" class="empty-state">
               <div class="empty-icon">📱</div>
               <h5>No hay versiones subidas</h5>
-              <p *ngIf="puedeCrear">Suba la primera versión del APK usando el formulario superior</p>
+              <p *ngIf="puedeCrear">Suba la primera versión del APK presionando "+ Subir Nueva Versión"</p>
             </td>
           </tr>
         </tbody>

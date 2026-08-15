@@ -21,9 +21,6 @@ export class ManualFuncionesComponent implements OnInit {
   puestoSel: PuestoManual | null = null;
 
   versiones: VersionManual[] = [];
-  versModal = false;
-  versForm: any = {};
-  guardandoVersion = false;
   cargando = false;
 
   constructor(private svc: TalentoHumanoService, private auth: AuthService) {}
@@ -106,45 +103,6 @@ export class ManualFuncionesComponent implements OnInit {
   }
 
   // ─────────── Gestión de versiones ───────────
-
-  abrirNuevaVersion() {
-    this.versForm = {
-      nombre: 'Manual Orgánico Funcional',
-      version: '',
-      fechaAprobacion: '',
-      fechaVigencia: '',
-      documentoId: null,
-      observaciones: ''
-    };
-    this.versModal = true;
-  }
-
-  guardarVersion() {
-    if (!this.versForm.nombre || !this.versForm.version) {
-      Swal.fire({ icon: 'warning', title: 'Datos incompletos', text: 'Nombre y versión son obligatorios.' });
-      return;
-    }
-    this.guardandoVersion = true;
-    this.svc.crearVersionManual({
-      nombre: this.versForm.nombre,
-      version: this.versForm.version,
-      fechaAprobacion: this.versForm.fechaAprobacion || null,
-      fechaVigencia: this.versForm.fechaVigencia || null,
-      documentoId: this.versForm.documentoId || null,
-      observaciones: this.versForm.observaciones || null
-    }).subscribe({
-      next: () => {
-        this.guardandoVersion = false;
-        this.versModal = false;
-        this.cargarVersiones();
-        Swal.fire('Guardado', 'Versión creada en estado BORRADOR.', 'success');
-      },
-      error: (e) => {
-        this.guardandoVersion = false;
-        Swal.fire('Error', e.error?.error || 'No se pudo crear la versión.', 'error');
-      }
-    });
-  }
 
   aprobar(v: VersionManual) {
     Swal.fire({

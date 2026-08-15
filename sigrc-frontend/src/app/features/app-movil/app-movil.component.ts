@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { AppMovilService } from '@core/services/app-movil.service';
 import Swal from 'sweetalert2';
@@ -8,18 +8,12 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-app-movil',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './app-movil.component.html',
   styleUrl: './app-movil.component.css'
 })
 export class AppMovilComponent implements OnInit {
   versiones: any[] = [];
-  cargando = false;
-  subiendo = false;
-
-  formVersion = '';
-  formDescripcion = '';
-  formArchivo: File | null = null;
 
   constructor(private svc: AppMovilService, private auth: AuthService) {}
 
@@ -29,29 +23,6 @@ export class AppMovilComponent implements OnInit {
 
   cargar() {
     this.svc.listar().subscribe(r => this.versiones = r);
-  }
-
-  onArchivoSeleccionado(event: any) {
-    this.formArchivo = event.target.files?.[0] || null;
-  }
-
-  subir() {
-    if (!this.formVersion || !this.formArchivo) return;
-    this.subiendo = true;
-    this.svc.subir(this.formVersion, this.formDescripcion, this.formArchivo).subscribe({
-      next: () => {
-        this.subiendo = false;
-        this.formVersion = '';
-        this.formDescripcion = '';
-        this.formArchivo = null;
-        this.cargar();
-        Swal.fire('Subido', 'APK subido correctamente.', 'success');
-      },
-      error: () => {
-        this.subiendo = false;
-        Swal.fire('Error', 'Error al subir el APK.', 'error');
-      }
-    });
   }
 
   descargar(item: any) {

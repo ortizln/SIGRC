@@ -101,9 +101,9 @@
           <code style="color:var(--primary);font-weight:600;">{{ r.numeroInterno }}</code>
           <span class="small flex-grow-1">{{ r.asunto }}</span>
           <span class="small text-muted" *ngIf="r.fechaDocumento" title="Fecha del documento">{{ r.fechaDocumento | date:'dd/MM/yyyy' }}</span>
-          <a [routerLink]="['/correspondencia', r.idCorrespondencia]" class="btn btn-soft-primary btn-xs" title="Ir al documento">
-            <i class="pi pi-external-link" style="font-size:0.7rem;"></i>
-          </a>
+          <button type="button" class="btn btn-soft-primary btn-xs" (click)="verDocumento(r)" title="Ver detalle del documento">
+            <i class="pi pi-eye" style="font-size:0.7rem;"></i>
+          </button>
         </div>
       </div>
 
@@ -116,9 +116,9 @@
           <code style="color:var(--primary);font-weight:600;">{{ r.numeroInterno }}</code>
           <span class="small flex-grow-1">{{ r.asunto }}</span>
           <span class="small text-muted" *ngIf="r.fechaDocumento" title="Fecha del documento">{{ r.fechaDocumento | date:'dd/MM/yyyy' }}</span>
-          <a [routerLink]="['/correspondencia', r.idCorrespondencia]" class="btn btn-soft-primary btn-xs" title="Ir al documento">
-            <i class="pi pi-external-link" style="font-size:0.7rem;"></i>
-          </a>
+          <button type="button" class="btn btn-soft-primary btn-xs" (click)="verDocumento(r)" title="Ver detalle del documento">
+            <i class="pi pi-eye" style="font-size:0.7rem;"></i>
+          </button>
         </div>
       </div>
 
@@ -317,6 +317,71 @@
           </div>
         </div>
         <div *ngIf="historial.length === 0" class="text-muted small text-center py-3">Sin historial</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal documento referenciado -->
+<div class="preview-overlay" *ngIf="docModal" (click)="cerrarDocModal()">
+  <div class="doc-modal" (click)="$event.stopPropagation()">
+    <div class="doc-modal-header">
+      <div class="d-flex align-items-center gap-2">
+        <i class="pi pi-file" style="font-size:1rem;color:var(--primary);"></i>
+        <span class="fw-semibold small">{{ docModal.numeroInterno }}</span>
+        <span class="badge-estado" [class]="'badge-' + estadoBadge(docModal.estado)">{{ estadoLabel(docModal.estado) }}</span>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-primary" (click)="irADocumento()">
+          <i class="pi pi-external-link me-1" style="font-size:0.7rem;"></i> Ir a documento
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" (click)="cerrarDocModal()" title="Cerrar">
+          <i class="pi pi-times" style="font-size:0.8rem;"></i>
+        </button>
+      </div>
+    </div>
+    <div class="doc-modal-body" *ngIf="docModal">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="text-muted small d-block">Asunto</label>
+          <p class="fw-medium mb-0">{{ docModal.asunto }}</p>
+        </div>
+        <div class="col-md-6">
+          <label class="text-muted small d-block">Código Documento</label>
+          <p class="mb-0">{{ docModal.codigoDocumento || '—' }}</p>
+        </div>
+        <div class="col-md-6">
+          <label class="text-muted small d-block">Tipo Documento</label>
+          <p class="mb-0">{{ docModal.tipoDocumentoNombre }}</p>
+        </div>
+        <div class="col-md-6">
+          <label class="text-muted small d-block">Prioridad</label>
+          <p class="mb-0" [class]="prioridadClass(docModal.prioridad)">{{ docModal.prioridad }}</p>
+        </div>
+        <div class="col-md-6">
+          <label class="text-muted small d-block">Fecha Documento</label>
+          <p class="mb-0">{{ docModal.fechaDocumento | date:'dd/MM/yyyy' }}</p>
+        </div>
+        <div class="col-md-6">
+          <label class="text-muted small d-block">{{ docModal.sentido === 'SALIDA' ? 'Destinatarios' : 'Remitente' }}</label>
+          <p class="mb-0">{{ docModal.sentido === 'SALIDA' ? docDestinatariosNombres() : docModal.personaEntrega }}</p>
+        </div>
+        <div class="col-md-6">
+          <label class="text-muted small d-block">Cargo / Institución</label>
+          <p class="mb-0">{{ docModal.cargo }}{{ docModal.cargo && docModal.institucion ? ' — ' : '' }}{{ docModal.institucion }}</p>
+        </div>
+        <div class="col-md-6">
+          <label class="text-muted small d-block">Responsable(s)</label>
+          <p class="mb-0">{{ docResponsablesNombres() }}</p>
+        </div>
+        <div class="col-12" *ngIf="docModal.resumenEjecutivo">
+          <label class="text-muted small d-block">Resumen Ejecutivo</label>
+          <p class="text-muted mb-0">{{ docModal.resumenEjecutivo }}</p>
+        </div>
+        <div class="col-12" *ngIf="docModal.observaciones">
+          <label class="text-muted small d-block">Observaciones</label>
+          <p class="text-muted mb-0">{{ docModal.observaciones }}</p>
+        </div>
       </div>
     </div>
   </div>

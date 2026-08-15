@@ -1,0 +1,63 @@
+<div class="container-fluid px-0 animate-fade-in" style="max-width:750px;">
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2>Nueva Versión del Manual</h2>
+        <p>Registre una nueva versión del Manual Orgánico Funcional</p>
+      </div>
+      <a routerLink="/talento-humano/manual-funciones" class="btn btn-outline-secondary btn-sm">
+        <i class="pi pi-arrow-left" style="font-size:0.7rem;"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <form autocomplete="off" (ngSubmit)="guardar()" #versFormNg="ngForm">
+    <div class="form-section">
+      <div class="form-section-header">
+        <i class="pi pi-book" style="color:var(--primary);"></i>
+        <div>
+          <strong>Información de la Versión</strong>
+          <small>La versión se creará en estado BORRADOR</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Nombre <span class="text-danger">*</span></label>
+          <input autocomplete="off" #nomModel="ngModel" [(ngModel)]="versForm.nombre" name="nombre" required class="form-control"
+                 [class.is-invalid]="nomModel.invalid && nomModel.touched">
+          <div class="validation-feedback" *ngIf="nomModel.invalid && nomModel.touched">El nombre es obligatorio</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Versión <span class="text-danger">*</span></label>
+          <input autocomplete="off" #verModel="ngModel" [(ngModel)]="versForm.version" name="version" required class="form-control" placeholder="1.0"
+                 [class.is-invalid]="verModel.invalid && verModel.touched">
+          <div class="validation-feedback" *ngIf="verModel.invalid && verModel.touched">La versión es obligatoria</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Documento fuente (id)</label>
+          <input autocomplete="off" type="number" class="form-control" [(ngModel)]="versForm.documentoId" name="documentoId">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Fecha de aprobación</label>
+          <input autocomplete="off" type="date" class="form-control" [(ngModel)]="versForm.fechaAprobacion" name="fechaAprobacion">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Fecha de vigencia</label>
+          <input autocomplete="off" type="date" class="form-control" [(ngModel)]="versForm.fechaVigencia" name="fechaVigencia">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Observaciones</label>
+          <textarea autocomplete="off" class="form-control" rows="3" [(ngModel)]="versForm.observaciones" name="observaciones"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+      <a routerLink="/talento-humano/manual-funciones" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary px-4" [disabled]="guardando">
+        <span *ngIf="guardando" class="spinner-border spinner-border-sm me-1"></span>
+        {{ guardando ? 'Guardando...' : 'Crear Versión' }}
+      </button>
+    </div>
+  </form>
+</div>
