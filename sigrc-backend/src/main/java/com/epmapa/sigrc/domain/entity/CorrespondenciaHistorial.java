@@ -32,6 +32,16 @@ public class CorrespondenciaHistorial {
     @Column(columnDefinition = "TEXT")
     private String detalle;
 
+    @Column
+    private Integer idDelegacion;
+
+    @Column
+    private Integer usuarioOriginal;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean delegacionAplicada = false;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime creadoEn;

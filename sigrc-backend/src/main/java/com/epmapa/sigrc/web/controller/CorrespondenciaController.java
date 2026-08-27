@@ -3,6 +3,7 @@ package com.epmapa.sigrc.web.controller;
 import com.epmapa.sigrc.domain.dto.*;
 import com.epmapa.sigrc.domain.entity.CorrespondenciaDocumentoTipo;
 import com.epmapa.sigrc.domain.service.CorrespondenciaService;
+import com.epmapa.sigrc.domain.service.DelegacionFuncionService;
 import com.epmapa.sigrc.security.UserPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/correspondencia")
@@ -31,9 +33,11 @@ import java.util.List;
 public class CorrespondenciaController {
 
     private final CorrespondenciaService service;
+    private final DelegacionFuncionService delegacionService;
 
-    public CorrespondenciaController(CorrespondenciaService service) {
+    public CorrespondenciaController(CorrespondenciaService service, DelegacionFuncionService delegacionService) {
         this.service = service;
+        this.delegacionService = delegacionService;
     }
 
     @GetMapping
@@ -280,5 +284,46 @@ public class CorrespondenciaController {
         Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
         service.eliminar(id, idUsuario, request);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/delegaciones-vigentes")
+    @Operation(summary = "Delegaciones vigentes para el usuario autenticado")
+    public ResponseEntity<List<DelegacionResueltaDTO>> delegacionesVigentes(Authentication auth) {
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
+        var delegacion = delegacionService.resolverDelegadoConDetalle(idUsuario);
+        var delegaron = delegacionService.usuariosQueMeDelegaron(idUsuario);
+        var resultado = new java.util.ArrayList<DelegacionResueltaDTO>();
+        if (delegacion != null) {
+            resultado.add(delegacion);
+        }
+        for (Integer idOrig : delegaron) {
+            var det = delegacionService.resolverDelegadoConDetalle(idOrig);
+            if (det != null) {
+                resultado.add(new DelegacionResueltaDTO(
+                    idUsuario,
+                    det.idDelegacion(),
+                    idOrig,
+                    det.nombreDelegado(),
+                    det.nombreOriginal(),
+                    det.tipoDelegacion(),
+                    det.fechaInicio(),
+                    det.fechaFin()
+                ));
+            }
+        }
+        return ResponseEntity.ok(resultado);
+    }
+
+    @GetMapping("/mis-delegaciones")
+    @Operation(summary = "IDs de usuarios que delegaron al usuario autenticado")
+    public ResponseEntity<List<Integer>> misDelegaciones(Authentication auth) {
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
+        return ResponseEntity.ok(delegacionService.usuariosQueMeDelegaron(idUsuario));
+    }
+
+    @GetMapping("/documentos-por-delegacion")
+    @Operation(summary = "Cantidad de documentos procesados por cada delegación")
+    public ResponseEntity<Map<Integer, Long>> documentosPorDelegacion() {
+        return ResponseEntity.ok(service.contarDocumentosPorDelegacion());
     }
 }

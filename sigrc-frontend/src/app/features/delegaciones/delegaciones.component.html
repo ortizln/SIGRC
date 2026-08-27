@@ -19,6 +19,7 @@
             <th>Período</th>
             <th>Tipo</th>
             <th>Alcance</th>
+            <th>Documentos</th>
             <th>Estado</th>
             <th>Observación</th>
             <th>Acciones</th>
@@ -40,6 +41,12 @@
             </td>
             <td class="small">{{ etiquetaTipo(d.tipo) }}</td>
             <td class="small">{{ d.alcance || '—' }}</td>
+            <td>
+              <span class="badge bg-primary" *ngIf="cantidadDocumentos(d) > 0" style="font-size:0.7rem;">
+                {{ cantidadDocumentos(d) }} doc(s)
+              </span>
+              <span class="text-muted small" *ngIf="cantidadDocumentos(d) === 0">—</span>
+            </td>
             <td><span class="badge-unidad" [class]="estadoBadge(d.estado)">{{ d.estado }}</span></td>
             <td class="small">{{ d.observacion || '—' }}</td>
             <td>
@@ -53,7 +60,7 @@
               </div>
             </td>
           </tr>
-          <tr *ngIf="delegaciones.length === 0"><td colspan="8" class="empty-state"><h5>{{ cargando ? 'Cargando...' : 'Sin delegaciones registradas' }}</h5></td></tr>
+          <tr *ngIf="delegaciones.length === 0"><td colspan="9" class="empty-state"><h5>{{ cargando ? 'Cargando...' : 'Sin delegaciones registradas' }}</h5></td></tr>
         </tbody>
       </table>
     </div>

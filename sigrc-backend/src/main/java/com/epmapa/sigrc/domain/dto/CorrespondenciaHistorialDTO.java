@@ -11,5 +11,9 @@ public record CorrespondenciaHistorialDTO(
     Integer idUsuario,
     String usuarioNombre,
     String detalle,
-    LocalDateTime creadoEn
+    LocalDateTime creadoEn,
+    Integer idDelegacion,
+    Integer usuarioOriginal,
+    String usuarioOriginalNombre,
+    Boolean delegacionAplicada
 ) {}

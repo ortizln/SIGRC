@@ -5,5 +5,9 @@ public record ResponsableAsignadoDTO(
     String nombre,
     String sumilla,
     String puestoFirmante,
-    String unidadFirmante
+    String unidadFirmante,
+    Integer idDelegacion,
+    Integer usuarioOriginal,
+    String usuarioOriginalNombre,
+    Boolean delegacionAplicada
 ) {}

@@ -70,7 +70,12 @@ export interface CorrespondenciaDestinatario {
   nombre: string;
   recibido?: boolean;
   fechaRecibido?: string;
+  leido?: boolean;
+  fechaLeido?: string;
   sumilla?: string;
+  idDelegacion?: number;
+  usuarioOriginal?: number;
+  usuarioOriginalNombre?: string;
 }
 
 export interface ResponsableAsignado {
@@ -79,6 +84,10 @@ export interface ResponsableAsignado {
   sumilla: string;
   puestoFirmante?: string;
   unidadFirmante?: string;
+  idDelegacion?: number;
+  usuarioOriginal?: number;
+  usuarioOriginalNombre?: string;
+  delegacionAplicada?: boolean;
 }
 
 export interface DestinoDerivacion {
@@ -118,6 +127,10 @@ export interface CorrespondenciaHistorial {
   usuarioNombre: string;
   detalle: string;
   creadoEn: string;
+  idDelegacion?: number;
+  usuarioOriginal?: number;
+  usuarioOriginalNombre?: string;
+  delegacionAplicada?: boolean;
 }
 
 export interface CorrespondenciaRespuesta {
@@ -200,3 +213,14 @@ export const TIPOS_ADJUNTO = [
   { value: 'ANEXO', label: 'Anexo' },
   { value: 'RESPUESTA', label: 'Documento de Respuesta' },
 ];
+
+export interface DelegacionResuelta {
+  idUsuarioDelegado: number;
+  idDelegacion: number;
+  idUsuarioOriginal: number;
+  nombreDelegado: string;
+  nombreOriginal: string;
+  tipoDelegacion: string;
+  fechaInicio: string;
+  fechaFin: string;
+}

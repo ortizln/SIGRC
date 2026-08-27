@@ -182,7 +182,14 @@ export class CorrespondenciaListComponent implements OnInit {
   }
 
   responsablesNombres(d: any): string {
-    return d.responsables?.map((r: any) => r.nombre).join(', ') || '—';
+    if (!d.responsables || d.responsables.length === 0) return '—';
+    return d.responsables.map((r: any) => {
+      let nombre = r.nombre;
+      if (r.delegacionAplicada && r.usuarioOriginalNombre) {
+        nombre += ' [Deleg. de ' + r.usuarioOriginalNombre + ']';
+      }
+      return nombre;
+    }).join(', ');
   }
 
   esDestinatarioDe(d: any): boolean {
@@ -199,6 +206,10 @@ export class CorrespondenciaListComponent implements OnInit {
     if (!user) return s;
     if (this.esDestinatarioDe(d) && d.creadoPor !== user.idUsuario) return 'INGRESO';
     return s;
+  }
+
+  tieneDelegacion(d: any): boolean {
+    return d.responsables?.some((r: any) => r.delegacionAplicada) || false;
   }
 
   toggleGrupo(g: any) {

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@env/environment';
-import { Correspondencia, CorrespondenciaCrearRequest, CorrespondenciaAdjunto, CorrespondenciaHistorial, CorrespondenciaRespuesta, TicketVinculado, Paginacion, CorrespondenciaDashboard } from '@shared/models/correspondencia.model';
+import { Correspondencia, CorrespondenciaCrearRequest, CorrespondenciaAdjunto, CorrespondenciaHistorial, CorrespondenciaRespuesta, TicketVinculado, Paginacion, CorrespondenciaDashboard, DelegacionResuelta } from '@shared/models/correspondencia.model';
 
 @Injectable({ providedIn: 'root' })
 export class CorrespondenciaService {
@@ -132,5 +132,17 @@ export class CorrespondenciaService {
 
   eliminar(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getDelegacionesVigentes(): Observable<DelegacionResuelta[]> {
+    return this.http.get<DelegacionResuelta[]>(`${this.apiUrl}/delegaciones-vigentes`);
+  }
+
+  getMisDelegaciones(): Observable<number[]> {
+    return this.http.get<number[]>(`${this.apiUrl}/mis-delegaciones`);
+  }
+
+  getDocumentosPorDelegacion(): Observable<Record<number, number>> {
+    return this.http.get<Record<number, number>>(`${this.apiUrl}/documentos-por-delegacion`);
   }
 }

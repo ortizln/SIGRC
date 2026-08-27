@@ -320,6 +320,9 @@ public class CorrespondenciaService {
                 .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
         Usuario responsable = usuarioRepository.findById(idResponsable)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+        var delegacion = delegacionService.resolverDelegadoConDetalle(idResponsable);
+
         boolean yaAsignado = entity.getResponsablesAsignados().stream()
                 .anyMatch(ra -> ra.getUsuario().getIdUsuario().equals(idResponsable));
         if (!yaAsignado) {
@@ -331,6 +334,22 @@ public class CorrespondenciaService {
             capturarFirma(ra);
             entity.getResponsablesAsignados().add(ra);
         }
+
+        if (delegacion != null) {
+            boolean delegadoYaAsignado = entity.getResponsablesAsignados().stream()
+                    .anyMatch(ra -> ra.getUsuario().getIdUsuario().equals(delegacion.idUsuarioDelegado()));
+            if (!delegadoYaAsignado) {
+                Usuario usuarioDelegado = usuarioRepository.getReferenceById(delegacion.idUsuarioDelegado());
+                var raDelegado = CorrespondenciaResponsable.builder()
+                    .correspondencia(entity)
+                    .usuario(usuarioDelegado)
+                    .sumilla((sumilla != null ? sumilla : "") + " [Delegación de " + responsable.getNombres() + "]")
+                    .build();
+                capturarFirma(raDelegado);
+                entity.getResponsablesAsignados().add(raDelegado);
+            }
+        }
+
         if ("RECIBIDO".equals(entity.getEstado())) {
             entity.setEstado("ASIGNADO");
         }
@@ -338,17 +357,29 @@ public class CorrespondenciaService {
 
         Usuario usuario = usuarioRepository.getReferenceById(idUsuario);
         String detalleHistorial = "Asignado a: " + responsable.getNombres();
+        if (delegacion != null) {
+            detalleHistorial += " + delegado: " + delegacion.nombreDelegado() + " (" + delegacion.tipoDelegacion() + ")";
+        }
         if (sumilla != null && !sumilla.isBlank()) {
             detalleHistorial += " — Sumilla: " + sumilla;
         }
         registrarHistorial(entity, null, entity.getEstado(), "ASIGNACION",
-                detalleHistorial, usuario);
+                detalleHistorial, usuario,
+                delegacion != null ? delegacion.idDelegacion() : null,
+                delegacion != null ? delegacion.idUsuarioOriginal() : null);
 
         var dto = toDTO(entity);
         notificacionService.notificarAsignacion(idResponsable, "CORRESPONDENCIA",
             "Correspondencia Asignada",
             "Documento " + entity.getNumeroInterno() + " - " + entity.getAsunto(),
             entity.getIdCorrespondencia());
+        if (delegacion != null) {
+            notificacionService.notificarAsignacion(delegacion.idUsuarioDelegado(), "CORRESPONDENCIA",
+                "Correspondencia Asignada (Delegación)",
+                "Documento " + entity.getNumeroInterno() + " - " + entity.getAsunto()
+                    + " [Delegación de " + responsable.getNombres() + "]",
+                entity.getIdCorrespondencia());
+        }
         return dto;
     }
 
@@ -543,12 +574,16 @@ public class CorrespondenciaService {
 
     /**
      * Añade un destinatario aplicando la delegación de funciones activa:
-     * si el usuario destino tiene una delegación vigente, se resuelve al delegado.
+     * si el usuario destino tiene una delegación vigente, se añaden AMBOS
+     * (original + delegado) para que ambos vean el documento en su bandeja.
      */
     private void agregarDestinatario(Set<Integer> idsUsuarios, Integer idUsuario) {
         if (idUsuario == null) return;
+        idsUsuarios.add(idUsuario);
         Integer delegado = delegacionService.resolverDelegado(idUsuario);
-        idsUsuarios.add(delegado != null ? delegado : idUsuario);
+        if (delegado != null && !delegado.equals(idUsuario)) {
+            idsUsuarios.add(delegado);
+        }
     }
 
     /**
@@ -1082,6 +1117,12 @@ public class CorrespondenciaService {
 
     private void registrarHistorial(Correspondencia entity, String estadoAnterior,
                                      String estadoNuevo, String accion, String detalle, Usuario usuario) {
+        registrarHistorial(entity, estadoAnterior, estadoNuevo, accion, detalle, usuario, null, null);
+    }
+
+    private void registrarHistorial(Correspondencia entity, String estadoAnterior,
+                                     String estadoNuevo, String accion, String detalle, Usuario usuario,
+                                     Integer idDelegacion, Integer usuarioOriginal) {
         CorrespondenciaHistorial h = CorrespondenciaHistorial.builder()
                 .correspondencia(entity)
                 .estadoAnterior(estadoAnterior)
@@ -1089,6 +1130,9 @@ public class CorrespondenciaService {
                 .accion(accion)
                 .usuario(usuario)
                 .detalle(detalle)
+                .idDelegacion(idDelegacion)
+                .usuarioOriginal(usuarioOriginal)
+                .delegacionAplicada(idDelegacion != null)
                 .build();
         historialRepository.save(h);
     }
@@ -1138,12 +1182,20 @@ public class CorrespondenciaService {
                 entity.getInstitucion(),
                 entity.getDepartamentoRemitente(),
                 entity.getResponsablesAsignados().stream()
-                    .map(ra -> new ResponsableAsignadoDTO(
-                        ra.getUsuario().getIdUsuario(),
-                        ra.getUsuario().getNombres() + " " + ra.getUsuario().getApellidos(),
-                        ra.getSumilla(),
-                        ra.getPuestoFirmante(),
-                        ra.getUnidadFirmante()))
+                    .map(ra -> {
+                        var delegacion = delegacionService.resolverDelegadoConDetalle(ra.getUsuario().getIdUsuario());
+                        return new ResponsableAsignadoDTO(
+                            ra.getUsuario().getIdUsuario(),
+                            ra.getUsuario().getNombres() + " " + ra.getUsuario().getApellidos(),
+                            ra.getSumilla(),
+                            ra.getPuestoFirmante(),
+                            ra.getUnidadFirmante(),
+                            delegacion != null ? delegacion.idDelegacion() : null,
+                            delegacion != null ? delegacion.idUsuarioOriginal() : null,
+                            delegacion != null ? delegacion.nombreOriginal() : null,
+                            delegacion != null
+                        );
+                    })
                     .collect(Collectors.toList()),
                 entity.getPrioridad(),
                 entity.getEstado(),
@@ -1170,6 +1222,11 @@ public class CorrespondenciaService {
     }
 
     private CorrespondenciaDestinatarioDTO toDestinatarioDTO(CorrespondenciaDestinatario d) {
+        String usuarioOriginalNombre = null;
+        if (d.getUsuarioOriginal() != null) {
+            var uOrig = usuarioRepository.findById(d.getUsuarioOriginal()).orElse(null);
+            if (uOrig != null) usuarioOriginalNombre = uOrig.getNombres() + " " + uOrig.getApellidos();
+        }
         return new CorrespondenciaDestinatarioDTO(
                 d.getIdCorrespondenciaDestinatario(),
                 d.getTipo(),
@@ -1179,7 +1236,10 @@ public class CorrespondenciaService {
                 d.getFechaRecibido(),
                 d.getLeido(),
                 d.getFechaLeido(),
-                d.getSumilla()
+                d.getSumilla(),
+                d.getIdDelegacion(),
+                d.getUsuarioOriginal(),
+                usuarioOriginalNombre
         );
     }
 
@@ -1200,6 +1260,11 @@ public class CorrespondenciaService {
     }
 
     private CorrespondenciaHistorialDTO toHistorialDTO(CorrespondenciaHistorial h) {
+        String usuarioOriginalNombre = null;
+        if (h.getUsuarioOriginal() != null) {
+            var uOrig = usuarioRepository.findById(h.getUsuarioOriginal()).orElse(null);
+            if (uOrig != null) usuarioOriginalNombre = uOrig.getNombres() + " " + uOrig.getApellidos();
+        }
         return new CorrespondenciaHistorialDTO(
                 h.getIdHistorial(),
                 h.getCorrespondencia().getIdCorrespondencia(),
@@ -1209,7 +1274,11 @@ public class CorrespondenciaService {
                 h.getUsuario().getIdUsuario(),
                 h.getUsuario().getNombres(),
                 h.getDetalle(),
-                h.getCreadoEn()
+                h.getCreadoEn(),
+                h.getIdDelegacion(),
+                h.getUsuarioOriginal(),
+                usuarioOriginalNombre,
+                h.getDelegacionAplicada()
         );
     }
 
@@ -1226,5 +1295,16 @@ public class CorrespondenciaService {
                 r.getObservaciones(),
                 r.getCreadoEn()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Integer, Long> contarDocumentosPorDelegacion() {
+        return historialRepository.countDocumentosPorDelegacion().stream()
+            .filter(row -> row[0] != null)
+            .collect(Collectors.toMap(
+                row -> (Integer) row[0],
+                row -> (Long) row[1],
+                Long::sum
+            ));
     }
 }

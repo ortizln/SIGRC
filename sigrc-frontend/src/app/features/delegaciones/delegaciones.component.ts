@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TalentoHumanoService } from '@core/services/talento-humano.service';
+import { CorrespondenciaService } from '@core/services/correspondencia.service';
 import { TIPOS_DELEGACION } from '@shared/models/delegaciones.model';
 import Swal from 'sweetalert2';
 
@@ -15,10 +16,14 @@ import Swal from 'sweetalert2';
 export class DelegacionesComponent implements OnInit {
   delegaciones: any[] = [];
   cargando = false;
+  documentosPorDelegacion: Record<number, number> = {};
 
   tipos = TIPOS_DELEGACION;
 
-  constructor(private svc: TalentoHumanoService) {}
+  constructor(
+    private svc: TalentoHumanoService,
+    private correspSvc: CorrespondenciaService
+  ) {}
 
   ngOnInit() {
     this.cargar();
@@ -27,9 +32,24 @@ export class DelegacionesComponent implements OnInit {
   cargar() {
     this.cargando = true;
     this.svc.getDelegaciones().subscribe({
-      next: r => { this.delegaciones = r; this.cargando = false; },
+      next: r => {
+        this.delegaciones = r;
+        this.cargando = false;
+        this.cargarDocumentosPorDelegacion();
+      },
       error: () => this.cargando = false
     });
+  }
+
+  cargarDocumentosPorDelegacion() {
+    this.correspSvc.getDocumentosPorDelegacion().subscribe({
+      next: r => this.documentosPorDelegacion = r,
+      error: () => {}
+    });
+  }
+
+  cantidadDocumentos(d: any): number {
+    return this.documentosPorDelegacion[d.idDelegacion] || 0;
   }
 
   cancelar(d: any) {

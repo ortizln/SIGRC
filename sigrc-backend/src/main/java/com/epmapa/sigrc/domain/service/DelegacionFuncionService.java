@@ -2,6 +2,7 @@ package com.epmapa.sigrc.domain.service;
 
 import com.epmapa.sigrc.domain.dto.DelegacionFuncionDTO;
 import com.epmapa.sigrc.domain.dto.DelegacionFuncionRequest;
+import com.epmapa.sigrc.domain.dto.DelegacionResueltaDTO;
 import com.epmapa.sigrc.domain.entity.DelegacionFuncion;
 import com.epmapa.sigrc.domain.entity.Empleado;
 import com.epmapa.sigrc.domain.entity.Usuario;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class DelegacionFuncionService {
@@ -134,6 +136,85 @@ public class DelegacionFuncionService {
                     .orElse(null);
             })
             .orElse(null);
+    }
+
+    /**
+     * Resuelve la delegación activa del usuario y retorna toda la información
+     * necesaria para registrar la proveniencia en historial y destinatarios.
+     */
+    @Transactional(readOnly = true)
+    public DelegacionResueltaDTO resolverDelegadoConDetalle(Integer idUsuario) {
+        if (idUsuario == null) return null;
+        var usuario = usuarioRepository.findById(idUsuario).orElse(null);
+        if (usuario == null || usuario.getEmpleado() == null) return null;
+
+        var asignacion = asignacionRepository
+            .findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
+                usuario.getEmpleado().getIdEmpleado(), "ACTIVA")
+            .orElse(null);
+        if (asignacion == null) return null;
+
+        LocalDate hoy = LocalDate.now();
+        return delegacionRepository
+            .findByAsignacionOrigenIdAsignacionAndEstadoOrderByFechaInicioDesc(asignacion.getIdAsignacion(), ACTIVA)
+            .stream()
+            .filter(d -> !d.getFechaInicio().isAfter(hoy)
+                && (d.getFechaFin() == null || !d.getFechaFin().isBefore(hoy)))
+            .max(Comparator.comparing(DelegacionFuncion::getFechaInicio))
+            .map(d -> {
+                var empDelegado = d.getAsignacionDelegada().getEmpleado();
+                if (empDelegado == null) return null;
+                var usuarioDelegado = usuarioRepository
+                    .findByEmpleadoIdEmpleadoAndActivoTrue(empDelegado.getIdEmpleado())
+                    .orElse(null);
+                if (usuarioDelegado == null) return null;
+                return new DelegacionResueltaDTO(
+                    usuarioDelegado.getIdUsuario(),
+                    d.getIdDelegacion(),
+                    idUsuario,
+                    nombreCompleto(empDelegado),
+                    usuario.getNombres() + " " + usuario.getApellidos(),
+                    d.getTipo(),
+                    d.getFechaInicio(),
+                    d.getFechaFin()
+                );
+            })
+            .orElse(null);
+    }
+
+    /**
+     * Devuelve los IDs de usuario que me delegaron sus funciones activamente.
+     * Útil para bandejas: incluir documentos de usuarios que me delegaron.
+     */
+    @Transactional(readOnly = true)
+    public List<Integer> usuariosQueMeDelegaron(Integer idUsuario) {
+        if (idUsuario == null) return List.of();
+        var usuario = usuarioRepository.findById(idUsuario).orElse(null);
+        if (usuario == null || usuario.getEmpleado() == null) return List.of();
+
+        LocalDate hoy = LocalDate.now();
+        return delegacionRepository.findAll().stream()
+            .filter(d -> ACTIVA.equals(d.getEstado()))
+            .filter(d -> !d.getFechaInicio().isAfter(hoy)
+                && (d.getFechaFin() == null || !d.getFechaFin().isBefore(hoy)))
+            .filter(d -> {
+                var empDelegado = d.getAsignacionDelegada().getEmpleado();
+                if (empDelegado == null) return false;
+                var uDelegado = usuarioRepository
+                    .findByEmpleadoIdEmpleadoAndActivoTrue(empDelegado.getIdEmpleado())
+                    .orElse(null);
+                return uDelegado != null && idUsuario.equals(uDelegado.getIdUsuario());
+            })
+            .map(d -> {
+                var empOrigen = d.getAsignacionOrigen().getEmpleado();
+                if (empOrigen == null) return null;
+                return usuarioRepository.findByEmpleadoIdEmpleadoAndActivoTrue(empOrigen.getIdEmpleado())
+                    .map(Usuario::getIdUsuario)
+                    .orElse(null);
+            })
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
     }
 
     private DelegacionFuncionDTO toDTO(DelegacionFuncion d) {

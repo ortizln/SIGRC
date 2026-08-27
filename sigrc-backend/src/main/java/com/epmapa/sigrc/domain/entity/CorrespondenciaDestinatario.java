@@ -36,4 +36,10 @@ public class CorrespondenciaDestinatario {
 
     @Column(columnDefinition = "TEXT")
     private String sumilla;
+
+    @Column
+    private Integer idDelegacion;
+
+    @Column
+    private Integer usuarioOriginal;
 }

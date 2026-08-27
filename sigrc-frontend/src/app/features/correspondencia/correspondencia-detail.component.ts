@@ -7,7 +7,7 @@ import { CorrespondenciaService } from '@core/services/correspondencia.service';
 import { AuthService } from '@core/services/auth.service';
 import { UsuarioService } from '@core/services/usuario.service';
 import { TalentoHumanoService } from '@core/services/talento-humano.service';
-import { ESTADOS_CORRESPONDENCIA } from '@shared/models/correspondencia.model';
+import { ESTADOS_CORRESPONDENCIA, DelegacionResuelta } from '@shared/models/correspondencia.model';
 import { SafeUrlPipe } from '@shared/pipes/safe-url.pipe';
 import Swal from 'sweetalert2';
 
@@ -31,6 +31,7 @@ export class CorrespondenciaDetailComponent implements OnInit, OnDestroy {
   tiposDocumento: any[] = [];
   usuarios: any[] = [];
   showRespuestaForm = false;
+  delegacionesVigentes: DelegacionResuelta[] = [];
 
   private user: any;
   private destroy$ = new Subject<void>();
@@ -55,6 +56,7 @@ export class CorrespondenciaDetailComponent implements OnInit, OnDestroy {
     this.usuarioSvc.listar().subscribe(r => this.usuarios = r.filter(u => u.rolCodigo !== 'ADMIN'));
     this.thSvc.getPuestos().subscribe(r => this.puestos = r);
     this.thSvc.getUnidades().subscribe(r => this.unidades = r);
+    this.svc.getDelegacionesVigentes().subscribe(r => this.delegacionesVigentes = r);
   }
 
   ngOnDestroy() {
@@ -93,6 +95,34 @@ export class CorrespondenciaDetailComponent implements OnInit, OnDestroy {
 
   docResponsablesNombres(): string {
     return this.docModal?.responsables?.map((r: any) => r.nombre).join(', ') || 'Sin asignar';
+  }
+
+  tieneDelegacion(usuarioId: number): boolean {
+    return this.delegacionesVigentes.some(d => d.idUsuarioDelegado === usuarioId);
+  }
+
+  delegacionDe(usuarioId: number): DelegacionResuelta | undefined {
+    return this.delegacionesVigentes.find(d => d.idUsuarioDelegado === usuarioId);
+  }
+
+  esDelegadoDe(usuarioId: number): boolean {
+    return this.delegacionesVigentes.some(d => d.idUsuarioOriginal === usuarioId);
+  }
+
+  delegacionHistorialDetalle(h: any): string {
+    if (!h.delegacionAplicada) return '';
+    const u = this.usuarios.find(x => x.idUsuario === h.idUsuario);
+    const nombre = u ? `${u.nombres} ${u.apellidos}` : h.usuarioNombre;
+    return ` [Delegación de ${nombre}]`;
+  }
+
+  usuarioOriginalDelDoc(): string {
+    if (!this.doc?.responsables) return '';
+    const user = this.auth.getUsuario();
+    if (!user) return '';
+    const miDelegacion = this.delegacionesVigentes.find(d => d.idUsuarioDelegado === user.idUsuario);
+    if (!miDelegacion) return '';
+    return miDelegacion.nombreOriginal;
   }
 
   private aplicarDTO(r: any) {

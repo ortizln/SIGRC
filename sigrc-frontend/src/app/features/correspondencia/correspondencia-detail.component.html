@@ -19,6 +19,14 @@
     </div>
   </div>
 
+  <div class="alert alert-warning d-flex align-items-center gap-2 mb-3 py-2 px-3" *ngIf="doc && esDelegadoDe(doc.creadoPor)"
+       style="border-left:4px solid var(--warning);font-size:0.8rem;">
+    <i class="pi pi-link" style="font-size:1rem;"></i>
+    <span>Estás viendo este documento porque <strong>{{ usuarioOriginalDelDoc() }}</strong> delegó sus funciones en ti.
+      <a routerLink="/talento-humano/delegaciones" class="ms-1">Ver detalles de la delegación</a>
+    </span>
+  </div>
+
   <div class="row g-3" *ngIf="doc">
     <div class="col-md-8">
       <div class="card-modern p-4">
@@ -42,6 +50,9 @@
                   <span>
                     {{ d.nombre }}
                     <small>{{ d.tipo === 'USUARIO' ? '👤' : '🏢' }}</small>
+                    <span *ngIf="d.usuarioOriginalNombre" class="badge bg-warning text-dark ms-1" style="font-size:0.5rem;">
+                      <i class="pi pi-link" style="font-size:0.4rem;"></i> Delegado de {{ d.usuarioOriginalNombre }}
+                    </span>
                   </span>
                   <span class="chip-estados">
                     <span *ngIf="d.leido" class="chip-estado text-info"
@@ -62,6 +73,10 @@
             <div *ngIf="doc?.responsables?.length; else sinResp">
               <div *ngFor="let r of doc?.responsables" class="mb-1">
                 <strong class="small"><i class="pi pi-user me-1" style="font-size:0.7rem;color:var(--primary);"></i>{{ r.nombre }}</strong>
+                <span *ngIf="r.delegacionAplicada" class="badge bg-warning text-dark ms-1" style="font-size:0.6rem;">
+                  <i class="pi pi-link" style="font-size:0.5rem;"></i> Delegación
+                </span>
+                <span *ngIf="r.usuarioOriginalNombre" class="text-muted small ms-1">(Original: {{ r.usuarioOriginalNombre }})</span>
                 <span *ngIf="r.puestoFirmante || r.unidadFirmante" class="firma-institucional small">
                   {{ r.puestoFirmante || 'Puesto no disponible' }}{{ r.puestoFirmante && r.unidadFirmante ? ' · ' : '' }}{{ r.unidadFirmante || '' }}
                 </span>
@@ -311,6 +326,10 @@
               <strong class="small">{{ h.accion }}</strong>
               <p class="small text-muted mb-0">
                 {{ h.usuarioNombre }} — {{ h.creadoEn | date:'dd/MM/yy HH:mm' }}
+                <span *ngIf="h.delegacionAplicada" class="badge bg-warning text-dark ms-1" style="font-size:0.55rem;">
+                  <i class="pi pi-link" style="font-size:0.5rem;"></i> Delegación
+                </span>
+                <span *ngIf="h.usuarioOriginalNombre" class="text-muted ms-1">(Original: {{ h.usuarioOriginalNombre }})</span>
               </p>
               <p class="small" *ngIf="h.detalle">{{ h.detalle }}</p>
             </div>

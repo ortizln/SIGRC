@@ -11,5 +11,8 @@ public record CorrespondenciaDestinatarioDTO(
     LocalDateTime fechaRecibido,
     Boolean leido,
     LocalDateTime fechaLeido,
-    String sumilla
+    String sumilla,
+    Integer idDelegacion,
+    Integer usuarioOriginal,
+    String usuarioOriginalNombre
 ) {}
