@@ -103,13 +103,26 @@ public class CorrespondenciaService {
         if (request.responsables() != null && !request.responsables().isEmpty()) {
             for (var r : request.responsables()) {
                 Usuario u = usuarioRepository.getReferenceById(r.idUsuario());
-                var ra = CorrespondenciaResponsable.builder()
-                    .correspondencia(null)
-                    .usuario(u)
-                    .sumilla(r.sumilla())
-                    .build();
-                capturarFirma(ra);
-                responsablesAsignados.add(ra);
+                var delegacion = delegacionService.resolverDelegadoConDetalle(r.idUsuario());
+
+                Usuario usuarioFinal = u;
+                String sumillaFinal = r.sumilla();
+                if (delegacion != null) {
+                    usuarioFinal = usuarioRepository.getReferenceById(delegacion.idUsuarioDelegado());
+                    sumillaFinal = (r.sumilla() != null ? r.sumilla() : "") + " [Delegación de " + u.getNombres() + "]";
+                }
+
+                boolean yaAgregado = responsablesAsignados.stream()
+                    .anyMatch(x -> x.getUsuario().getIdUsuario().equals(usuarioFinal.getIdUsuario()));
+                if (!yaAgregado) {
+                    var ra = CorrespondenciaResponsable.builder()
+                        .correspondencia(null)
+                        .usuario(usuarioFinal)
+                        .sumilla(sumillaFinal)
+                        .build();
+                    capturarFirma(ra);
+                    responsablesAsignados.add(ra);
+                }
             }
         } else if ("SALIDA".equals(sentido)) {
             var ra = CorrespondenciaResponsable.builder()
@@ -323,18 +336,6 @@ public class CorrespondenciaService {
 
         var delegacion = delegacionService.resolverDelegadoConDetalle(idResponsable);
 
-        boolean yaAsignado = entity.getResponsablesAsignados().stream()
-                .anyMatch(ra -> ra.getUsuario().getIdUsuario().equals(idResponsable));
-        if (!yaAsignado) {
-            var ra = CorrespondenciaResponsable.builder()
-                .correspondencia(entity)
-                .usuario(responsable)
-                .sumilla(sumilla != null ? sumilla : "")
-                .build();
-            capturarFirma(ra);
-            entity.getResponsablesAsignados().add(ra);
-        }
-
         if (delegacion != null) {
             boolean delegadoYaAsignado = entity.getResponsablesAsignados().stream()
                     .anyMatch(ra -> ra.getUsuario().getIdUsuario().equals(delegacion.idUsuarioDelegado()));
@@ -348,6 +349,18 @@ public class CorrespondenciaService {
                 capturarFirma(raDelegado);
                 entity.getResponsablesAsignados().add(raDelegado);
             }
+        } else {
+            boolean yaAsignado = entity.getResponsablesAsignados().stream()
+                    .anyMatch(ra -> ra.getUsuario().getIdUsuario().equals(idResponsable));
+            if (!yaAsignado) {
+                var ra = CorrespondenciaResponsable.builder()
+                    .correspondencia(entity)
+                    .usuario(responsable)
+                    .sumilla(sumilla != null ? sumilla : "")
+                    .build();
+                capturarFirma(ra);
+                entity.getResponsablesAsignados().add(ra);
+            }
         }
 
         if ("RECIBIDO".equals(entity.getEstado())) {
@@ -356,10 +369,9 @@ public class CorrespondenciaService {
         entity = repository.save(entity);
 
         Usuario usuario = usuarioRepository.getReferenceById(idUsuario);
-        String detalleHistorial = "Asignado a: " + responsable.getNombres();
-        if (delegacion != null) {
-            detalleHistorial += " + delegado: " + delegacion.nombreDelegado() + " (" + delegacion.tipoDelegacion() + ")";
-        }
+        String detalleHistorial = delegacion != null
+                ? "Asignado a: " + delegacion.nombreDelegado() + " [Delegación de " + responsable.getNombres() + "]"
+                : "Asignado a: " + responsable.getNombres();
         if (sumilla != null && !sumilla.isBlank()) {
             detalleHistorial += " — Sumilla: " + sumilla;
         }
@@ -369,17 +381,12 @@ public class CorrespondenciaService {
                 delegacion != null ? delegacion.idUsuarioOriginal() : null);
 
         var dto = toDTO(entity);
-        notificacionService.notificarAsignacion(idResponsable, "CORRESPONDENCIA",
-            "Correspondencia Asignada",
-            "Documento " + entity.getNumeroInterno() + " - " + entity.getAsunto(),
+        Integer idNotificar = delegacion != null ? delegacion.idUsuarioDelegado() : idResponsable;
+        notificacionService.notificarAsignacion(idNotificar, "CORRESPONDENCIA",
+            delegacion != null ? "Correspondencia Asignada (Delegación)" : "Correspondencia Asignada",
+            "Documento " + entity.getNumeroInterno() + " - " + entity.getAsunto()
+                + (delegacion != null ? " [Delegación de " + responsable.getNombres() + "]" : ""),
             entity.getIdCorrespondencia());
-        if (delegacion != null) {
-            notificacionService.notificarAsignacion(delegacion.idUsuarioDelegado(), "CORRESPONDENCIA",
-                "Correspondencia Asignada (Delegación)",
-                "Documento " + entity.getNumeroInterno() + " - " + entity.getAsunto()
-                    + " [Delegación de " + responsable.getNombres() + "]",
-                entity.getIdCorrespondencia());
-        }
         return dto;
     }
 
@@ -512,9 +519,12 @@ public class CorrespondenciaService {
         String detalle = "Recibido por " + usuario.getNombres() + " " + usuario.getApellidos();
         if (sumilla != null && !sumilla.isBlank()) detalle += " — Sumilla: " + sumilla;
         if (!idsEtiquetas.isEmpty()) detalle += " — Derivado a: " + idsEtiquetas.size() + " usuario(s)";
-        registrarHistorial(entity, entity.getEstado(), entity.getEstado(), "RECEPCION_DERIVACION", detalle, usuario);
+        var delegacionActual = delegacionService.resolverDelegadoConDetalle(idUsuario);
+        registrarHistorial(entity, entity.getEstado(), entity.getEstado(), "RECEPCION_DERIVACION", detalle, usuario,
+                delegacionActual != null ? delegacionActual.idDelegacion() : null,
+                delegacionActual != null ? delegacionActual.idUsuarioOriginal() : null);
 
-        // Notificar a los usuarios derivados
+        // Notificar a los usuarios derivados (ya resueltos por agregarDestinatario)
         for (Integer idDest : idsEtiquetas) {
             notificacionService.notificarAsignacion(idDest, "CORRESPONDENCIA",
                 "Documento Derivado para su atención",
@@ -574,16 +584,13 @@ public class CorrespondenciaService {
 
     /**
      * Añade un destinatario aplicando la delegación de funciones activa:
-     * si el usuario destino tiene una delegación vigente, se añaden AMBOS
-     * (original + delegado) para que ambos vean el documento en su bandeja.
+     * si el usuario destino tiene una delegación vigente, se resuelve al delegado
+     * (reemplazo, no duplicación). El destinatario es el delegado, no el original.
      */
     private void agregarDestinatario(Set<Integer> idsUsuarios, Integer idUsuario) {
         if (idUsuario == null) return;
-        idsUsuarios.add(idUsuario);
         Integer delegado = delegacionService.resolverDelegado(idUsuario);
-        if (delegado != null && !delegado.equals(idUsuario)) {
-            idsUsuarios.add(delegado);
-        }
+        idsUsuarios.add(delegado != null ? delegado : idUsuario);
     }
 
     /**
@@ -1033,6 +1040,11 @@ public class CorrespondenciaService {
                 .nombre(activoUsuario.getNombres() + " " + (activoUsuario.getApellidos() != null ? activoUsuario.getApellidos() : ""))
                 .recibido(false)
                 .build();
+        var delegacionEspejo = delegacionService.resolverDelegadoConDetalle(activoUsuario.getIdUsuario());
+        if (delegacionEspejo != null) {
+            d.setIdDelegacion(delegacionEspejo.idDelegacion());
+            d.setUsuarioOriginal(delegacionEspejo.idUsuarioOriginal());
+        }
         destinatarioRepository.save(d);
 
         registrarHistorial(salida, null, "RECIBIDO", "EMISION",
@@ -1074,6 +1086,7 @@ public class CorrespondenciaService {
     private void guardarDestinatarios(Correspondencia entity, List<CorrespondenciaDestinatarioDTO> destinatarios) {
         if (destinatarios == null) return;
         for (CorrespondenciaDestinatarioDTO dto : destinatarios) {
+            var delegacion = delegacionService.resolverDelegadoConDetalle(dto.idDestinatario());
             CorrespondenciaDestinatario d = CorrespondenciaDestinatario.builder()
                     .correspondencia(entity)
                     .tipo(dto.tipo())
@@ -1081,6 +1094,8 @@ public class CorrespondenciaService {
                     .nombre(dto.nombre())
                     .recibido(false)
                     .sumilla(dto.sumilla())
+                    .idDelegacion(delegacion != null ? delegacion.idDelegacion() : null)
+                    .usuarioOriginal(delegacion != null ? delegacion.idUsuarioOriginal() : null)
                     .build();
             destinatarioRepository.save(d);
         }
