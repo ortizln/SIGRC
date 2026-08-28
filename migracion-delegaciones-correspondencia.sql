@@ -1,6 +1,6 @@
 -- ============================================================================
 -- SIGRC · Integración Delegaciones ↔ Correspondencia
--- Agrega campos de trazabilidad de delegación a historial y destinatarios.
+-- Agrega campos de trazabilidad de delegación a historial, destinatarios y responsables.
 -- Idempotente: se puede ejecutar múltiples veces sin error.
 -- ============================================================================
 
@@ -57,7 +57,31 @@ COMMENT ON COLUMN sigrc.correspondencia_destinatario.id_delegacion IS
 COMMENT ON COLUMN sigrc.correspondencia_destinatario.usuario_original IS
     'ID del usuario original destinatario antes de la resolución por delegación.';
 
--- 3. Retrocompatibilidad: marcar registros existentes
+-- 3. Campos de delegación en correspondencia_responsable
+ALTER TABLE sigrc.correspondencia_responsable
+    ADD COLUMN IF NOT EXISTS id_delegacion INTEGER NULL,
+    ADD COLUMN IF NOT EXISTS usuario_original INTEGER NULL;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'fk_resp_delegacion'
+    ) THEN
+        ALTER TABLE sigrc.correspondencia_responsable
+            ADD CONSTRAINT fk_resp_delegacion
+            FOREIGN KEY (id_delegacion) REFERENCES sigrc.delegacion_funcion(id_delegacion);
+    END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_resp_delegacion
+    ON sigrc.correspondencia_responsable (id_delegacion);
+
+COMMENT ON COLUMN sigrc.correspondencia_responsable.id_delegacion IS
+    'FK a delegacion_funcion cuando este responsable fue asignado vía delegación.';
+COMMENT ON COLUMN sigrc.correspondencia_responsable.usuario_original IS
+    'ID del usuario original al que se asignó antes de la resolución por delegación.';
+
+-- 4. Retrocompatibilidad: marcar registros existentes
 UPDATE sigrc.correspondencia_destinatario
 SET usuario_original = id_destinatario
 WHERE usuario_original IS NULL;

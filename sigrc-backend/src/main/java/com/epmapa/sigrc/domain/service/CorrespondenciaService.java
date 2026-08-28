@@ -115,11 +115,15 @@ public class CorrespondenciaService {
                 boolean yaAgregado = responsablesAsignados.stream()
                     .anyMatch(x -> x.getUsuario().getIdUsuario().equals(usuarioFinal.getIdUsuario()));
                 if (!yaAgregado) {
-                    var ra = CorrespondenciaResponsable.builder()
+                    var raBuilder = CorrespondenciaResponsable.builder()
                         .correspondencia(null)
                         .usuario(usuarioFinal)
-                        .sumilla(sumillaFinal)
-                        .build();
+                        .sumilla(sumillaFinal);
+                    if (delegacion != null) {
+                        raBuilder.idDelegacion(delegacion.idDelegacion())
+                                 .usuarioOriginal(r.idUsuario());
+                    }
+                    var ra = raBuilder.build();
                     capturarFirma(ra);
                     responsablesAsignados.add(ra);
                 }
@@ -345,6 +349,8 @@ public class CorrespondenciaService {
                     .correspondencia(entity)
                     .usuario(usuarioDelegado)
                     .sumilla((sumilla != null ? sumilla : "") + " [Delegación de " + responsable.getNombres() + "]")
+                    .idDelegacion(delegacion.idDelegacion())
+                    .usuarioOriginal(idResponsable)
                     .build();
                 capturarFirma(raDelegado);
                 entity.getResponsablesAsignados().add(raDelegado);
@@ -1198,17 +1204,21 @@ public class CorrespondenciaService {
                 entity.getDepartamentoRemitente(),
                 entity.getResponsablesAsignados().stream()
                     .map(ra -> {
-                        var delegacion = delegacionService.resolverDelegadoConDetalle(ra.getUsuario().getIdUsuario());
+                        String usuarioOriginalNombre = null;
+                        if (ra.getUsuarioOriginal() != null) {
+                            var uOrig = usuarioRepository.findById(ra.getUsuarioOriginal()).orElse(null);
+                            if (uOrig != null) usuarioOriginalNombre = uOrig.getNombres() + " " + uOrig.getApellidos();
+                        }
                         return new ResponsableAsignadoDTO(
                             ra.getUsuario().getIdUsuario(),
                             ra.getUsuario().getNombres() + " " + ra.getUsuario().getApellidos(),
                             ra.getSumilla(),
                             ra.getPuestoFirmante(),
                             ra.getUnidadFirmante(),
-                            delegacion != null ? delegacion.idDelegacion() : null,
-                            delegacion != null ? delegacion.idUsuarioOriginal() : null,
-                            delegacion != null ? delegacion.nombreOriginal() : null,
-                            delegacion != null
+                            ra.getIdDelegacion(),
+                            ra.getUsuarioOriginal(),
+                            usuarioOriginalNombre,
+                            ra.getIdDelegacion() != null
                         );
                     })
                     .collect(Collectors.toList()),

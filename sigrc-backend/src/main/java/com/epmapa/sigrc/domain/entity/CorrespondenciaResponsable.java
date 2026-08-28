@@ -31,6 +31,12 @@ public class CorrespondenciaResponsable {
     @Column(name = "asignacion_id")
     private Integer asignacionId;
 
+    @Column(name = "id_delegacion")
+    private Integer idDelegacion;
+
+    @Column(name = "usuario_original")
+    private Integer usuarioOriginal;
+
     @Builder.Default
     @Column(nullable = false, updatable = false)
     private LocalDateTime creadoEn = LocalDateTime.now();
