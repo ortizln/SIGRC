@@ -105,20 +105,23 @@ public class CorrespondenciaService {
                 Usuario u = usuarioRepository.getReferenceById(r.idUsuario());
                 var delegacion = delegacionService.resolverDelegadoConDetalle(r.idUsuario());
 
-                Usuario usuarioFinal = u;
-                String sumillaFinal = r.sumilla();
+                final Usuario usuarioAsignado;
+                final String sumillaAsignada;
                 if (delegacion != null) {
-                    usuarioFinal = usuarioRepository.getReferenceById(delegacion.idUsuarioDelegado());
-                    sumillaFinal = (r.sumilla() != null ? r.sumilla() : "") + " [Delegación de " + u.getNombres() + "]";
+                    usuarioAsignado = usuarioRepository.getReferenceById(delegacion.idUsuarioDelegado());
+                    sumillaAsignada = (r.sumilla() != null ? r.sumilla() : "") + " [Delegación de " + u.getNombres() + "]";
+                } else {
+                    usuarioAsignado = u;
+                    sumillaAsignada = r.sumilla();
                 }
 
                 boolean yaAgregado = responsablesAsignados.stream()
-                    .anyMatch(x -> x.getUsuario().getIdUsuario().equals(usuarioFinal.getIdUsuario()));
+                    .anyMatch(x -> x.getUsuario().getIdUsuario().equals(usuarioAsignado.getIdUsuario()));
                 if (!yaAgregado) {
                     var raBuilder = CorrespondenciaResponsable.builder()
                         .correspondencia(null)
-                        .usuario(usuarioFinal)
-                        .sumilla(sumillaFinal);
+                        .usuario(usuarioAsignado)
+                        .sumilla(sumillaAsignada);
                     if (delegacion != null) {
                         raBuilder.idDelegacion(delegacion.idDelegacion())
                                  .usuarioOriginal(r.idUsuario());
