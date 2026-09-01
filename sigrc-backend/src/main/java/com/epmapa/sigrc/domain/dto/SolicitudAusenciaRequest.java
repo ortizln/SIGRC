@@ -10,5 +10,6 @@ public record SolicitudAusenciaRequest(
     Integer dias,
     Integer horas,
     String motivo,
-    Integer documentoRespaldoId
+    Integer documentoRespaldoId,
+    Integer encargadoAsignacionId
 ) {}

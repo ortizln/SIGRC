@@ -377,6 +377,11 @@ export class CorrespondenciaDetailComponent implements OnInit, OnDestroy {
     return !!r && !r.recibido;
   }
 
+  get esCreadorDelDocumento(): boolean {
+    const u = this.auth.getUsuario();
+    return !!u && this.doc?.creadoPor === u.idUsuario;
+  }
+
   sentidoPercibido(): string {
     const s = this.doc?.sentido;
     if (s !== 'SALIDA') return s || '';

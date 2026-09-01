@@ -27,6 +27,8 @@ public class SolicitudAusencia {
     private String motivo;
     @Column(name = "documento_respaldo_id")
     private Integer documentoRespaldoId;
+    @Column(name = "encargado_asignacion_id")
+    private Integer encargadoAsignacionId;
     @Column(nullable = false, length = 20)
     private String estado;
     @ManyToOne(fetch = FetchType.LAZY)

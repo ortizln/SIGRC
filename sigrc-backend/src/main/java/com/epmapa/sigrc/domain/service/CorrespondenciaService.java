@@ -593,13 +593,17 @@ public class CorrespondenciaService {
 
     /**
      * Añade un destinatario aplicando la delegación de funciones activa:
-     * si el usuario destino tiene una delegación vigente, se resuelve al delegado
-     * (reemplazo, no duplicación). El destinatario es el delegado, no el original.
+     * si el usuario destino tiene una delegación vigente, se añaden AMBOS
+     * (original + delegado) para que ambos vean el documento en su bandeja
+     * y el original pueda recibir sumilla.
      */
     private void agregarDestinatario(Set<Integer> idsUsuarios, Integer idUsuario) {
         if (idUsuario == null) return;
+        idsUsuarios.add(idUsuario);
         Integer delegado = delegacionService.resolverDelegado(idUsuario);
-        idsUsuarios.add(delegado != null ? delegado : idUsuario);
+        if (delegado != null && !delegado.equals(idUsuario)) {
+            idsUsuarios.add(delegado);
+        }
     }
 
     /**
@@ -1107,6 +1111,25 @@ public class CorrespondenciaService {
                     .usuarioOriginal(delegacion != null ? delegacion.idUsuarioOriginal() : null)
                     .build();
             destinatarioRepository.save(d);
+
+            if (delegacion != null) {
+                boolean delegadoYaExiste = destinatarioRepository
+                    .findByCorrespondenciaIdCorrespondenciaAndTipoAndIdDestinatario(
+                        entity.getIdCorrespondencia(), "USUARIO", delegacion.idUsuarioDelegado())
+                    .isPresent();
+                if (!delegadoYaExiste) {
+                    var dDelegado = CorrespondenciaDestinatario.builder()
+                        .correspondencia(entity)
+                        .tipo("USUARIO")
+                        .idDestinatario(delegacion.idUsuarioDelegado())
+                        .nombre(delegacion.nombreDelegado())
+                        .recibido(false)
+                        .idDelegacion(delegacion.idDelegacion())
+                        .usuarioOriginal(dto.idDestinatario())
+                        .build();
+                    destinatarioRepository.save(dDelegado);
+                }
+            }
         }
     }
 

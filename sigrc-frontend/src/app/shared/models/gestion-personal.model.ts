@@ -49,6 +49,8 @@ export interface SolicitudAusencia {
   horas?: number;
   motivo?: string;
   documentoRespaldoId?: number;
+  encargadoAsignacionId?: number;
+  encargadoNombre?: string;
   estado: string;
   jefeAprobador?: number;
   thAprobador?: number;

@@ -328,6 +328,13 @@ public class TalentoHumanoController {
         return ResponseEntity.ok(asignacionService.obtenerActual(empleadoId));
     }
 
+    @GetMapping("/asignaciones/todas")
+    @Operation(summary = "Todas las asignaciones activas (para seleccionar encargado)")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<AsignacionDTO>> todasAsignacionesActivas() {
+        return ResponseEntity.ok(asignacionService.listarTodasActivas());
+    }
+
     @PostMapping("/asignaciones")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Asignar puesto a un empleado (cierra la asignación anterior)")

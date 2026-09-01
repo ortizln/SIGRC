@@ -13,7 +13,7 @@
       </div>
     </div>
     <div class="d-flex gap-2" *ngIf="doc">
-      <a *ngIf="auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')" [routerLink]="['/correspondencia/editar', doc.idCorrespondencia]" class="btn btn-outline-primary btn-sm">
+      <a *ngIf="esCreadorDelDocumento" [routerLink]="['/correspondencia/editar', doc.idCorrespondencia]" class="btn btn-outline-primary btn-sm">
         <i class="pi pi-pencil" style="font-size:0.7rem;"></i> Editar
       </a>
     </div>
@@ -198,7 +198,7 @@
           <div class="form-text small mt-1">Marca el documento como recibido por ti.</div>
         </div>
 
-        <div class="mb-3" *ngIf="auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">
+        <div class="mb-3" *ngIf="esCreadorDelDocumento">
           <label class="form-label small">Sumilla (instrucciones)</label>
           <textarea autocomplete="off" class="form-control form-control-sm mb-2" rows="3"
                     placeholder="Escriba las instrucciones para los usuarios sumillados..."
@@ -229,7 +229,7 @@
           <div class="form-text small">Los usuarios sumillados quedan como responsables: verán el documento en su bandeja y las instrucciones en el detalle.</div>
         </div>
 
-        <div class="mb-3" *ngIf="auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">
+        <div class="mb-3" *ngIf="esCreadorDelDocumento">
           <button class="btn btn-soft-primary btn-sm w-100 mb-2" type="button"
                   (click)="toggleDerivarInstitucional()">
             <i class="pi pi-sitemap" style="font-size:0.7rem;"></i> Derivar por Estructura Institucional

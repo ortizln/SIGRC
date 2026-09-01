@@ -33,6 +33,7 @@ public class GestionPersonalService {
     private final AsignacionPuestoRepository asignacionRepository;
     private final UsuarioRepository usuarioRepository;
     private final AsignacionPuestoService asignacionService;
+    private final DelegacionFuncionRepository delegacionRepository;
     private final AuditoriaEventos auditoriaEventos;
 
     public GestionPersonalService(MovimientoPersonalRepository movimientoRepository,
@@ -44,6 +45,7 @@ public class GestionPersonalService {
                                   AsignacionPuestoRepository asignacionRepository,
                                   UsuarioRepository usuarioRepository,
                                   AsignacionPuestoService asignacionService,
+                                  DelegacionFuncionRepository delegacionRepository,
                                   AuditoriaEventos auditoriaEventos) {
         this.movimientoRepository = movimientoRepository;
         this.accionRepository = accionRepository;
@@ -54,6 +56,7 @@ public class GestionPersonalService {
         this.asignacionRepository = asignacionRepository;
         this.usuarioRepository = usuarioRepository;
         this.asignacionService = asignacionService;
+        this.delegacionRepository = delegacionRepository;
         this.auditoriaEventos = auditoriaEventos;
     }
 
@@ -353,6 +356,7 @@ public class GestionPersonalService {
             .horas(req.horas())
             .motivo(req.motivo())
             .documentoRespaldoId(req.documentoRespaldoId())
+            .encargadoAsignacionId(req.encargadoAsignacionId())
             .estado(ESTADO_PENDIENTE_JEFE)
             .build()));
     }
@@ -379,7 +383,32 @@ public class GestionPersonalService {
             throw new IllegalStateException("La solicitud no está pendiente de aprobación de Talento Humano");
         ausencia.setThAprobador(usuarioRepository.getReferenceById(idUsuario));
         ausencia.setEstado(ESTADO_APROBADA);
-        return toAusenciaDTO(ausenciaRepository.save(ausencia));
+        var saved = ausenciaRepository.save(ausencia);
+
+        // Auto-crear delegación de funciones si se designó encargado
+        if (saved.getEncargadoAsignacionId() != null) {
+            var asignacionOrigen = asignacionRepository
+                .findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
+                    saved.getEmpleado().getIdEmpleado(), "ACTIVA")
+                .orElse(null);
+            var asignacionDelegada = asignacionRepository.findById(saved.getEncargadoAsignacionId()).orElse(null);
+            if (asignacionOrigen != null && asignacionDelegada != null) {
+                delegacionRepository.save(DelegacionFuncion.builder()
+                    .asignacionOrigen(asignacionOrigen)
+                    .asignacionDelegada(asignacionDelegada)
+                    .fechaInicio(saved.getFechaDesde())
+                    .fechaFin(saved.getFechaHasta())
+                    .tipo(saved.getTipo())
+                    .alcance("TOTAL")
+                    .estado("ACTIVA")
+                    .observacion("Delegación automática por solicitud de " + saved.getTipo().toLowerCase()
+                        + " #" + saved.getIdSolicitud())
+                    .creadoPor(idUsuario)
+                    .build());
+            }
+        }
+
+        return toAusenciaDTO(saved);
     }
 
     @Transactional
@@ -491,6 +520,14 @@ public class GestionPersonalService {
 
     private SolicitudAusenciaDTO toAusenciaDTO(SolicitudAusencia s) {
         var emp = s.getEmpleado();
+        String encargadoNombre = null;
+        if (s.getEncargadoAsignacionId() != null) {
+            encargadoNombre = asignacionRepository.findById(s.getEncargadoAsignacionId())
+                .map(a -> a.getEmpleado() != null
+                    ? a.getEmpleado().getNombres() + " " + a.getEmpleado().getApellidos()
+                    : null)
+                .orElse(null);
+        }
         return new SolicitudAusenciaDTO(
             s.getIdSolicitud(),
             emp != null ? emp.getIdEmpleado() : null,
@@ -502,6 +539,8 @@ public class GestionPersonalService {
             s.getHoras(),
             s.getMotivo(),
             s.getDocumentoRespaldoId(),
+            s.getEncargadoAsignacionId(),
+            encargadoNombre,
             s.getEstado(),
             s.getJefeAprobador() != null ? s.getJefeAprobador().getIdUsuario() : null,
             s.getThAprobador() != null ? s.getThAprobador().getIdUsuario() : null

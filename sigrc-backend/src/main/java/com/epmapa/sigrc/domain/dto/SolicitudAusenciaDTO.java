@@ -13,6 +13,8 @@ public record SolicitudAusenciaDTO(
     Integer horas,
     String motivo,
     Integer documentoRespaldoId,
+    Integer encargadoAsignacionId,
+    String encargadoNombre,
     String estado,
     Integer jefeAprobador,
     Integer thAprobador

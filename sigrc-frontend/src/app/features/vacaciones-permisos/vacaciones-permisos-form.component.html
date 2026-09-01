@@ -25,7 +25,7 @@
       <div class="row g-3">
         <div class="col-md-4">
           <label class="form-label">Empleado <span class="text-danger">*</span></label>
-          <select *ngIf="!soloMiEmpleado" #empModel="ngModel" [(ngModel)]="form.idEmpleado" name="idEmpleado" required class="form-select" [class.is-invalid]="empModel.invalid && empModel.touched">
+          <select *ngIf="!soloMiEmpleado" #empModel="ngModel" [(ngModel)]="form.idEmpleado" name="idEmpleado" required class="form-select" [class.is-invalid]="empModel.invalid && empModel.touched" (ngModelChange)="onEmpleadoChange($event)">
             <option [ngValue]="null">— Empleado —</option>
             <option *ngFor="let e of empleados" [ngValue]="e.idEmpleado">{{ e.nombreCompleto }}</option>
           </select>
@@ -79,6 +79,33 @@
         <div class="col-md-4">
           <label class="form-label">Documento de respaldo ID</label>
           <input type="number" [(ngModel)]="form.documentoRespaldoId" name="documentoRespaldoId" class="form-control" placeholder="Doc. respaldo ID">
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Encargado temporal (delegación automática) -->
+    <div class="form-section" *ngIf="asignaciones.length > 0">
+      <div class="form-section-header">
+        <i class="pi pi-user-plus" style="color:var(--primary);"></i>
+        <div>
+          <strong>Encargado temporal</strong>
+          <small>Si designa un encargado, se creará automáticamente una delegación de funciones al aprobarse la solicitud</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Designar encargado (opcional)</label>
+          <select [(ngModel)]="form.encargadoAsignacionId" name="encargadoAsignacionId" class="form-select">
+            <option [ngValue]="null">— Sin encargado —</option>
+            <option *ngFor="let a of asignaciones" [ngValue]="a.idAsignacion">
+              {{ a.nombreEmpleado }} — {{ a.puestoNombre }} ({{ a.unidadNombre }})
+            </option>
+          </select>
+        </div>
+        <div class="col-md-6 d-flex align-items-end" *ngIf="form.encargadoAsignacionId">
+          <span class="small text-muted">
+            <i class="pi pi-info-circle"></i> Al aprobarse, {{ form.fechaDesde }} → {{ form.fechaHasta }}, la correspondencia se derivará al encargado seleccionado.
+          </span>
         </div>
       </div>
     </div>

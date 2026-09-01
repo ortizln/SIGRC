@@ -17,6 +17,7 @@ import Swal from 'sweetalert2';
 })
 export class VacacionesPermisosFormComponent implements OnInit {
   empleados: any[] = [];
+  asignaciones: any[] = [];
   tipos = TIPOS_AUSENCIA;
   cargando = false;
   usuarioLogueado: any;
@@ -49,9 +50,25 @@ export class VacacionesPermisosFormComponent implements OnInit {
       tipo: 'PERMISO',
       fechaDesde: new Date().toISOString().split('T')[0],
       fechaHasta: new Date().toISOString().split('T')[0],
-      dias: 1
+      dias: 1,
+      encargadoAsignacionId: null
     };
     this.thSvc.getEmpleados().subscribe(r => this.empleados = r);
+    if (this.soloMiEmpleado) {
+      this.cargarAsignaciones(this.usuarioLogueado.idEmpleado);
+    }
+  }
+
+  onEmpleadoChange(idEmpleado: number) {
+    this.form.encargadoAsignacionId = null;
+    this.asignaciones = [];
+    if (idEmpleado) this.cargarAsignaciones(idEmpleado);
+  }
+
+  cargarAsignaciones(idEmpleado: number) {
+    this.thSvc.getTodasAsignacionesActivas().subscribe(r => {
+      this.asignaciones = r.filter((a: any) => a.idEmpleado !== idEmpleado);
+    });
   }
 
   volver() {

@@ -205,6 +205,12 @@ public class AsignacionPuestoService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public List<AsignacionDTO> listarTodasActivas() {
+        return asignacionRepository.findByEstadoAndEsPrincipalTrueAndPuestoActivoTrueOrderByFechaInicioDesc(ACTIVA)
+            .stream().map(AsignacionPuestoService::toDTO).toList();
+    }
+
     private static AsignacionDTO toDTO(AsignacionPuesto a) {
         var emp = a.getEmpleado();
         var puesto = a.getPuesto();

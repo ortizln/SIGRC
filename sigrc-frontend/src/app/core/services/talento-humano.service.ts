@@ -103,6 +103,9 @@ export class TalentoHumanoService {
   getAsignaciones(empleadoId: number): Observable<AsignacionPuesto[]> {
     return this.http.get<AsignacionPuesto[]>(`${this.apiUrl}/asignaciones`, { params: { empleadoId } });
   }
+  getTodasAsignacionesActivas(): Observable<AsignacionPuesto[]> {
+    return this.http.get<AsignacionPuesto[]>(`${this.apiUrl}/asignaciones/todas`);
+  }
   getAsignacionActual(empleadoId: number): Observable<AsignacionPuesto> {
     return this.http.get<AsignacionPuesto>(`${this.apiUrl}/asignaciones/actual`, { params: { empleadoId } });
   }

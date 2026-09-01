@@ -43,6 +43,7 @@
             <th>Desde</th>
             <th>Hasta</th>
             <th>Días</th>
+            <th>Encargado</th>
             <th>Estado</th>
             <th class="text-end">Acciones</th>
           </tr>
@@ -55,6 +56,10 @@
             <td class="small">{{ s.fechaDesde }}</td>
             <td class="small">{{ s.fechaHasta }}</td>
             <td class="small">{{ s.dias ?? '—' }}</td>
+            <td class="small">
+              <span *ngIf="s.encargadoNombre" class="text-primary"><i class="pi pi-user" style="font-size:0.6rem;"></i> {{ s.encargadoNombre }}</span>
+              <span *ngIf="!s.encargadoNombre" class="text-muted">—</span>
+            </td>
             <td><span class="badge-unidad" [class]="'badge-' + estadoBadge(s.estado)">{{ s.estado }}</span></td>
             <td class="text-end">
               <ng-container *ngIf="s.estado === 'PENDIENTE_JEFE'">
