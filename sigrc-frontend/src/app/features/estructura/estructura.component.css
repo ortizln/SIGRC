@@ -252,3 +252,42 @@
   background: #fef3c7;
   color: #b45309;
 }
+
+/* ─── Drag & Drop ─── */
+
+.org-dragging {
+  opacity: 0.4;
+  transform: scale(0.97);
+}
+
+.org-drop-target {
+  outline: 2px dashed var(--primary, #4a7c59);
+  outline-offset: -2px;
+  background: rgba(74, 124, 89, 0.06);
+  border-radius: 8px;
+}
+
+.org-drop-raiz {
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.org-drop-raiz:hover,
+.org-drop-raiz.org-drop-target {
+  border-color: var(--primary, #4a7c59);
+  background: rgba(74, 124, 89, 0.08);
+  color: var(--primary, #4a7c59);
+}
+
+.org-card[draggable="true"] {
+  cursor: grab;
+}
+
+.org-card[draggable="true"]:active {
+  cursor: grabbing;
+}

@@ -162,13 +162,25 @@
         <div class="row g-3">
           <div class="col-lg-7">
             <div class="org-tree">
+              <div *ngIf="isAdmin" class="org-drop-raiz mb-2"
+                   (dragover)="onDragOver($event)"
+                   (dragleave)="onDragLeave($event)"
+                   (drop)="onDropRaiz($event)">
+                <i class="pi pi-arrow-down"></i> Soltar aquí para mover a raíz
+              </div>
               <ng-template #orgNodo let-n>
-                <div class="org-nodo">
+                <div class="org-nodo"
+                     (dragover)="isAdmin && onDragOver($event)"
+                     (dragleave)="onDragLeave($event)"
+                     (drop)="isAdmin && onDrop($event, n.idUnidad)">
                   <div class="org-head">
                     <button class="org-caret" [class.org-caret-vacio]="!n.hijos?.length" (click)="toggleExpandir(n.idUnidad)">
                       <i class="pi" [ngClass]="expandidos.has(n.idUnidad) ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
                     </button>
-                    <div class="org-card" [class.org-inactiva]="!n.activo" [class.org-seleccionado]="detalle?.idUnidad === n.idUnidad" (click)="verPerfil(n)">
+                    <div class="org-card" [class.org-inactiva]="!n.activo" [class.org-seleccionado]="detalle?.idUnidad === n.idUnidad" (click)="verPerfil(n)"
+                         [attr.draggable]="isAdmin ? 'true' : null"
+                         (dragstart)="onDragStart($event, n.idUnidad)"
+                         (dragend)="onDragEnd($event)">
                       <div class="org-icon"><i class="pi pi-sitemap"></i></div>
                       <div class="org-info">
                         <strong>{{ n.nombre }}</strong>

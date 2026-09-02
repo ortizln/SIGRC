@@ -27,6 +27,8 @@ export class EstructuraComponent implements OnInit {
   migracionCargando = false;
   migracionResultado: any = null;
 
+  dragUnidadId: number | null = null;
+
   constructor(private svc: TalentoHumanoService, private auth: AuthService, private router: Router) {}
 
   get isAdmin(): boolean { return this.auth.hasRole('ADMIN'); }
@@ -155,6 +157,71 @@ export class EstructuraComponent implements OnInit {
           Swal.fire({ icon: 'error', title: 'Error', text: msg });
         }
       });
+    });
+  }
+
+  // ─────────── Drag & Drop ───────────
+
+  onDragStart(event: DragEvent, idUnidad: number) {
+    if (!this.isAdmin) return;
+    this.dragUnidadId = idUnidad;
+    event.dataTransfer!.effectAllowed = 'move';
+    event.dataTransfer!.setData('text/plain', String(idUnidad));
+    (event.target as HTMLElement).classList.add('org-dragging');
+  }
+
+  onDragEnd(event: DragEvent) {
+    this.dragUnidadId = null;
+    (event.target as HTMLElement).classList.remove('org-dragging');
+  }
+
+  onDragOver(event: DragEvent) {
+    if (!this.isAdmin || !this.dragUnidadId) return;
+    event.preventDefault();
+    event.dataTransfer!.dropEffect = 'move';
+    (event.currentTarget as HTMLElement).classList.add('org-drop-target');
+  }
+
+  onDragLeave(event: DragEvent) {
+    (event.currentTarget as HTMLElement).classList.remove('org-drop-target');
+  }
+
+  onDrop(event: DragEvent, idNuevoPadre: number) {
+    event.preventDefault();
+    (event.currentTarget as HTMLElement).classList.remove('org-drop-target');
+    if (!this.isAdmin || !this.dragUnidadId) return;
+    const idArrastrada = this.dragUnidadId;
+    this.dragUnidadId = null;
+    if (idArrastrada === idNuevoPadre) return;
+
+    this.svc.moverUnidad(idArrastrada, idNuevoPadre).subscribe({
+      next: () => {
+        this.cargarOrganigrama();
+        this.cargarUnidades();
+      },
+      error: (err) => {
+        const msg = err.error?.error || 'No se pudo mover la unidad.';
+        Swal.fire({ icon: 'error', title: 'Error', text: msg });
+      }
+    });
+  }
+
+  onDropRaiz(event: DragEvent) {
+    event.preventDefault();
+    (event.currentTarget as HTMLElement).classList.remove('org-drop-target');
+    if (!this.isAdmin || !this.dragUnidadId) return;
+    const idArrastrada = this.dragUnidadId;
+    this.dragUnidadId = null;
+
+    this.svc.moverUnidad(idArrastrada, null).subscribe({
+      next: () => {
+        this.cargarOrganigrama();
+        this.cargarUnidades();
+      },
+      error: (err) => {
+        const msg = err.error?.error || 'No se pudo mover la unidad.';
+        Swal.fire({ icon: 'error', title: 'Error', text: msg });
+      }
     });
   }
 }

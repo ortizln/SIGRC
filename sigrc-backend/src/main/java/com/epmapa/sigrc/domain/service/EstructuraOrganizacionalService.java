@@ -192,6 +192,25 @@ public class EstructuraOrganizacionalService {
         unidadRepository.save(unidad);
     }
 
+    @Transactional
+    public UnidadOrganizacionalDTO moverUnidad(Integer id, Integer idNuevoPadre) {
+        var unidad = unidadRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Unidad no encontrada: " + id));
+        if (idNuevoPadre != null && idNuevoPadre.equals(id))
+            throw new IllegalArgumentException("Una unidad no puede ser padre de sí misma");
+        if (idNuevoPadre != null) {
+            validarSinCiclo(id, idNuevoPadre);
+            var padre = unidadRepository.findById(idNuevoPadre)
+                .orElseThrow(() -> new EntityNotFoundException("Unidad padre no encontrada: " + idNuevoPadre));
+            if (!Boolean.TRUE.equals(padre.getActivo()))
+                throw new IllegalArgumentException("La unidad padre está inactiva");
+            unidad.setUnidadPadre(padre);
+        } else {
+            unidad.setUnidadPadre(null);
+        }
+        return toUnidadDTO(unidadRepository.save(unidad));
+    }
+
     private void validarSinCiclo(Integer idUnidad, Integer idNuevoPadre) {
         Integer actual = idNuevoPadre;
         var visitados = new ArrayList<Integer>();

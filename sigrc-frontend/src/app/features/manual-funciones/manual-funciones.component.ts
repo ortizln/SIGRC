@@ -24,6 +24,9 @@ export class ManualFuncionesComponent implements OnInit {
   versiones: VersionManual[] = [];
   cargando = false;
 
+  dragTipo: string | null = null;
+  dragId: number | null = null;
+
   constructor(private svc: TalentoHumanoService, private auth: AuthService) {}
 
   get isAdmin(): boolean { return this.auth.hasRole('ADMIN'); }
@@ -257,6 +260,74 @@ export class ManualFuncionesComponent implements OnInit {
         next: () => { Swal.fire('Creado', 'Puesto creado correctamente.', 'success'); this.cargar(); },
         error: (e) => Swal.fire('Error', e.error?.error || 'No se pudo crear el puesto.', 'error')
       });
+    });
+  }
+
+  // ─────────── Gestión de versiones ───────────
+
+  // ─────────── Drag & Drop ───────────
+
+  onDragStartUnidad(event: DragEvent, idUnidad: number) {
+    if (!this.isAdmin) return;
+    this.dragTipo = 'unidad';
+    this.dragId = idUnidad;
+    event.dataTransfer!.effectAllowed = 'move';
+    event.dataTransfer!.setData('text/plain', String(idUnidad));
+    (event.target as HTMLElement).classList.add('dragging');
+  }
+
+  onDragStartPuesto(event: DragEvent, idPuesto: number) {
+    if (!this.isAdmin) return;
+    this.dragTipo = 'puesto';
+    this.dragId = idPuesto;
+    event.dataTransfer!.effectAllowed = 'move';
+    event.dataTransfer!.setData('text/plain', String(idPuesto));
+    (event.target as HTMLElement).classList.add('dragging');
+  }
+
+  onDragEnd(event: DragEvent) {
+    this.dragTipo = null;
+    this.dragId = null;
+    (event.target as HTMLElement).classList.remove('dragging');
+  }
+
+  onDragOver(event: DragEvent) {
+    if (!this.isAdmin) return;
+    event.preventDefault();
+    event.dataTransfer!.dropEffect = 'move';
+    (event.currentTarget as HTMLElement).classList.add('drop-target');
+  }
+
+  onDragLeave(event: DragEvent) {
+    (event.currentTarget as HTMLElement).classList.remove('drop-target');
+  }
+
+  onDropUnidad(event: DragEvent, idNuevoPadre: number) {
+    event.preventDefault();
+    (event.currentTarget as HTMLElement).classList.remove('drop-target');
+    if (!this.isAdmin || this.dragTipo !== 'unidad' || !this.dragId) return;
+    const idArrastrada = this.dragId;
+    this.dragTipo = null;
+    this.dragId = null;
+    if (idArrastrada === idNuevoPadre) return;
+
+    this.svc.moverUnidad(idArrastrada, idNuevoPadre).subscribe({
+      next: () => { Swal.fire('Movido', 'Unidad reubicada correctamente.', 'success'); this.cargar(); },
+      error: (e) => Swal.fire('Error', e.error?.error || 'No se pudo mover la unidad.', 'error')
+    });
+  }
+
+  onDropPuesto(event: DragEvent, idNuevaUnidad: number) {
+    event.preventDefault();
+    (event.currentTarget as HTMLElement).classList.remove('drop-target');
+    if (!this.isAdmin || this.dragTipo !== 'puesto' || !this.dragId) return;
+    const idArrastrado = this.dragId;
+    this.dragTipo = null;
+    this.dragId = null;
+
+    this.svc.actualizarPuesto(idArrastrado, { idUnidad: idNuevaUnidad } as any).subscribe({
+      next: () => { Swal.fire('Movido', 'Puesto reubicado correctamente.', 'success'); this.cargar(); },
+      error: (e) => Swal.fire('Error', e.error?.error || 'No se pudo mover el puesto.', 'error')
     });
   }
 

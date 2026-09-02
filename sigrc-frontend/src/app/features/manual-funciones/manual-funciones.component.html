@@ -38,7 +38,10 @@
           </button>
         </div>
         <button class="nav-row" [class.active]="direccionSel?.idUnidad === d.idUnidad" *ngFor="let d of manual.direcciones"
-                (click)="seleccionarDireccion(d)">
+                (click)="seleccionarDireccion(d)"
+                (dragover)="isAdmin && onDragOver($event)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="isAdmin && onDropUnidad($event, d.idUnidad)">
           <span class="nav-dot" [class.dot-ok]="d.unidades?.length || d.puestos?.length"></span>
           <span class="nav-label">{{ d.nombre }}</span>
         </button>
@@ -56,7 +59,13 @@
           </button>
         </div>
         <button class="nav-row" [class.active]="unidadSel?.idUnidad === u.idUnidad" *ngFor="let u of direccionSel?.unidades"
-                (click)="seleccionarUnidad(u)">
+                (click)="seleccionarUnidad(u)"
+                [attr.draggable]="isAdmin ? 'true' : null"
+                (dragstart)="onDragStartUnidad($event, u.idUnidad)"
+                (dragend)="onDragEnd($event)"
+                (dragover)="isAdmin && onDragOver($event)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="isAdmin && onDropUnidad($event, u.idUnidad)">
           <span class="nav-dot" [class.dot-ok]="u.puestos?.length"></span>
           <span class="nav-label">{{ u.nombre }}</span>
         </button>
@@ -74,7 +83,10 @@
           </button>
         </div>
         <button class="nav-row" [class.active]="puestoSel?.idPuesto === p.idPuesto" *ngFor="let p of puestosActuales()"
-                (click)="seleccionarPuesto(p)">
+                (click)="seleccionarPuesto(p)"
+                [attr.draggable]="isAdmin ? 'true' : null"
+                (dragstart)="onDragStartPuesto($event, p.idPuesto)"
+                (dragend)="onDragEnd($event)">
           <span class="nav-dot" [class.dot-ok]="!p.esJefatura && !p.esResponsableUnidad"></span>
           <span class="nav-label">{{ p.nombre }}</span>
           <span class="nav-code">{{ p.codigo }}</span>

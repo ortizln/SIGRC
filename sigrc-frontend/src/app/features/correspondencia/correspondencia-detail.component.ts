@@ -382,6 +382,12 @@ export class CorrespondenciaDetailComponent implements OnInit, OnDestroy {
     return !!u && this.doc?.creadoPor === u.idUsuario;
   }
 
+  get puedeSumillar(): boolean {
+    return this.esCreadorDelDocumento
+      || this.esDelegadoDe(this.doc?.creadoPor)
+      || this.auth.canModulo('CORRESPONDENCIA', 'ESCRITURA');
+  }
+
   sentidoPercibido(): string {
     const s = this.doc?.sentido;
     if (s !== 'SALIDA') return s || '';

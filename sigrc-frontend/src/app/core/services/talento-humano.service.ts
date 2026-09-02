@@ -45,6 +45,9 @@ export class TalentoHumanoService {
   eliminarUnidad(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/unidades/${id}`);
   }
+  moverUnidad(id: number, idUnidadPadre: number | null): Observable<UnidadOrganizacional> {
+    return this.http.put<UnidadOrganizacional>(`${this.apiUrl}/unidades/${id}/mover`, { idUnidadPadre });
+  }
 
   getOrganigrama(): Observable<NodoOrganigrama[]> {
     return this.http.get<NodoOrganigrama[]>(`${this.apiUrl}/organigrama`);

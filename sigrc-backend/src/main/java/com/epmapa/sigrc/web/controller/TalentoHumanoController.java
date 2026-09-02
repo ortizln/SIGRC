@@ -166,6 +166,17 @@ public class TalentoHumanoController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/unidades/{id}/mover")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Mover unidad a otro padre (drag & drop)")
+    @Transactional
+    public ResponseEntity<UnidadOrganizacionalDTO> moverUnidad(@PathVariable Integer id,
+                                                                @RequestBody Map<String, Object> body) {
+        Integer idNuevoPadre = body.get("idUnidadPadre") != null
+            ? ((Number) body.get("idUnidadPadre")).intValue() : null;
+        return ResponseEntity.ok(estructuraService.moverUnidad(id, idNuevoPadre));
+    }
+
     @PutMapping("/unidades/{id}/responsable")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Asignar responsable de una unidad (por asignación de puesto)")
