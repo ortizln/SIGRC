@@ -391,7 +391,11 @@ public class GestionPersonalService {
                 .findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
                     saved.getEmpleado().getIdEmpleado(), "ACTIVA")
                 .orElse(null);
-            var asignacionDelegada = asignacionRepository.findById(saved.getEncargadoAsignacionId()).orElse(null);
+            // encargadoAsignacionId se usa como id del empleado encargado; resolver su asignación activa
+            var asignacionDelegada = asignacionRepository
+                .findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
+                    saved.getEncargadoAsignacionId(), "ACTIVA")
+                .orElse(null);
             if (asignacionOrigen != null && asignacionDelegada != null) {
                 delegacionRepository.save(DelegacionFuncion.builder()
                     .asignacionOrigen(asignacionOrigen)
@@ -522,10 +526,8 @@ public class GestionPersonalService {
         var emp = s.getEmpleado();
         String encargadoNombre = null;
         if (s.getEncargadoAsignacionId() != null) {
-            encargadoNombre = asignacionRepository.findById(s.getEncargadoAsignacionId())
-                .map(a -> a.getEmpleado() != null
-                    ? a.getEmpleado().getNombres() + " " + a.getEmpleado().getApellidos()
-                    : null)
+            encargadoNombre = empleadoRepository.findById(s.getEncargadoAsignacionId())
+                .map(e -> e.getNombres() + " " + e.getApellidos())
                 .orElse(null);
         }
         return new SolicitudAusenciaDTO(

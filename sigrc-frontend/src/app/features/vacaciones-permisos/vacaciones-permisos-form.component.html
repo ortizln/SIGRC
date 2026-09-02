@@ -98,7 +98,7 @@
           <select [(ngModel)]="form.encargadoAsignacionId" name="encargadoAsignacionId" class="form-select">
             <option [ngValue]="null">— Sin encargado —</option>
             <option *ngFor="let a of asignaciones" [ngValue]="a.idAsignacion">
-              {{ a.nombreEmpleado }} — {{ a.puestoNombre }} ({{ a.unidadNombre }})
+              {{ a.nombreEmpleado }}
             </option>
           </select>
         </div>

@@ -66,8 +66,16 @@ export class VacacionesPermisosFormComponent implements OnInit {
   }
 
   cargarAsignaciones(idEmpleado: number) {
-    this.thSvc.getTodasAsignacionesActivas().subscribe(r => {
-      this.asignaciones = r.filter((a: any) => a.idEmpleado !== idEmpleado);
+    this.thSvc.getEmpleados().subscribe(empleados => {
+      this.asignaciones = empleados
+        .filter((e: any) => e.idEmpleado !== idEmpleado)
+        .map((e: any) => ({
+          idAsignacion: e.idEmpleado,
+          nombreEmpleado: e.nombreCompleto || (e.nombres + ' ' + e.apellidos),
+          puestoNombre: '',
+          unidadNombre: '',
+          idEmpleado: e.idEmpleado
+        }));
     });
   }
 

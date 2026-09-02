@@ -65,7 +65,11 @@
   padding: 0.5rem 0.75rem;
 }
 
+/* ─── Section titles ─── */
 .nav-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 1rem 0.75rem 0.35rem;
   font-size: 0.6rem;
   font-weight: 700;
@@ -75,6 +79,33 @@
   white-space: nowrap;
 }
 
+.section-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-blue   { background: #3b82f6; }
+.dot-green  { background: #22c55e; }
+.dot-orange { background: #f59e0b; }
+.dot-purple { background: #a855f7; }
+.dot-cyan   { background: #06b6d4; }
+
+/* ─── Sub-sections ─── */
+.nav-subsection {
+  padding: 0.6rem 0.75rem 0.2rem;
+}
+
+.nav-subsection-label {
+  font-size: 0.58rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.2);
+  white-space: nowrap;
+}
+
+/* ─── Nav items ─── */
 .nav-item {
   display: flex;
   align-items: center;
@@ -102,14 +133,12 @@
   font-weight: 600;
 }
 
-.nav-info-icon {
-  margin-left: auto;
-  font-size: 0.65rem;
-  opacity: 0.4;
-  cursor: help;
-  transition: opacity 0.15s;
+.sidebar-icon {
+  font-size: 1rem;
+  width: 1.2rem;
+  text-align: center;
+  flex-shrink: 0;
 }
-.nav-item:hover .nav-info-icon { opacity: 0.8; }
 
 .nav-item.active::before {
   content: '';
@@ -123,6 +152,7 @@
   border-radius: 0 3px 3px 0;
 }
 
+/* ─── Footer ─── */
 .sidebar-footer {
   position: relative;
   padding: 0.75rem;
@@ -197,6 +227,7 @@
   color: #fff;
 }
 
+/* ─── Notifications ─── */
 .notif-bell {
   position: relative;
   padding: 8px 12px;
@@ -309,6 +340,9 @@
 .sidebar.collapsed .sidebar-brand {
   justify-content: center;
   padding: 1rem 0;
+}
+.sidebar.collapsed .nav-subsection {
+  display: none;
 }
 
 /* ─── Desktop & Tablet: always visible ─── */
