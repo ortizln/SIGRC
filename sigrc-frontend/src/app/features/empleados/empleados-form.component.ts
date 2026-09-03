@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TalentoHumanoService } from '@core/services/talento-humano.service';
+import { RolService } from '@core/services/rol.service';
+import { CatalogoService } from '@core/services/catalogo.service';
 import { NIVELES_ACCESO_DOCUMENTO } from '@shared/models/empleado.model';
 import Swal from 'sweetalert2';
 
@@ -20,14 +22,20 @@ export class EmpleadosFormComponent implements OnInit {
   form: any = {};
 
   nivelesAcceso = NIVELES_ACCESO_DOCUMENTO;
+  roles: any[] = [];
+  areas: any[] = [];
 
   constructor(
     private svc: TalentoHumanoService,
+    private rolSvc: RolService,
+    private catalogoSvc: CatalogoService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
 
   ngOnInit() {
+    this.cargarRoles();
+    this.cargarAreas();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.editandoId = Number(id);
@@ -39,12 +47,21 @@ export class EmpleadosFormComponent implements OnInit {
         sexo: 'M',
         estadoLaboral: 'ACTIVO',
         tipoPersonal: 'SERVIDOR_PUBLICO',
+        crearUsuario: false,
         formaciones: [],
         experiencias: [],
         capacitaciones: [],
         documentos: []
       };
     }
+  }
+
+  cargarRoles() {
+    this.rolSvc.listar().subscribe(r => this.roles = r);
+  }
+
+  cargarAreas() {
+    this.catalogoSvc.getAreas().subscribe(r => this.areas = r);
   }
 
   cargarEmpleado(id: number) {
@@ -102,8 +119,14 @@ export class EmpleadosFormComponent implements OnInit {
       Swal.fire({ icon: 'warning', title: 'Datos incompletos', text: 'Identificación, nombres y apellidos son obligatorios.' });
       return;
     }
+    if (this.form.crearUsuario && !this.editando) {
+      if (!this.form.usuarioUsername || !this.form.usuarioEmail || !this.form.usuarioPassword || !this.form.usuarioRolCodigo) {
+        Swal.fire({ icon: 'warning', title: 'Datos de usuario incompletos', text: 'Complete username, email, contraseña y rol para crear el usuario.' });
+        return;
+      }
+    }
     this.cargando = true;
-    const payload = {
+    const payload: any = {
       tipoIdentificacion: this.form.tipoIdentificacion || 'CEDULA',
       identificacion: this.form.identificacion,
       nombres: this.form.nombres,
@@ -138,13 +161,24 @@ export class EmpleadosFormComponent implements OnInit {
       })),
       documentos: this.form.documentos || []
     };
+    if (this.form.crearUsuario && !this.editando) {
+      payload.crearUsuario = true;
+      payload.usuarioUsername = this.form.usuarioUsername;
+      payload.usuarioEmail = this.form.usuarioEmail;
+      payload.usuarioPassword = this.form.usuarioPassword;
+      payload.usuarioRolCodigo = this.form.usuarioRolCodigo;
+      payload.usuarioIdArea = this.form.usuarioIdArea || null;
+    }
     const obs = this.editandoId
       ? this.svc.actualizarEmpleado(this.editandoId, payload)
       : this.svc.crearEmpleado(payload);
     obs.subscribe({
-      next: () => {
+      next: (r: any) => {
         this.cargando = false;
-        Swal.fire('Guardado', 'Empleado guardado correctamente.', 'success').then(() => this.volver());
+        const msg = r.idUsuario
+          ? 'Empleado y usuario creados correctamente.'
+          : 'Empleado guardado correctamente.';
+        Swal.fire('Guardado', msg, 'success').then(() => this.volver());
       },
       error: (err) => {
         this.cargando = false;

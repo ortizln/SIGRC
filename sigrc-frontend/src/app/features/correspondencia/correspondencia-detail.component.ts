@@ -365,6 +365,12 @@ export class CorrespondenciaDetailComponent implements OnInit, OnDestroy {
       d.tipo === 'USUARIO' && d.idDestinatario === u.idUsuario);
   }
 
+  get esResponsable(): boolean {
+    const u = this.auth.getUsuario();
+    if (!u || !this.doc?.responsables) return false;
+    return this.doc.responsables.some((r: any) => r.idUsuario === u.idUsuario);
+  }
+
   get miRegistroDestinatario(): any {
     const u = this.auth.getUsuario();
     if (!u || !this.doc?.destinatarios) return null;
@@ -393,7 +399,7 @@ export class CorrespondenciaDetailComponent implements OnInit, OnDestroy {
     if (s !== 'SALIDA') return s || '';
     const u = this.auth.getUsuario();
     if (!u) return s;
-    if (this.esDestinatario && this.doc?.creadoPor !== u.idUsuario) return 'INGRESO';
+    if (this.doc?.creadoPor !== u.idUsuario && (this.esDestinatario || this.esResponsable)) return 'INGRESO';
     return s;
   }
 

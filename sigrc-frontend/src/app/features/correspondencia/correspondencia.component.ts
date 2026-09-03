@@ -199,12 +199,18 @@ export class CorrespondenciaListComponent implements OnInit {
       x.tipo === 'USUARIO' && x.idDestinatario === user.idUsuario);
   }
 
+  esResponsableDe(d: any): boolean {
+    const user = this.auth.getUsuario();
+    if (!user || !d?.responsables) return false;
+    return d.responsables.some((r: any) => r.idUsuario === user.idUsuario);
+  }
+
   sentidoPercibido(d: any): string {
     const s = d?.sentido;
     if (s !== 'SALIDA') return s || '';
     const user = this.auth.getUsuario();
     if (!user) return s;
-    if (this.esDestinatarioDe(d) && d.creadoPor !== user.idUsuario) return 'INGRESO';
+    if (d.creadoPor !== user.idUsuario && (this.esDestinatarioDe(d) || this.esResponsableDe(d))) return 'INGRESO';
     return s;
   }
 

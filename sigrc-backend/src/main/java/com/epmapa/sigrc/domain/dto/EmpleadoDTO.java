@@ -21,5 +21,6 @@ public record EmpleadoDTO(
     String estadoLaboral,
     LocalDate fechaIngresoInstitucion,
     LocalDate fechaSalidaInstitucion,
-    Boolean activo
+    Boolean activo,
+    Integer idUsuario
 ) {}

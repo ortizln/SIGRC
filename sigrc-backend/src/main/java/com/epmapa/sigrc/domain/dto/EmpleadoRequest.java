@@ -30,5 +30,11 @@ public record EmpleadoRequest(
     List<EmpleadoFormacion> formaciones,
     List<EmpleadoExperiencia> experiencias,
     List<EmpleadoCapacitacion> capacitaciones,
-    List<EmpleadoDocumento> documentos
+    List<EmpleadoDocumento> documentos,
+    Boolean crearUsuario,
+    String usuarioUsername,
+    String usuarioEmail,
+    String usuarioPassword,
+    String usuarioRolCodigo,
+    Integer usuarioIdArea
 ) {}

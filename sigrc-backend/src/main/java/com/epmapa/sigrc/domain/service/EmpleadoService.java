@@ -7,13 +7,17 @@ import com.epmapa.sigrc.domain.entity.EmpleadoCapacitacion;
 import com.epmapa.sigrc.domain.entity.EmpleadoDocumento;
 import com.epmapa.sigrc.domain.entity.EmpleadoExperiencia;
 import com.epmapa.sigrc.domain.entity.EmpleadoFormacion;
+import com.epmapa.sigrc.domain.entity.Usuario;
+import com.epmapa.sigrc.domain.repository.AreaRepository;
 import com.epmapa.sigrc.domain.repository.EmpleadoRepository;
+import com.epmapa.sigrc.domain.repository.RolRepository;
 import com.epmapa.sigrc.domain.repository.UsuarioPermisoRepository;
 import com.epmapa.sigrc.domain.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.hibernate.Hibernate;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,25 +31,38 @@ public class EmpleadoService {
     private final EmpleadoRepository empleadoRepository;
     private final UsuarioRepository usuarioRepository;
     private final UsuarioPermisoRepository usuarioPermisoRepository;
+    private final RolRepository rolRepository;
+    private final AreaRepository areaRepository;
+    private final PasswordEncoder passwordEncoder;
     private final AuditoriaService auditoriaService;
     private final AuditoriaEventos auditoriaEventos;
 
     public EmpleadoService(EmpleadoRepository empleadoRepository,
                            UsuarioRepository usuarioRepository,
                            UsuarioPermisoRepository usuarioPermisoRepository,
+                           RolRepository rolRepository,
+                           AreaRepository areaRepository,
+                           PasswordEncoder passwordEncoder,
                            AuditoriaService auditoriaService,
                            AuditoriaEventos auditoriaEventos) {
         this.empleadoRepository = empleadoRepository;
         this.usuarioRepository = usuarioRepository;
         this.usuarioPermisoRepository = usuarioPermisoRepository;
+        this.rolRepository = rolRepository;
+        this.areaRepository = areaRepository;
+        this.passwordEncoder = passwordEncoder;
         this.auditoriaService = auditoriaService;
         this.auditoriaEventos = auditoriaEventos;
     }
 
     @Transactional(readOnly = true)
     public List<EmpleadoDTO> listar() {
-        return empleadoRepository.findByActivoTrueOrderByApellidosAsc().stream()
-            .map(EmpleadoService::toDTO)
+        var empleados = empleadoRepository.findByActivoTrueOrderByApellidosAsc();
+        return empleados.stream()
+            .map(e -> {
+                var usuario = usuarioRepository.findByEmpleadoIdEmpleadoAndActivoTrue(e.getIdEmpleado()).orElse(null);
+                return toDTO(e, usuario != null ? usuario.getIdUsuario() : null);
+            })
             .toList();
     }
 
@@ -56,12 +73,6 @@ public class EmpleadoService {
         return (Empleado) Hibernate.unproxy(empleado);
     }
 
-    /**
-     * Consulta del expediente con control de acceso (§30 confidencialidad):
-     * - Permitida para ADMIN, usuarios con permiso TALENTO_HUMANO o el propio empleado.
-     * - En auto-consulta (no ADMIN/TH) se ocultan los documentos confidenciales/restringidos.
-     * - Toda consulta queda registrada en auditoría.
-     */
     @Transactional(readOnly = true)
     public Empleado obtenerConExpedienteAutorizado(Integer id, Integer idUsuario, String username,
                                                    HttpServletRequest request) {
@@ -111,10 +122,6 @@ public class EmpleadoService {
         return "CONFIDENCIAL_RRHH".equalsIgnoreCase(n) || "RESTRINGIDO".equalsIgnoreCase(n);
     }
 
-    /**
-     * Auto-consulta del expediente del empleado vinculado al usuario autenticado (§30).
-     * El flujo de autorización oculta los documentos confidenciales/restringidos.
-     */
     @Transactional(readOnly = true)
     public Empleado obtenerMiExpediente(Integer idUsuario, String username, HttpServletRequest request) {
         var usuario = usuarioRepository.findById(idUsuario)
@@ -155,11 +162,64 @@ public class EmpleadoService {
             .build();
 
         aplicarExpediente(empleado, req);
+        var guardado = empleadoRepository.save(empleado);
 
-        var guardado = toDTO(empleadoRepository.save(empleado));
+        Integer idUsuarioCreado = null;
+
+        if (Boolean.TRUE.equals(req.crearUsuario())) {
+            idUsuarioCreado = crearUsuarioParaEmpleado(guardado, req);
+        }
+
+        var dto = toDTO(guardado, idUsuarioCreado);
         auditoriaEventos.registrar("CREAR_EMPLEADO", "REGISTRO", "empleado",
-            guardado.idEmpleado(), null, resumenExpediente(req), "OK");
-        return guardado;
+            dto.idEmpleado(), null, resumenExpediente(req), "OK");
+        return dto;
+    }
+
+    private Integer crearUsuarioParaEmpleado(Empleado empleado, EmpleadoRequest req) {
+        String username = req.usuarioUsername() != null ? req.usuarioUsername().trim() : null;
+        String email = req.usuarioEmail() != null ? req.usuarioEmail().trim() : null;
+        String password = req.usuarioPassword();
+        String rolCodigo = req.usuarioRolCodigo();
+
+        if (username == null || username.isBlank())
+            throw new IllegalArgumentException("El username es obligatorio para crear el usuario");
+        if (email == null || email.isBlank())
+            throw new IllegalArgumentException("El email es obligatorio para crear el usuario");
+        if (password == null || password.isBlank())
+            throw new IllegalArgumentException("La contraseña es obligatoria para crear el usuario");
+        if (rolCodigo == null || rolCodigo.isBlank())
+            throw new IllegalArgumentException("El rol es obligatorio para crear el usuario");
+
+        if (usuarioRepository.existsByUsername(username))
+            throw new IllegalArgumentException("El username ya existe: " + username);
+        if (usuarioRepository.existsByEmail(email))
+            throw new IllegalArgumentException("El email ya existe: " + email);
+
+        var rol = rolRepository.findByCodigo(rolCodigo)
+            .orElseThrow(() -> new EntityNotFoundException("Rol no encontrado: " + rolCodigo));
+
+        var usuario = Usuario.builder()
+            .username(username)
+            .email(email)
+            .passwordHash(passwordEncoder.encode(password))
+            .nombres(empleado.getNombres())
+            .apellidos(empleado.getApellidos())
+            .cargo(empleado.getTipoPersonal())
+            .telefono(empleado.getTelefono())
+            .rol(rol)
+            .empleado(empleado)
+            .activo(true)
+            .debeCambiarPassword(true)
+            .bloqueado(false)
+            .intentosFallidos(0)
+            .build();
+
+        if (req.usuarioIdArea() != null)
+            usuario.setArea(areaRepository.getReferenceById(req.usuarioIdArea()));
+
+        var guardado = usuarioRepository.save(usuario);
+        return guardado.getIdUsuario();
     }
 
     @Transactional
@@ -195,10 +255,12 @@ public class EmpleadoService {
 
         aplicarExpediente(empleado, req);
 
-        var actualizado = toDTO(empleadoRepository.save(empleado));
+        var actualizado = empleadoRepository.save(empleado);
+        var usuario = usuarioRepository.findByEmpleadoIdEmpleadoAndActivoTrue(id).orElse(null);
+        var dto = toDTO(actualizado, usuario != null ? usuario.getIdUsuario() : null);
         auditoriaEventos.registrar("MODIFICAR_EMPLEADO", "MODIFICACION", "empleado", id,
             antes, resumenExpediente(req), "OK");
-        return actualizado;
+        return dto;
     }
 
     @Transactional
@@ -232,6 +294,7 @@ public class EmpleadoService {
         m.put("experiencias", req.experiencias() != null ? req.experiencias().size() : 0);
         m.put("capacitaciones", req.capacitaciones() != null ? req.capacitaciones().size() : 0);
         m.put("documentos", req.documentos() != null ? req.documentos().size() : 0);
+        m.put("crearUsuario", Boolean.TRUE.equals(req.crearUsuario()));
         return m;
     }
 
@@ -306,7 +369,7 @@ public class EmpleadoService {
         }
     }
 
-    private static EmpleadoDTO toDTO(Empleado e) {
+    private static EmpleadoDTO toDTO(Empleado e, Integer idUsuario) {
         return new EmpleadoDTO(
             e.getIdEmpleado(),
             e.getTipoIdentificacion(),
@@ -326,7 +389,8 @@ public class EmpleadoService {
             e.getEstadoLaboral(),
             e.getFechaIngresoInstitucion(),
             e.getFechaSalidaInstitucion(),
-            e.getActivo()
+            e.getActivo(),
+            idUsuario
         );
     }
 }

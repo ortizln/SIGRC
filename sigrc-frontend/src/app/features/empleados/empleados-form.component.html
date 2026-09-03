@@ -140,6 +140,54 @@
       </div>
     </div>
 
+    <!-- 3. Crear Usuario (solo al crear nuevo empleado) -->
+    <div class="form-section" *ngIf="!editando">
+      <div class="form-section-header">
+        <i class="pi pi-user-plus" style="color:var(--primary);"></i>
+        <div>
+          <strong>Cuenta de Usuario</strong>
+          <small>Opcional: crear y vincular usuario al empleado</small>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="form.crearUsuario" name="crearUsuario" id="crearUsuario">
+            <label class="form-check-label" for="crearUsuario">Crear cuenta de usuario vinculada a este empleado</label>
+          </div>
+          <small class="text-muted">El usuario podrá acceder al sistema con las credenciales que defina. Nombres y apellidos se heredan del empleado.</small>
+        </div>
+        <ng-container *ngIf="form.crearUsuario">
+          <div class="col-md-3">
+            <label class="form-label">Username <span class="text-danger">*</span></label>
+            <input autocomplete="off" [(ngModel)]="form.usuarioUsername" name="usuarioUsername" class="form-control" placeholder="Usuario para login">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Email <span class="text-danger">*</span></label>
+            <input autocomplete="off" [(ngModel)]="form.usuarioEmail" name="usuarioEmail" type="email" class="form-control" placeholder="Email institucional">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Contraseña <span class="text-danger">*</span></label>
+            <input autocomplete="off" [(ngModel)]="form.usuarioPassword" name="usuarioPassword" type="password" class="form-control" placeholder="Contraseña inicial">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Rol <span class="text-danger">*</span></label>
+            <select autocomplete="off" [(ngModel)]="form.usuarioRolCodigo" name="usuarioRolCodigo" class="form-select">
+              <option value="">— Seleccionar rol —</option>
+              <option *ngFor="let r of roles" [value]="r.codigo">{{ r.nombre }}</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Área</label>
+            <select autocomplete="off" [(ngModel)]="form.usuarioIdArea" name="usuarioIdArea" class="form-select">
+              <option [ngValue]="null">— Sin área —</option>
+              <option *ngFor="let a of areas" [ngValue]="a.idArea">{{ a.nombre }}</option>
+            </select>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
     <!-- 3. Formación Académica -->
     <div class="form-section">
       <div class="form-section-header">

@@ -77,6 +77,7 @@ export interface Empleado {
   fechaSalidaInstitucion?: string;
   observaciones?: string;
   activo?: boolean;
+  idUsuario?: number;
   formaciones?: EmpleadoFormacion[];
   experiencias?: EmpleadoExperiencia[];
   capacitaciones?: EmpleadoCapacitacion[];
@@ -106,4 +107,10 @@ export interface EmpleadoRequest {
   experiencias?: EmpleadoExperiencia[];
   capacitaciones?: EmpleadoCapacitacion[];
   documentos?: EmpleadoDocumento[];
+  crearUsuario?: boolean;
+  usuarioUsername?: string;
+  usuarioEmail?: string;
+  usuarioPassword?: string;
+  usuarioRolCodigo?: string;
+  usuarioIdArea?: number;
 }
