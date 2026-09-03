@@ -2,7 +2,9 @@ package com.epmapa.sigrc.domain.service;
 
 import com.epmapa.sigrc.domain.dto.EmpleadoRequest;
 import com.epmapa.sigrc.domain.entity.*;
+import com.epmapa.sigrc.domain.repository.AreaRepository;
 import com.epmapa.sigrc.domain.repository.EmpleadoRepository;
+import com.epmapa.sigrc.domain.repository.RolRepository;
 import com.epmapa.sigrc.domain.repository.UsuarioPermisoRepository;
 import com.epmapa.sigrc.domain.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +38,9 @@ class EmpleadoServiceTest {
     @Mock private EmpleadoRepository empleadoRepository;
     @Mock private UsuarioRepository usuarioRepository;
     @Mock private UsuarioPermisoRepository usuarioPermisoRepository;
+    @Mock private RolRepository rolRepository;
+    @Mock private AreaRepository areaRepository;
+    @Mock private PasswordEncoder passwordEncoder;
     @Mock private AuditoriaService auditoriaService;
     @Mock private AuditoriaEventos auditoriaEventos;
     @Mock private HttpServletRequest request;
@@ -44,7 +50,7 @@ class EmpleadoServiceTest {
     @BeforeEach
     void setUp() {
         service = new EmpleadoService(empleadoRepository, usuarioRepository, usuarioPermisoRepository,
-            auditoriaService, auditoriaEventos);
+            rolRepository, areaRepository, passwordEncoder, auditoriaService, auditoriaEventos);
     }
 
     private Empleado empleadoConDocumentos() {
@@ -66,7 +72,8 @@ class EmpleadoServiceTest {
         return new EmpleadoRequest("C", "1712345678", "Juan", "Pérez", null, null, null, null,
             null, null, null, null, null, "SERVIDOR_PUBLICO", "ACTIVO", null, null, null,
             List.of(EmpleadoFormacion.builder().nivel("Tercer nivel").titulo("Ingeniería en Sistemas").build()),
-            List.of(), List.of(), List.of());
+            List.of(), List.of(), List.of(),
+            null, null, null, null, null, null);
     }
 
     // ---------- Creación / duplicados / desvinculación ----------
