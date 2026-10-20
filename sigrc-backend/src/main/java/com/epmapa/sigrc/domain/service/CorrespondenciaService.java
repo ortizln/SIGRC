@@ -1159,44 +1159,52 @@ public class CorrespondenciaService {
      * (creador o responsable directo) ni a quienes no tienen vínculo.
      */
     private void verificarNoSumillaDeTitular(Integer idUsuario, Integer idCorrespondencia) {
-        if (idUsuario == null || idCorrespondencia == null) return;
+        if (restringidoParaAsistente(idUsuario, idCorrespondencia)) {
+            throw new SecurityException(
+                "Rol Secretaría vinculada: no puede sumillar, derivar ni aprobar documentos de su titular. "
+                + "La recepción delegada se registra desde la pestaña Bandeja Compartida.");
+        }
+    }
+
+    /**
+     * Indica si el usuario está vinculado como ASISTENTE y el documento
+     * pertenece a uno de sus titulares (le está vedado sumillar/derivar).
+     * Se expone para que la interfaz oculte las acciones no permitidas.
+     */
+    public boolean restringidoParaAsistente(Integer idUsuario, Integer idCorrespondencia) {
+        if (idUsuario == null || idCorrespondencia == null) return false;
         var usuario = usuarioRepository.findById(idUsuario).orElse(null);
-        if (usuario == null || usuario.getEmpleado() == null) return;
+        if (usuario == null || usuario.getEmpleado() == null) return false;
 
         var asignacion = asignacionPuestoRepository
             .findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
                 usuario.getEmpleado().getIdEmpleado(), "ACTIVA");
-        if (asignacion.isEmpty() || asignacion.get().getPuesto() == null) return;
+        if (asignacion.isEmpty() || asignacion.get().getPuesto() == null) return false;
         Integer idPuestoAsistente = asignacion.get().getPuesto().getIdPuesto();
 
         var vinculos = vinculoAsistenteRepository.findVigentesComoAsistente(idPuestoAsistente, LocalDate.now());
-        if (vinculos.isEmpty()) return; // sin vínculo → sin restricción BCC
+        if (vinculos.isEmpty()) return false; // sin vínculo → sin restricción BCC
 
-        var documento = repository.findById(idCorrespondencia)
-            .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
+        var documento = repository.findById(idCorrespondencia).orElse(null);
+        if (documento == null) return false;
 
-        boolean esCreador = idUsuario.equals(documento.getCreadoPor());
+        boolean esCreador = documento.getCreadoPor() != null
+            && idUsuario.equals(documento.getCreadoPor().getIdUsuario());
         boolean esResponsableDirecto = documento.getResponsablesAsignados().stream()
             .anyMatch(ra -> ra.getUsuario() != null && idUsuario.equals(ra.getUsuario().getIdUsuario()));
-        if (esCreador || esResponsableDirecto) return;
+        if (esCreador || esResponsableDirecto) return false;
 
         Set<Integer> idsTitulares = vinculos.stream()
             .map(v -> v.getPuestoTitular().getIdPuesto())
             .flatMap(pid -> usuarioRepository.findByPuestoVigente(pid).stream().map(Usuario::getIdUsuario))
             .collect(Collectors.toSet());
-        if (idsTitulares.isEmpty()) return;
+        if (idsTitulares.isEmpty()) return false;
 
-        boolean actuaSobreDocumentoDelTitular =
-            idsTitulares.contains(documento.getCreadoPor())
+        return (documento.getCreadoPor() != null
+                && idsTitulares.contains(documento.getCreadoPor().getIdUsuario()))
             || documento.getResponsablesAsignados().stream()
                 .anyMatch(ra -> ra.getUsuario() != null
                     && idsTitulares.contains(ra.getUsuario().getIdUsuario()));
-
-        if (actuaSobreDocumentoDelTitular) {
-            throw new SecurityException(
-                "Rol Secretaría vinculada: no puede sumillar, derivar ni aprobar documentos de su titular. "
-                + "La recepción delegada se registra desde la pestaña Bandeja Compartida.");
-        }
     }
 
     /**

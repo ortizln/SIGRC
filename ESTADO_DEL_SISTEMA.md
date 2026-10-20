@@ -24,13 +24,13 @@
 
 | Métrica | Cantidad |
 |---|---|
-| **Endpoints API** | **182** en 17 controllers |
-| **Entidades JPA** | 50 |
+| **Endpoints API** | **194** en 18 controllers |
+| **Entidades JPA** | 53 |
 | **Repositorios** | 35 |
 | **Servicios backend** | 25 |
 | **Componentes frontend** | ~50 archivos TS en 26 módulos de features |
 | **Rutas frontend** | 1 pública + 67 protegidas |
-| **Migraciones SQL** | 12 (`migracion-*.sql`) + scripts de fix |
+| **Migraciones SQL** | 13 (`migracion-*.sql`) + scripts de fix + reversa BCC |
 | **Tablas en DDL base** | 22 (módulo TI original) |
 | **Tests unitarios** | 48 (6 archivos, todos Mockito + AssertJ) |
 | **Roles del sistema** | 6 (ADMIN, JEFE_TI, TECNICO, SOLICITANTE, AUDITOR, SUPERVISOR) |
@@ -167,7 +167,7 @@ SIGRC
 
 ---
 
-## 4. Endpoints por Módulo (182 total)
+## 4. Endpoints por Módulo (194 total)
 
 | Controller | Base Path | Endpoints | Módulo |
 |---|---|---|---|
@@ -175,6 +175,7 @@ SIGRC
 | CorrespondenciaController | `/correspondencia` | **28** | Correspondencia |
 | CatalogoController | `/catalogos` | **21** | Catálogos |
 | GestionPersonalController | `/talento-humano` | **21** | RRHH (movimientos, acciones, ausencias) |
+| BandejaCompartidaController | `/correspondencia` | **12** | BCC (bandeja compartida controlada) |
 | UsuarioController | `/usuarios` | **10** | Seguridad |
 | TicketController | `/tickets` | **9** | Tickets |
 | CambioController | `/cambios` | **8** | Cambios |
@@ -188,7 +189,24 @@ SIGRC
 | DelegacionController | `/talento-humano/delegaciones` | **4** | RRHH |
 | AuthController | `/auth` | **2** | Seguridad |
 | AuditoriaController | `/auditoria` | **1** | Auditoría |
-| **TOTAL** | | **182** | |
+| **TOTAL** | | **194** | |
+
+### 4.1 Endpoints BCC — Bandeja Compartida Controlada
+
+| Método | Ruta | Permiso | Descripción |
+|---|---|---|---|
+| GET | `/correspondencia/vinculos-asistente` | ADMIN | Listar vínculos asistente→titular |
+| POST | `/correspondencia/vinculos-asistente` | ADMIN | Crear vínculo |
+| PATCH | `/correspondencia/vinculos-asistente/{id}` | ADMIN | Editar vínculo |
+| POST | `/correspondencia/vinculos-asistente/{id}/desactivar` | ADMIN | Revocar vínculo |
+| GET | `/correspondencia/mis-bandejas-compartidas` | Autenticado | Titulares vinculados al asistente |
+| GET | `/correspondencia/bandeja-compartida/{puestoId}` | Vínculo vigente | Documentos del titular |
+| POST | `/correspondencia/recepcion-delegada` | Vínculo + `puedeRecepcionar` | Recepción con identidad del asistente |
+| PUT | `/correspondencia/{id}/lectura-personal` | Autenticado | Lectura propia (no global) |
+| GET | `/correspondencia/lecturas-personales?ids=` | Autenticado | IDs leídos por el usuario |
+| GET | `/correspondencia/verificar-vinculo/{puestoTitularId}` | Autenticado | Estado del vínculo |
+| GET | `/correspondencia/{id}/restriccion-asistente` | Autenticado | ¿Vedado para sumillar/derivar? |
+| GET | `/correspondencia/{id}/seguimiento` | Participante o asistente con `puedeSeguimiento` | Trazabilidad autorizada |
 
 ---
 
@@ -210,7 +228,9 @@ auditoria, notificaciones, indicadores_cache, configuracion, sesiones
 correspondencia, correspondencia_adjunto, correspondencia_area,
 correspondencia_destinatario, correspondencia_documento_tipo,
 correspondencia_historial, correspondencia_responsable (con sumilla),
-correspondencia_respuesta, correspondencia_ticket, correspondencia_referencia
+correspondencia_respuesta, correspondencia_ticket, correspondencia_referencia,
+correspondencia_vinculo_asistente, correspondencia_lectura_usuario,
+correspondencia_recepcion_idempotente (BCC)
 
 ── Talento Humano ──
 nivel_organizacional, unidad_organizacional, puesto (+perfil: funciones,
@@ -221,7 +241,7 @@ movimiento_personal, accion_personal, solicitud_ausencia,
 delegacion_funcion, version_manual
 ```
 
-### 5.3 Entidades JPA (50)
+### 5.3 Entidades JPA (53)
 
 | Categoría | Cantidad | Entidades |
 |---|---|---|
@@ -230,7 +250,7 @@ delegacion_funcion, version_manual
 | Tickets | 5 | Ticket, TicketHistorial, TicketComentario, TicketAdjunto, Sla |
 | Cambios/Versiones | 4 | Cambio, Version, VersionTicket, VersionManual |
 | Conocimiento/Auditoría/Móvil | 3 | BaseConocimiento, Auditoria, AppMovil |
-| **Correspondencia** | **9** | Correspondencia, Adjunto, Area, Destinatario, DocumentoTipo, Historial, Responsable, Respuesta, Ticket |
+| **Correspondencia** | **12** | Correspondencia, Adjunto, Area, Destinatario, DocumentoTipo, Historial, Responsable, Respuesta, Ticket, **VinculoAsistente, LecturaUsuario, RecepcionIdempotente (BCC)** |
 | **TH — Estructura** | 3 | NivelOrganizacional, UnidadOrganizacional, AsignacionPuesto |
 | **TH — Puestos** | 7 | Puesto, Funcion, Formacion, Experiencia, Capacitacion, Producto, Interfaz |
 | **TH — Empleados** | 5 | Empleado, Documento, Formacion, Experiencia, Capacitacion |
@@ -392,10 +412,10 @@ delegacion_funcion, version_manual
 
 ## 11. Resumen Ejecutivo
 
-**SIGRC es un sistema full-stack completo** con **182 endpoints**, **50 entidades**, **26 módulos frontend** y **6 roles de seguridad**. Los módulos más maduros son:
+**SIGRC es un sistema full-stack completo** con **194 endpoints**, **53 entidades**, **26 módulos frontend** y **6 roles de seguridad**. Los módulos más maduros son:
 
 1. **Talento Humano** (67 endpoints) — estructura, puestos, empleados, asignaciones, movimientos, acciones, vacaciones, delegaciones, manual de funciones, distributivo, dashboard
-2. **Correspondencia** (28 endpoints) — ciclo completo con delegaciones, derivación institucional, bandejase, tickets vinculados
-3. **Seguridad** (43 endpoints) — JWT, RBAC granular, auditoría con snapshots, confidencialidad §30
+2. **Correspondencia** (40 endpoints) — ciclo completo con delegaciones, derivación institucional, bandejase, tickets vinculados y **BCC (bandeja compartida controlada)**: vínculo asistente→titular, recepción delegada con idempotencia, lectura personal independiente y restricción de sumilla para secretarías
+3. **Seguridad** (43 endpoints) — JWT, RBAC granular, auditoría con snapshots, confidencialidad §30, `SecurityException` → HTTP 403
 
 El sistema está en **estado funcional completo** para producción, con integraciones cruzadas entre módulos (delegaciones ↔ correspondencia ↔ vacaciones, empleados ↔ usuarios, correspondencia ↔ tickets). Las áreas de mejora principal son **tests de integración**, **tests frontend**, y **documentación DDL unificada**.

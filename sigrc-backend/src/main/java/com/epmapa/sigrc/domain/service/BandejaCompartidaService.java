@@ -11,7 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * BCC — Bandeja compartida: la secretaria consulta los documentos
@@ -23,6 +25,7 @@ public class BandejaCompartidaService {
     private final CorrespondenciaVinculoRepository vinculoRepository;
     private final CorrespondenciaRepository correspondenciaRepository;
     private final CorrespondenciaLecturaUsuarioRepository lecturaRepository;
+    private final CorrespondenciaDestinatarioRepository destinatarioRepository;
     private final UsuarioRepository usuarioRepository;
     private final AsignacionPuestoRepository asignacionRepository;
     private final AuditoriaEventos auditoriaEventos;
@@ -33,6 +36,7 @@ public class BandejaCompartidaService {
     public BandejaCompartidaService(CorrespondenciaVinculoRepository vinculoRepository,
                                     CorrespondenciaRepository correspondenciaRepository,
                                     CorrespondenciaLecturaUsuarioRepository lecturaRepository,
+                                    CorrespondenciaDestinatarioRepository destinatarioRepository,
                                     UsuarioRepository usuarioRepository,
                                     AsignacionPuestoRepository asignacionRepository,
                                     AuditoriaEventos auditoriaEventos,
@@ -40,6 +44,7 @@ public class BandejaCompartidaService {
         this.vinculoRepository = vinculoRepository;
         this.correspondenciaRepository = correspondenciaRepository;
         this.lecturaRepository = lecturaRepository;
+        this.destinatarioRepository = destinatarioRepository;
         this.usuarioRepository = usuarioRepository;
         this.asignacionRepository = asignacionRepository;
         this.auditoriaEventos = auditoriaEventos;
@@ -172,6 +177,49 @@ public class BandejaCompartidaService {
                 .filter(d -> !lecturaRepository.existsByCorrespondenciaIdCorrespondenciaAndUsuarioId(
                         d.getIdCorrespondencia(), idUsuarioAsistente))
                 .count();
+    }
+
+    /**
+     * Verifica si el usuario puede consultar el seguimiento de un documento:
+     * por ser participante directo (creador, responsable o destinatario) o
+     * por tener vínculo de asistente con permiso de seguimiento hacia un
+     * titular que participa del documento.
+     */
+    @Transactional(readOnly = true)
+    public boolean puedeSeguir(Integer idUsuario, Integer idCorrespondencia) {
+        var documento = correspondenciaRepository.findById(idCorrespondencia).orElse(null);
+        if (documento == null || !Boolean.TRUE.equals(documento.getActivo())) return false;
+
+        boolean participa =
+            (documento.getCreadoPor() != null
+                && idUsuario.equals(documento.getCreadoPor().getIdUsuario()))
+            || documento.getResponsablesAsignados().stream()
+                .anyMatch(ra -> ra.getUsuario() != null
+                    && idUsuario.equals(ra.getUsuario().getIdUsuario()))
+            || destinatarioRepository.findByCorrespondenciaIdCorrespondencia(idCorrespondencia).stream()
+                .anyMatch(d -> "USUARIO".equals(d.getTipo())
+                    && idUsuario.equals(d.getIdDestinatario()));
+        if (participa) return true;
+
+        Integer idPuestoAsistente = resolverPuestoVigente(idUsuario);
+        if (idPuestoAsistente == null) return false;
+
+        Set<Integer> participantes = new LinkedHashSet<>();
+        if (documento.getCreadoPor() != null) participantes.add(documento.getCreadoPor().getIdUsuario());
+        documento.getResponsablesAsignados().stream()
+            .map(ra -> ra.getUsuario() != null ? ra.getUsuario().getIdUsuario() : null)
+            .filter(java.util.Objects::nonNull)
+            .forEach(participantes::add);
+        if (participantes.isEmpty()) return false;
+
+        for (var v : vinculoRepository.findVigentesComoAsistente(idPuestoAsistente, LocalDate.now())) {
+            if (!Boolean.TRUE.equals(v.getPuedeSeguimiento())) continue;
+            boolean coincide = usuarioRepository
+                .findByPuestoVigente(v.getPuestoTitular().getIdPuesto()).stream()
+                .anyMatch(u -> participantes.contains(u.getIdUsuario()));
+            if (coincide) return true;
+        }
+        return false;
     }
 
     /**

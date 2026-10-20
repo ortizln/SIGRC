@@ -191,7 +191,14 @@
           <i class="pi pi-cog" style="color:var(--warning);"></i> Acciones
         </h6>
 
-        <div class="mb-3" *ngIf="esDestinatario && esDestinatarioPendiente">
+        <div class="mb-3" *ngIf="restringidoPorVinculo && (esDestinatarioPendiente || !esDestinatario)">
+          <button class="btn btn-success btn-sm w-100" (click)="recepcionarDelegado()">
+            <i class="pi pi-users" style="font-size:0.7rem;"></i> Recepción Delegada
+          </button>
+          <div class="form-text small mt-1">Se registra a su nombre y el documento se asigna a la bandeja del titular.</div>
+        </div>
+
+        <div class="mb-3" *ngIf="!restringidoPorVinculo && esDestinatario && esDestinatarioPendiente">
           <button class="btn btn-success btn-sm w-100" (click)="marcarRecibido()">
             <i class="pi pi-check-circle" style="font-size:0.7rem;"></i> Recepcionar Documento
           </button>
@@ -271,7 +278,7 @@
           </div>
         </div>
 
-        <div class="mb-3" *ngIf="doc.estado !== 'ARCHIVADO' && auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">
+        <div class="mb-3" *ngIf="doc.estado !== 'ARCHIVADO' && !restringidoPorVinculo && auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')">
           <label class="form-label small">Cambiar Estado</label>
           <div class="d-flex gap-2">
             <select autocomplete="off" [(ngModel)]="nuevoEstado" class="form-select form-select-sm">

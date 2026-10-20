@@ -257,7 +257,8 @@ export interface BandejaCompartida {
 
 export interface RecepcionDelegadaRequest {
   correspondenciaId: number;
-  puestoTitularId: number;
+  /** null = el servidor resuelve el titular a partir del documento */
+  puestoTitularId: number | null;
   idempotencyKey: string;
   observacion?: string;
 }

@@ -137,6 +137,33 @@ public class BandejaCompartidaController {
         return ResponseEntity.ok(bandejaService.lecturasDe(ids, idUsuario));
     }
 
+    @GetMapping("/{id}/restriccion-asistente")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Si el usuario está vedado para sumillar/derivar este documento",
+               description = "Verdadero cuando es asistente vinculado y el documento pertenece a su titular")
+    public ResponseEntity<Map<String, Boolean>> restriccionAsistente(
+            @PathVariable Integer id,
+            Authentication auth) {
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
+        return ResponseEntity.ok(Map.of(
+                "restringido",
+                correspondenciaService.restringidoParaAsistente(idUsuario, id)));
+    }
+
+    @GetMapping("/{id}/seguimiento")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Seguimiento del documento con acceso autorizado",
+               description = "Permite al asistente vinculado consultar trazabilidad del documento de su titular")
+    public ResponseEntity<CorrespondenciaDTO> seguimiento(
+            @PathVariable Integer id,
+            Authentication auth) {
+        Integer idUsuario = ((UserPrincipal) auth.getPrincipal()).idUsuario();
+        if (!bandejaService.puedeSeguir(idUsuario, id)) {
+            throw new SecurityException("No tiene acceso de seguimiento a este documento");
+        }
+        return ResponseEntity.ok(correspondenciaService.obtener(id));
+    }
+
     @GetMapping("/verificar-vinculo/{puestoTitularId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Verificar si el usuario autenticado tiene vínculo vigente con un puesto titular")

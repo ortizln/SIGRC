@@ -59,7 +59,8 @@ class BandejaCompartidaServiceTest {
 
         bandejaService = new BandejaCompartidaService(
             vinculoRepository, correspondenciaRepository, lecturaRepository,
-            usuarioRepository, asignacionRepository, auditoriaEventos,
+            destinatarioRepository, usuarioRepository, asignacionRepository,
+            auditoriaEventos,
             null); // CorrespondenciaService no necesario para las pruebas de lógica
 
         // Setup fixtures
@@ -298,6 +299,65 @@ class BandejaCompartidaServiceTest {
             .hasMessageContaining("inactivo");
     }
 
+    // ─── Resolución automática del titular cuando el cliente no lo indica ───
+
+    @Test
+    void recepcionar_sinPuestoTitular_resuelveDesdeDocumento() {
+        documento.setCreadoPor(titular); // el documento pertenece al titular
+        when(idempotenteRepository.findByIdempotencyKey("auto-1")).thenReturn(Optional.empty());
+        when(usuarioRepository.findById(100)).thenReturn(Optional.of(asistente));
+        when(asignacionRepository.findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
+            300, "ACTIVA")).thenReturn(Optional.of(asignacionAsistente));
+        when(correspondenciaRepository.findById(500)).thenReturn(Optional.of(documento));
+        // El documento lo creó el titular (id 200)
+        when(usuarioRepository.findByPuestoVigente(20)).thenReturn(List.of(titular));
+        when(vinculoRepository.findVigentesComoAsistente(10, LocalDate.now()))
+            .thenReturn(List.of(vinculo));
+        when(vinculoRepository.findVigenteEntre(10, 20, LocalDate.now()))
+            .thenReturn(Optional.of(vinculo));
+        when(destinatarioRepository.findByCorrespondenciaIdCorrespondencia(500))
+            .thenReturn(List.of());
+        when(destinatarioRepository.save(any())).thenReturn(null);
+        when(correspondenciaRepository.save(any())).thenReturn(documento);
+        when(historialRepository.save(any())).thenReturn(null);
+        when(idempotenteRepository.save(any())).thenReturn(null);
+
+        // puestoTitularId = null → el servidor lo resuelve
+        var req = new RecepcionDelegadaRequest(500, null, "auto-1", null);
+
+        var result = recepcionService.recepcionar(req, 100);
+
+        assertThat(result.getIdCorrespondencia()).isEqualTo(500);
+        verify(vinculoRepository).findVigenteEntre(10, 20, LocalDate.now());
+        verify(idempotenteRepository).save(any());
+    }
+
+    @Test
+    void recepcionar_sinPuestoTitular_yDocumentoSinTitularVinculado_esRechazado() {
+        // Documento cuyo creador no es ningún titular vinculado
+        var ajeno = Correspondencia.builder()
+            .idCorrespondencia(600).numeroInterno("CORR-2025-009")
+            .asunto("Otro asunto").estado("RECIBIDO").sentido("INGRESO")
+            .activo(true)
+            .creadoPor(Usuario.builder().idUsuario(999).nombres("Otro").apellidos("Usuario").build())
+            .build();
+
+        when(idempotenteRepository.findByIdempotencyKey("auto-2")).thenReturn(Optional.empty());
+        when(usuarioRepository.findById(100)).thenReturn(Optional.of(asistente));
+        when(asignacionRepository.findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
+            300, "ACTIVA")).thenReturn(Optional.of(asignacionAsistente));
+        when(correspondenciaRepository.findById(600)).thenReturn(Optional.of(ajeno));
+        when(usuarioRepository.findByPuestoVigente(20)).thenReturn(List.of(titular));
+        when(vinculoRepository.findVigentesComoAsistente(10, LocalDate.now()))
+            .thenReturn(List.of(vinculo));
+
+        var req = new RecepcionDelegadaRequest(600, null, "auto-2", null);
+
+        assertThatThrownBy(() -> recepcionService.recepcionar(req, 100))
+            .isInstanceOf(SecurityException.class)
+            .hasMessageContaining("no pertenece a ningún titular");
+    }
+
     // ─── RN-09: Lectura personal no altera estado global ───
 
     @Test
@@ -346,5 +406,93 @@ class BandejaCompartidaServiceTest {
         assertThatThrownBy(() -> bandejaService.bandejaTitular(20, 100))
             .isInstanceOf(SecurityException.class)
             .hasMessageContaining("no autoriza seguimiento");
+    }
+
+    // ─── DoD: WebSocket caído → la recepción persiste ───
+
+    @Test
+    void recepcionar_notificacionFalla_laRecepcionPersiste() {
+        when(idempotenteRepository.findByIdempotencyKey("ws-down")).thenReturn(Optional.empty());
+        when(usuarioRepository.findById(100)).thenReturn(Optional.of(asistente));
+        when(asignacionRepository.findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
+            300, "ACTIVA")).thenReturn(Optional.of(asignacionAsistente));
+        when(vinculoRepository.findVigenteEntre(10, 20, LocalDate.now()))
+            .thenReturn(Optional.of(vinculo));
+        when(correspondenciaRepository.findById(500)).thenReturn(Optional.of(documento));
+        when(destinatarioRepository.findByCorrespondenciaIdCorrespondencia(500)).thenReturn(List.of());
+        when(destinatarioRepository.save(any())).thenReturn(null);
+        when(usuarioRepository.findByPuestoVigente(20)).thenReturn(List.of(titular));
+        when(correspondenciaRepository.save(any())).thenReturn(documento);
+        when(historialRepository.save(any())).thenReturn(null);
+        when(idempotenteRepository.save(any())).thenReturn(null);
+        // El broker STOMP no está disponible
+        doThrow(new RuntimeException("broker caído"))
+            .when(notificacionService)
+            .notificarAsignacion(any(), any(), any(), any(), any());
+
+        var req = new RecepcionDelegadaRequest(500, 20, "ws-down", null);
+
+        var result = recepcionService.recepcionar(req, 100);
+
+        assertThat(result.getIdCorrespondencia()).isEqualTo(500);
+        // La recepción se persistió pese al fallo del WebSocket
+        verify(idempotenteRepository).save(any());
+        verify(historialRepository).save(any());
+    }
+
+    // ─── DoD: el gerente tiene su propia lectura personal ───
+
+    @Test
+    void marcarLeidoPersonal_comoTitular_noAlteraElDocumento() {
+        when(correspondenciaRepository.findById(500)).thenReturn(Optional.of(documento));
+        when(lecturaRepository.existsByCorrespondenciaIdCorrespondenciaAndUsuarioId(500, 200))
+            .thenReturn(false);
+        when(lecturaRepository.save(any())).thenReturn(null);
+
+        bandejaService.marcarLeidoPersonal(500, 200);
+
+        assertThat(documento.getEstado()).isEqualTo("RECIBIDO");
+        verify(lecturaRepository).save(any());
+    }
+
+    // ─── DoD: traslado de secretaria → accesos según puesto vigente ───
+
+    @Test
+    void bandejaTitular_secretariaTrasladada_pierdeAcceso() {
+        // Tras el traslado, su puesto vigente ya no tiene vínculo con la gerencia
+        var puestoNuevo = Puesto.builder().idPuesto(50).nombre("Mesa de partes").esJefatura(false).build();
+        var trasladada = Usuario.builder().idUsuario(100).username("maria.garcia")
+            .nombres("María").apellidos("García").activo(true)
+            .empleado(Empleado.builder().idEmpleado(300).build()).build();
+        var asignacionNueva = AsignacionPuesto.builder().idAsignacion(9)
+            .empleado(trasladada.getEmpleado()).puesto(puestoNuevo)
+            .esPrincipal(true).estado("ACTIVA")
+            .fechaInicio(LocalDate.now().minusDays(1)).build();
+
+        when(usuarioRepository.findById(100)).thenReturn(Optional.of(trasladada));
+        when(asignacionRepository.findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
+            300, "ACTIVA")).thenReturn(Optional.of(asignacionNueva));
+        // No hay ningún vínculo vigente desde el nuevo puesto
+        when(vinculoRepository.findVigenteEntre(50, 20, LocalDate.now()))
+            .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bandejaService.bandejaTitular(20, 100))
+            .isInstanceOf(SecurityException.class)
+            .hasMessageContaining("No tiene vínculo vigente");
+    }
+
+    // ─── DoD: la secretaria no puede consultar otra gerencia ───
+
+    @Test
+    void bandejaTitular_otraGerenciaSinVinculo_esDenegado() {
+        when(usuarioRepository.findById(100)).thenReturn(Optional.of(asistente));
+        when(asignacionRepository.findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
+            300, "ACTIVA")).thenReturn(Optional.of(asignacionAsistente));
+        // Puesto 99 no está vinculado a su puesto asistente
+        when(vinculoRepository.findVigenteEntre(10, 99, LocalDate.now()))
+            .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bandejaService.bandejaTitular(99, 100))
+            .isInstanceOf(SecurityException.class);
     }
 }

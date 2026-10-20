@@ -59,6 +59,21 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    /**
+     * Reglas de negocio de autorización contextual (BCC): la secretaría
+     * vinculada no puede sumillar/derivar, sin vínculo vigente, etc.
+     * Se traduce a 403 y se audita el motivo.
+     */
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<Map<String, Object>> reglaNegocioDenegada(SecurityException e) {
+        log.warn("Operación denegada por regla de autorización: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+            "error", "Operación no permitida",
+            "mensaje", e.getMessage() != null ? e.getMessage() : "No tiene permisos para esta operación.",
+            "timestamp", LocalDateTime.now()
+        ));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> badRequest(IllegalArgumentException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(

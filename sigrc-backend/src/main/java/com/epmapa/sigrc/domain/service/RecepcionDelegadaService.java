@@ -11,7 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * BCC — Recepción delegada por asistente sobre bandeja del titular.
@@ -96,12 +99,11 @@ public class RecepcionDelegadaService {
 
         // ── 3. Comprobar vínculo vigente ──
         var hoy = java.time.LocalDate.now();
-        var vinculo = vinculoRepository
-                .findVigenteEntre(idPuestoAsistente, req.puestoTitularId(), hoy)
-                .orElseThrow(() -> new SecurityException(
-                    "No tiene vínculo vigente con el puesto titular " + req.puestoTitularId()));
-        if (!Boolean.TRUE.equals(vinculo.getPuedeRecepcionar()))
-            throw new SecurityException("El vínculo no autoriza recepción delegada");
+        Integer puestoTitularId = req.puestoTitularId();
+
+        if (puestoTitularId != null) {
+            validarVinculoRecepcion(idPuestoAsistente, puestoTitularId, hoy);
+        }
 
         // ── 4. Verificar clasificación del documento ──
         var documento = correspondenciaRepository.findById(req.correspondenciaId())
@@ -109,6 +111,14 @@ public class RecepcionDelegadaService {
                     "Documento no encontrado: " + req.correspondenciaId()));
         if (!Boolean.TRUE.equals(documento.getActivo()))
             throw new IllegalArgumentException("El documento está inactivo");
+
+        if (puestoTitularId == null) {
+            // El cliente no indicó el titular: se resuelve desde los
+            // titulares vinculados que participan del documento.
+            puestoTitularId = resolverPuestoTitularDelDocumento(
+                    documento, idPuestoAsistente, hoy, idUsuarioAsistente);
+            validarVinculoRecepcion(idPuestoAsistente, puestoTitularId, hoy);
+        }
 
         // ── 5. Registrar recepción real (asistente como receptor) ──
         // Buscar si el documento tiene un destinatario tipo PUESTO para el titular
@@ -142,9 +152,9 @@ public class RecepcionDelegadaService {
 
         // ── 6. Asignación oficial al titular ──
         // Resolver el usuario del titular desde su puesto vigente
-        var titular = resolverUsuarioTitular(req.puestoTitularId());
+        var titular = resolverUsuarioTitular(puestoTitularId);
         if (titular == null)
-            throw new SecurityException("No se pudo resolver el usuario titular del puesto " + req.puestoTitularId());
+            throw new SecurityException("No se pudo resolver el usuario titular del puesto " + puestoTitularId);
 
         // Verificar que el titular no esté ya asignado como responsable
         boolean titularYaAsignado = documento.getResponsablesAsignados().stream()
@@ -180,7 +190,7 @@ public class RecepcionDelegadaService {
                 .idempotencyKey(req.idempotencyKey())
                 .correspondenciaId(req.correspondenciaId())
                 .usuarioId(idUsuarioAsistente)
-                .puestoTitularId(req.puestoTitularId())
+                .puestoTitularId(puestoTitularId)
                 .build();
         idempotenteRepository.save(idem);
 
@@ -190,7 +200,7 @@ public class RecepcionDelegadaService {
                 null,
                 java.util.Map.of(
                     "receptorReal", usuario.getUsername(),
-                    "puestoTitular", req.puestoTitularId(),
+                    "puestoTitular", puestoTitularId,
                     "titular", titular.getUsername()
                 ),
                 "OK");
@@ -207,6 +217,55 @@ public class RecepcionDelegadaService {
         }
 
         return documento;
+    }
+
+    /**
+     * Valida que exista vínculo vigente asistente→titular y que autorice
+     * la recepción delegada.
+     */
+    private void validarVinculoRecepcion(Integer idPuestoAsistente, Integer puestoTitularId,
+                                         java.time.LocalDate hoy) {
+        var vinculo = vinculoRepository
+                .findVigenteEntre(idPuestoAsistente, puestoTitularId, hoy)
+                .orElseThrow(() -> new SecurityException(
+                    "No tiene vínculo vigente con el puesto titular " + puestoTitularId));
+        if (!Boolean.TRUE.equals(vinculo.getPuedeRecepcionar()))
+            throw new SecurityException("El vínculo no autoriza recepción delegada");
+    }
+
+    /**
+     * Resuelve el puesto titular cuando el cliente no lo indica: busca
+     * entre los titulares vinculados al puesto del asistente aquel cuyo
+     * usuario es creador o responsable del documento.
+     */
+    private Integer resolverPuestoTitularDelDocumento(Correspondencia documento,
+                                                      Integer idPuestoAsistente,
+                                                      java.time.LocalDate hoy,
+                                                      Integer idUsuarioAsistente) {
+        Set<Integer> candidatos = new LinkedHashSet<>();
+        if (documento.getCreadoPor() != null
+                && !idUsuarioAsistente.equals(documento.getCreadoPor().getIdUsuario())) {
+            candidatos.add(documento.getCreadoPor().getIdUsuario());
+        }
+        documento.getResponsablesAsignados().stream()
+                .map(ra -> ra.getUsuario() != null ? ra.getUsuario().getIdUsuario() : null)
+                .filter(Objects::nonNull)
+                .filter(id -> !idUsuarioAsistente.equals(id))
+                .forEach(candidatos::add);
+        if (candidatos.isEmpty()) {
+            throw new SecurityException(
+                "El documento no tiene un titular asignado al que vincular la recepción");
+        }
+
+        for (var v : vinculoRepository.findVigentesComoAsistente(idPuestoAsistente, hoy)) {
+            if (!Boolean.TRUE.equals(v.getPuedeRecepcionar())) continue;
+            Integer idPuestoTitular = v.getPuestoTitular().getIdPuesto();
+            boolean coincide = usuarioRepository.findByPuestoVigente(idPuestoTitular).stream()
+                    .anyMatch(u -> candidatos.contains(u.getIdUsuario()));
+            if (coincide) return idPuestoTitular;
+        }
+        throw new SecurityException(
+            "El documento no pertenece a ningún titular vinculado a su puesto");
     }
 
     /**

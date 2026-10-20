@@ -186,6 +186,14 @@ export class CorrespondenciaService {
     });
   }
 
+  getRestriccionAsistente(id: number): Observable<{ restringido: boolean }> {
+    return this.http.get<{ restringido: boolean }>(`${this.apiUrl}/${id}/restriccion-asistente`);
+  }
+
+  getSeguimiento(id: number): Observable<Correspondencia> {
+    return this.http.get<Correspondencia>(`${this.apiUrl}/${id}/seguimiento`);
+  }
+
   verificarVinculo(puestoTitularId: number): Observable<{ vigente: boolean; puestoAsistente: number; puestoTitular: number }> {
     return this.http.get<{ vigente: boolean; puestoAsistente: number; puestoTitular: number }>(
       `${this.apiUrl}/verificar-vinculo/${puestoTitularId}`);

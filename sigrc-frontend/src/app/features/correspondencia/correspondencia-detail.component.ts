@@ -32,6 +32,7 @@ export class CorrespondenciaDetailComponent implements OnInit, OnDestroy {
   usuarios: any[] = [];
   showRespuestaForm = false;
   delegacionesVigentes: DelegacionResuelta[] = [];
+  restringidoPorVinculo = false;
 
   private user: any;
   private destroy$ = new Subject<void>();
@@ -132,6 +133,11 @@ export class CorrespondenciaDetailComponent implements OnInit, OnDestroy {
     this.respuestas = r.respuestas || [];
     this.tickets = r.ticketsVinculados || [];
     this.cerrarPreview();
+    // BCC: si el usuario es asistente vinculado del titular, está vedado para sumillar/derivar
+    this.svc.getRestriccionAsistente(r.idCorrespondencia).subscribe({
+      next: res => this.restringidoPorVinculo = !!res.restringido,
+      error: () => this.restringidoPorVinculo = false
+    });
   }
 
   estadoBadge(estado: string): string {
@@ -389,6 +395,7 @@ export class CorrespondenciaDetailComponent implements OnInit, OnDestroy {
   }
 
   get puedeSumillar(): boolean {
+    if (this.restringidoPorVinculo) return false;
     return this.esCreadorDelDocumento
       || this.esDelegadoDe(this.doc?.creadoPor)
       || this.auth.canModulo('CORRESPONDENCIA', 'ESCRITURA');
@@ -408,6 +415,21 @@ export class CorrespondenciaDetailComponent implements OnInit, OnDestroy {
     this.svc.marcarRecibido(this.doc.idCorrespondencia).subscribe(r => {
       this.doc = r;
       Swal.fire('Recibido', 'Has marcado el documento como recibido.', 'success');
+    });
+  }
+
+  recepcionarDelegado() {
+    if (!this.doc) return;
+    this.svc.recepcionDelegada({
+      correspondenciaId: this.doc.idCorrespondencia,
+      puestoTitularId: null as any,
+      idempotencyKey: `bcc-detail-${this.doc.idCorrespondencia}-${Date.now()}`
+    }).subscribe({
+      next: r => {
+        this.aplicarDTO(r);
+        Swal.fire('Recepción registrada', 'Documento recibido a su nombre y asignado a la bandeja del titular.', 'success');
+      },
+      error: e => Swal.fire('No se pudo recibir', e.error?.message || 'Verifique su vínculo con el titular', 'error')
     });
   }
 
