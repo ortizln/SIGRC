@@ -224,3 +224,40 @@ export interface DelegacionResuelta {
   fechaInicio: string;
   fechaFin: string;
 }
+
+// ─── BCC: Bandeja Compartida Controlada ───
+
+export interface VinculoAsistente {
+  idVinculo: number;
+  puestoAsistenteId: number;
+  puestoAsistenteNombre: string;
+  nombreAsistente: string;
+  puestoTitularId: number;
+  puestoTitularNombre: string;
+  nombreTitular: string;
+  puedeRecepcionar: boolean;
+  puedeOrganizar: boolean;
+  puedeSeguimiento: boolean;
+  vigenteDesde: string;
+  vigenteHasta: string | null;
+  activo: boolean;
+  vigente: boolean;
+  autorizadoPor: number;
+  autorizadoPorNombre: string;
+}
+
+export interface BandejaCompartida {
+  idVinculo: number;
+  puestoTitularId: number;
+  puestoTitularNombre: string;
+  nombreTitular: string;
+  documentos: Correspondencia[];
+  totalNoLeidos: number;
+}
+
+export interface RecepcionDelegadaRequest {
+  correspondenciaId: number;
+  puestoTitularId: number;
+  idempotencyKey: string;
+  observacion?: string;
+}

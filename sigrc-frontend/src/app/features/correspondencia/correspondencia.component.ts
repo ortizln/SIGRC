@@ -6,6 +6,7 @@ import { CorrespondenciaService } from '@core/services/correspondencia.service';
 import { CatalogoService } from '@core/services/catalogo.service';
 import { AuthService } from '@core/services/auth.service';
 import { ESTADOS_CORRESPONDENCIA, PRIORIDADES, SENTIDOS } from '@shared/models/correspondencia.model';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-correspondencia',
@@ -30,8 +31,13 @@ export class CorrespondenciaListComponent implements OnInit {
   prioridades = PRIORIDADES;
   sentidos = SENTIDOS;
   filtrosExpandidos = false;
-  bandeja: 'mis' | 'puesto' | 'unidad' | 'pendientes' = 'mis';
+  bandeja: 'mis' | 'puesto' | 'unidad' | 'pendientes' | 'compartida' = 'mis';
   cargandoBandeja = false;
+  // ─── BCC: Bandeja Compartida ───
+  bandejasCompartidas: any[] = [];
+  bandaSeleccionada: any = null;
+  cargandoCompartida = false;
+  idsLeidos = new Set<number>();
   columnas = [
     { key: 'sentido', label: 'Tipo' },
     { key: 'numero_interno', label: 'N° Interno' },
@@ -114,12 +120,17 @@ export class CorrespondenciaListComponent implements OnInit {
     this.cargar();
   }
 
-  seleccionarBandeja(b: 'mis' | 'puesto' | 'unidad' | 'pendientes') {
+  seleccionarBandeja(b: 'mis' | 'puesto' | 'unidad' | 'pendientes' | 'compartida') {
     if (this.bandeja === b) return;
     this.bandeja = b;
     if (b === 'mis') {
       this.filtros.pagina = 0;
+      this.bandaSeleccionada = null;
       this.cargar();
+      return;
+    }
+    if (b === 'compartida') {
+      this.cargarBandejasCompartidas();
       return;
     }
     this.cargandoBandeja = true;
@@ -137,6 +148,88 @@ export class CorrespondenciaListComponent implements OnInit {
         this.cargandoBandeja = false;
         this.bandeja = 'mis';
       }
+    });
+  }
+
+  cargarBandejasCompartidas() {
+    this.cargandoCompartida = true;
+    this.svc.getMisBandejasCompartidas().subscribe({
+      next: bandejas => {
+        this.bandejasCompartidas = bandejas;
+        this.cargandoCompartida = false;
+        if (bandejas.length > 0) {
+          this.seleccionarBandaCompartida(bandejas[0]);
+        } else {
+          this.documentos = [];
+          this.bandaSeleccionada = null;
+          this.construirGrupos();
+        }
+      },
+      error: () => {
+        this.cargandoCompartida = false;
+        this.bandejasCompartidas = [];
+      }
+    });
+  }
+
+  seleccionarBandaCompartida(banda: any) {
+    this.bandaSeleccionada = banda;
+    this.cargandoCompartida = true;
+    this.svc.getBandejaCompartida(banda.puestoTitularId).subscribe({
+      next: docs => {
+        this.documentos = docs;
+        this.cargandoCompartida = false;
+        this.pagina = { pagina: 0, totalPaginas: 1, totalElementos: docs.length, primera: true, ultima: true };
+        this.construirGrupos();
+        this.cargarLecturas(docs);
+      },
+      error: () => {
+        this.cargandoCompartida = false;
+        this.documentos = [];
+      }
+    });
+  }
+
+  private cargarLecturas(docs: any[]) {
+    const ids = docs.map(d => d.idCorrespondencia);
+    if (ids.length === 0) { this.idsLeidos = new Set(); return; }
+    this.svc.getLecturasPersonales(ids).subscribe(leyendo => this.idsLeidos = new Set(leyendo));
+  }
+
+  estaLeidoPorMi(d: any): boolean {
+    return this.idsLeidos.has(d.idCorrespondencia);
+  }
+
+  esPendienteDeRecepcion(d: any): boolean {
+    if (this.bandeja !== 'compartida' || !this.bandaSeleccionada) return false;
+    const u = this.auth.getUsuario();
+    if (!u || d?.creadoPor === u.idUsuario) return false;
+    if (!d?.destinatarios) return false;
+    return !d.destinatarios.some((x: any) =>
+      x.tipo === 'USUARIO' && x.idDestinatario === u.idUsuario && x.recibido);
+  }
+
+  recibirDelegado(d: any) {
+    if (!this.bandaSeleccionada) return;
+    const key = `bcc-${d.idCorrespondencia}-${this.bandaSeleccionada.puestoTitularId}-${Date.now()}`;
+    this.svc.recepcionDelegada({
+      correspondenciaId: d.idCorrespondencia,
+      puestoTitularId: this.bandaSeleccionada.puestoTitularId,
+      idempotencyKey: key
+    }).subscribe({
+      next: () => {
+        Swal.fire('Recibido', `Documento ${d.numeroInterno} registrado a nombre suyo y asignado al titular.`, 'success');
+        this.seleccionarBandaCompartida(this.bandaSeleccionada);
+      },
+      error: (e) => Swal.fire('No se pudo recibir', e.error?.message || 'Verifique su vínculo con el titular', 'error')
+    });
+  }
+
+  alternarLecturaPersonal(d: any) {
+    if (this.estaLeidoPorMi(d)) return;
+    this.svc.marcarLeidoPersonal(d.idCorrespondencia).subscribe({
+      next: () => this.idsLeidos.add(d.idCorrespondencia),
+      error: () => {}
     });
   }
 

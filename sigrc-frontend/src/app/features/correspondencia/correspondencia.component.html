@@ -4,9 +4,14 @@
       <h2>Correspondencia Institucional</h2>
       <p>Gestión de documentos recibidos y emitidos</p>
     </div>
-    <a *ngIf="auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')" routerLink="/correspondencia/nuevo" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
-      <i class="pi pi-plus" style="font-size:0.8rem;"></i> Nuevo Documento
-    </a>
+    <div class="d-flex gap-1">
+      <a *ngIf="auth.hasRole('ADMIN')" routerLink="/correspondencia/vinculos-asistente" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" title="Administrar vínculos asistente→titular">
+        <i class="pi pi-link" style="font-size:0.8rem;"></i> Vínculos
+      </a>
+      <a *ngIf="auth.canModulo('CORRESPONDENCIA', 'ESCRITURA')" routerLink="/correspondencia/nuevo" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+        <i class="pi pi-plus" style="font-size:0.8rem;"></i> Nuevo Documento
+      </a>
+    </div>
   </div>
 
   <!-- Barra de búsqueda rápida + toggle filtros -->
@@ -42,7 +47,23 @@
       <button class="btn btn-sm bandeja-btn" [class.btn-primary]="bandeja === 'pendientes'" [class.btn-outline-secondary]="bandeja !== 'pendientes'" (click)="seleccionarBandeja('pendientes')" title="Documentos abiertos en los que participo">
         <i class="pi pi-clock" style="font-size:0.75rem;"></i> Pendientes
       </button>
-      <span *ngIf="cargandoBandeja" class="align-self-center small text-muted ms-1"><i class="pi pi-spin pi-spinner"></i> Cargando...</span>
+      <button class="btn btn-sm bandeja-btn" [class.btn-primary]="bandeja === 'compartida'" [class.btn-outline-secondary]="bandeja !== 'compartida'" (click)="seleccionarBandeja('compartida')" title="Bandejas compartidas (Secretaría)" *ngIf="true">
+        <i class="pi pi-users" style="font-size:0.75rem;"></i> Bandeja Compartida
+      </button>
+      <span *ngIf="cargandoBandeja || cargandoCompartida" class="align-self-center small text-muted ms-1"><i class="pi pi-spin pi-spinner"></i> Cargando...</span>
+    </div>
+
+    <!-- Sub-tabs: titulares en bandeja compartida -->
+    <div *ngIf="bandeja === 'compartida' && bandejasCompartidas.length > 0" class="d-flex flex-wrap gap-1 mt-2">
+      <button *ngFor="let banda of bandejasCompartidas"
+              class="btn btn-sm bandeja-btn"
+              [class.btn-primary]="bandaSeleccionada?.puestoTitularId === banda.puestoTitularId"
+              [class.btn-outline-secondary]="bandaSeleccionada?.puestoTitularId !== banda.puestoTitularId"
+              (click)="seleccionarBandaCompartida(banda)"
+              [title]="'Documentos de ' + banda.nombreTitular">
+        <i class="pi pi-user" style="font-size:0.7rem;"></i> {{ banda.nombreTitular }}
+        <span class="badge bg-light text-dark ms-1" style="font-size:0.6rem;" *ngIf="banda.totalNoLeidos > 0">{{ banda.totalNoLeidos }}</span>
+      </button>
     </div>
 
     <!-- Panel expandible de filtros -->
@@ -161,9 +182,23 @@
           <td class="small">{{ responsablesNombres(d) }}</td>
           <td class="text-muted small">{{ d.fechaRecepcion | date:'dd/MM/yy' }} {{ d.horaRecepcion }}</td>
           <td>
-            <a [routerLink]="['/correspondencia', d.idCorrespondencia]" class="btn btn-soft-primary btn-xs">
-              <i class="pi pi-eye" style="font-size:0.7rem;"></i>
-            </a>
+            <div class="d-flex align-items-center gap-1">
+              <button *ngIf="bandeja === 'compartida' && esPendienteDeRecepcion(d)"
+                      class="btn btn-xs btn-success" title="Recepción delegada (registrada a mi nombre, asignada al titular)"
+                      (click)="recibirDelegado(d); $event.stopPropagation()">
+                <i class="pi pi-inbox" style="font-size:0.7rem;"></i>
+              </button>
+              <button *ngIf="bandeja === 'compartida' && !esPendienteDeRecepcion(d)"
+                      class="btn btn-xs" [class.btn-outline-secondary]="!estaLeidoPorMi(d)" [class.btn-outline-primary]="estaLeidoPorMi(d)"
+                      [disabled]="estaLeidoPorMi(d)"
+                      [title]="estaLeidoPorMi(d) ? 'Leído por usted' : 'Marcar como leído (solo usted)'"
+                      (click)="alternarLecturaPersonal(d); $event.stopPropagation()">
+                <i class="pi" [class.pi-envelope]="!estaLeidoPorMi(d)" [class.pi-envelope-open]="estaLeidoPorMi(d)" style="font-size:0.7rem;"></i>
+              </button>
+              <a [routerLink]="['/correspondencia', d.idCorrespondencia]" class="btn btn-soft-primary btn-xs">
+                <i class="pi pi-eye" style="font-size:0.7rem;"></i>
+              </a>
+            </div>
           </td>
         </tr>
       </ng-template>

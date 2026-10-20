@@ -18,6 +18,7 @@ export const routes: Routes = [
       { path: 'correspondencia/nuevo', loadComponent: () => import('./features/correspondencia/correspondencia-form.component').then(c => c.CorrespondenciaFormComponent) },
       { path: 'correspondencia/editar/:id', loadComponent: () => import('./features/correspondencia/correspondencia-form.component').then(c => c.CorrespondenciaFormComponent) },
       { path: 'correspondencia/:id', loadComponent: () => import('./features/correspondencia/correspondencia-detail.component').then(c => c.CorrespondenciaDetailComponent) },
+      { path: 'correspondencia/vinculos-asistente', loadComponent: () => import('./features/correspondencia/vinculos-asistente.component').then(c => c.VinculosAsistenteComponent), canActivate: [() => roleGuard(['ADMIN'])] },
       { path: 'tickets', loadComponent: () => import('./features/tickets/tickets.component').then(c => c.TicketsComponent) },
       { path: 'tickets/nuevo', loadComponent: () => import('./features/tickets/ticket-form.component').then(c => c.TicketFormComponent) },
       { path: 'tickets/:id', loadComponent: () => import('./features/tickets/ticket-detail.component').then(c => c.TicketDetailComponent) },

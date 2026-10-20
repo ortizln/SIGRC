@@ -48,6 +48,7 @@ public class CorrespondenciaService {
     private final UnidadOrganizacionalRepository unidadOrganizacionalRepository;
     private final AsignacionPuestoService asignacionPuestoService;
     private final DelegacionFuncionService delegacionService;
+    private final CorrespondenciaVinculoRepository vinculoAsistenteRepository;
 
     @Value("${app.upload.path:/data/sigrc/uploads}")
     private String uploadPath;
@@ -69,7 +70,8 @@ public class CorrespondenciaService {
                                   AsignacionPuestoRepository asignacionPuestoRepository,
                                   UnidadOrganizacionalRepository unidadOrganizacionalRepository,
                                   AsignacionPuestoService asignacionPuestoService,
-                                  DelegacionFuncionService delegacionService) {
+                                  DelegacionFuncionService delegacionService,
+                                  CorrespondenciaVinculoRepository vinculoAsistenteRepository) {
         this.repository = repository;
         this.tipoDocRepository = tipoDocRepository;
         this.adjuntoRepository = adjuntoRepository;
@@ -88,6 +90,7 @@ public class CorrespondenciaService {
         this.unidadOrganizacionalRepository = unidadOrganizacionalRepository;
         this.asignacionPuestoService = asignacionPuestoService;
         this.delegacionService = delegacionService;
+        this.vinculoAsistenteRepository = vinculoAsistenteRepository;
     }
 
     @Transactional
@@ -322,6 +325,7 @@ public class CorrespondenciaService {
 
     @Transactional
     public CorrespondenciaDTO cambiarEstado(Integer id, String estadoNuevo, String detalle, Integer idUsuario) {
+        verificarNoSumillaDeTitular(idUsuario, id);
         Correspondencia entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
         String estadoAnterior = entity.getEstado();
@@ -336,6 +340,7 @@ public class CorrespondenciaService {
 
     @Transactional
     public CorrespondenciaDTO asignarResponsable(Integer id, Integer idResponsable, String sumilla, Integer idUsuario) {
+        verificarNoSumillaDeTitular(idUsuario, id);
         Correspondencia entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
         Usuario responsable = usuarioRepository.findById(idResponsable)
@@ -483,6 +488,7 @@ public class CorrespondenciaService {
     @Transactional
     public CorrespondenciaDTO recepcionarYDerivar(Integer id, String sumilla,
                                                     List<Integer> idsUsuariosDerivados, Integer idUsuario) {
+        verificarNoSumillaDeTitular(idUsuario, id);
         Correspondencia entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
         Usuario usuario = usuarioRepository.getReferenceById(idUsuario);
@@ -1141,6 +1147,55 @@ public class CorrespondenciaService {
         String acceso = permiso.get().getTipoAcceso();
         if ("LECTURA".equals(acceso) && "ESCRITURA".equals(tipoAcceso)) {
             throw new SecurityException("No tiene permisos de escritura en el módulo " + modulo);
+        }
+    }
+
+    /**
+     * RN-07 BCC — La persona vinculada como ASISTENTE (secretaría/auxiliar)
+     * sobre la bandeja de un titular NO puede sumillar, derivar ni cambiar
+     * el estado de los documentos de ese titular.
+     *
+     * La restricción es contextual: no aplica a su propia documentación
+     * (creador o responsable directo) ni a quienes no tienen vínculo.
+     */
+    private void verificarNoSumillaDeTitular(Integer idUsuario, Integer idCorrespondencia) {
+        if (idUsuario == null || idCorrespondencia == null) return;
+        var usuario = usuarioRepository.findById(idUsuario).orElse(null);
+        if (usuario == null || usuario.getEmpleado() == null) return;
+
+        var asignacion = asignacionPuestoRepository
+            .findFirstByEmpleadoIdEmpleadoAndEsPrincipalTrueAndEstadoOrderByFechaInicioDesc(
+                usuario.getEmpleado().getIdEmpleado(), "ACTIVA");
+        if (asignacion.isEmpty() || asignacion.get().getPuesto() == null) return;
+        Integer idPuestoAsistente = asignacion.get().getPuesto().getIdPuesto();
+
+        var vinculos = vinculoAsistenteRepository.findVigentesComoAsistente(idPuestoAsistente, LocalDate.now());
+        if (vinculos.isEmpty()) return; // sin vínculo → sin restricción BCC
+
+        var documento = repository.findById(idCorrespondencia)
+            .orElseThrow(() -> new EntityNotFoundException("Correspondencia no encontrada"));
+
+        boolean esCreador = idUsuario.equals(documento.getCreadoPor());
+        boolean esResponsableDirecto = documento.getResponsablesAsignados().stream()
+            .anyMatch(ra -> ra.getUsuario() != null && idUsuario.equals(ra.getUsuario().getIdUsuario()));
+        if (esCreador || esResponsableDirecto) return;
+
+        Set<Integer> idsTitulares = vinculos.stream()
+            .map(v -> v.getPuestoTitular().getIdPuesto())
+            .flatMap(pid -> usuarioRepository.findByPuestoVigente(pid).stream().map(Usuario::getIdUsuario))
+            .collect(Collectors.toSet());
+        if (idsTitulares.isEmpty()) return;
+
+        boolean actuaSobreDocumentoDelTitular =
+            idsTitulares.contains(documento.getCreadoPor())
+            || documento.getResponsablesAsignados().stream()
+                .anyMatch(ra -> ra.getUsuario() != null
+                    && idsTitulares.contains(ra.getUsuario().getIdUsuario()));
+
+        if (actuaSobreDocumentoDelTitular) {
+            throw new SecurityException(
+                "Rol Secretaría vinculada: no puede sumillar, derivar ni aprobar documentos de su titular. "
+                + "La recepción delegada se registra desde la pestaña Bandeja Compartida.");
         }
     }
 

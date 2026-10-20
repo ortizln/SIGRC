@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@env/environment';
-import { Correspondencia, CorrespondenciaCrearRequest, CorrespondenciaAdjunto, CorrespondenciaHistorial, CorrespondenciaRespuesta, TicketVinculado, Paginacion, CorrespondenciaDashboard, DelegacionResuelta } from '@shared/models/correspondencia.model';
+import { Correspondencia, CorrespondenciaCrearRequest, CorrespondenciaAdjunto, CorrespondenciaHistorial, CorrespondenciaRespuesta, TicketVinculado, Paginacion, CorrespondenciaDashboard, DelegacionResuelta, VinculoAsistente, BandejaCompartida, RecepcionDelegadaRequest } from '@shared/models/correspondencia.model';
 
 @Injectable({ providedIn: 'root' })
 export class CorrespondenciaService {
@@ -144,5 +144,50 @@ export class CorrespondenciaService {
 
   getDocumentosPorDelegacion(): Observable<Record<number, number>> {
     return this.http.get<Record<number, number>>(`${this.apiUrl}/documentos-por-delegacion`);
+  }
+
+  // ─── BCC: Bandeja Compartida Controlada ───
+
+  listarVinculosAsistente(): Observable<VinculoAsistente[]> {
+    return this.http.get<VinculoAsistente[]>(`${this.apiUrl}/vinculos-asistente`);
+  }
+
+  crearVinculoAsistente(data: Partial<VinculoAsistente>): Observable<VinculoAsistente> {
+    return this.http.post<VinculoAsistente>(`${this.apiUrl}/vinculos-asistente`, data);
+  }
+
+  actualizarVinculoAsistente(id: number, data: Partial<VinculoAsistente>): Observable<VinculoAsistente> {
+    return this.http.patch<VinculoAsistente>(`${this.apiUrl}/vinculos-asistente/${id}`, data);
+  }
+
+  desactivarVinculoAsistente(id: number): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/vinculos-asistente/${id}/desactivar`, null);
+  }
+
+  getMisBandejasCompartidas(): Observable<BandejaCompartida[]> {
+    return this.http.get<BandejaCompartida[]>(`${this.apiUrl}/mis-bandejas-compartidas`);
+  }
+
+  getBandejaCompartida(puestoTitularId: number): Observable<Correspondencia[]> {
+    return this.http.get<Correspondencia[]>(`${this.apiUrl}/bandeja-compartida/${puestoTitularId}`);
+  }
+
+  recepcionDelegada(data: RecepcionDelegadaRequest): Observable<Correspondencia> {
+    return this.http.post<Correspondencia>(`${this.apiUrl}/recepcion-delegada`, data);
+  }
+
+  marcarLeidoPersonal(id: number): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}/lectura-personal`, null);
+  }
+
+  getLecturasPersonales(ids: number[]): Observable<number[]> {
+    return this.http.get<number[]>(`${this.apiUrl}/lecturas-personales`, {
+      params: { ids: ids.join(',') }
+    });
+  }
+
+  verificarVinculo(puestoTitularId: number): Observable<{ vigente: boolean; puestoAsistente: number; puestoTitular: number }> {
+    return this.http.get<{ vigente: boolean; puestoAsistente: number; puestoTitular: number }>(
+      `${this.apiUrl}/verificar-vinculo/${puestoTitularId}`);
   }
 }
